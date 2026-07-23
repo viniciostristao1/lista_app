@@ -8,11 +8,14 @@ Meta: publicar na **Play Store**.
 > NUNCA tocar em `/root/trading/`, `/root/trading_acoes/`, `/root/trading_opcoes/`.
 
 ## O que o app faz (MVP)
-Duas abas:
-- **📋 Listas** — cria listas, adiciona itens (autocomplete do histórico do próprio
-  usuário), marca como comprado, total da compra ao vivo. 3 mercados favoritos.
-- **📊 Pedidos** — histórico de compras finalizadas, comparador entre mercados,
-  resumo mensal, evolução de preço de um item.
+Três abas:
+- **📋 Listas** — cria listas, adiciona itens (autocomplete do histórico), marca como
+  comprado, total ao vivo. No topo: **legenda dos mercados** (cor→nome); tocar abre o
+  editor **"Meus mercados"** (nome + cor, até 3 favoritos).
+- **🏷️ Itens** — catálogo pessoal: cada produto com o **preço em cada mercado**
+  (comparador entre mercados) + evolução do preço no tempo.
+- **📊 Pedidos** — histórico de compras finalizadas + **resumo do mês** (gasto,
+  top itens, evolução de preço).
 
 ## Princípios (não violar)
 1. **Sem catálogo pronto** — o catálogo nasce vazio e cresce com o que o usuário digita.
