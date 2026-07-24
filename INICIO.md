@@ -72,6 +72,18 @@ sai na nuvem. Flutter **3.44.7** / Dart **3.12.2** em `/root/flutter`.
   colar `firestore.rules` na aba **Regras** do console. Se precisar de CLI no futuro:
   usar service account.
 
-## Estado do build (próximo marco = ver o app)
-- Sem Android SDK na VPS → APK de release sai na **nuvem (GitHub Actions)**.
-- Só Android configurado no Firebase → preview web exige registrar um app Web depois.
+## Estado do build / CI (APK funcionando desde 2026-07-24)
+- **Fase 1 = FUNCIONAL e testável.** Aba Listas completa (criar/abrir listas,
+  add item c/ autocomplete, marcar, total ao vivo, editor de mercados, finalizar).
+  Abas Itens/Pedidos = placeholders (são a Fase 2).
+- **CI:** `.github/workflows/build-apk.yml` gera `app-debug.apk` na nuvem. Config do
+  Firebase injetada via **secrets** `GOOGLE_SERVICES_JSON` + `FIREBASE_OPTIONS_DART`
+  (base64), porque os arquivos são gitignored.
+- ⚠️ Push de workflow exigiu escopo **`workflow`** no token gh (adicionado via
+  `gh auth refresh -s workflow`, device flow).
+- **Cortar um APK de teste:** build roda no push em `app/**` → baixar artefato →
+  `gh release create <tag> lista-app.apk`. Release atual: `v0.1.0-teste1`.
+- **Login em runtime:** `signInWithProvider` (browser). Ainda **sem SHA-1** — trocar
+  pelo google_sign_in nativo + SHA-1 ao preparar o release assinado pro Play Store.
+- APK debug é grande (~149 MB, todas as ABIs). Release final será bem menor.
+- Só Android no Firebase → preview web exige registrar um app Web depois.
