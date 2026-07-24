@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore — Lista App
+// Princípio: cada usuário só pode ler/escrever DENTRO do seu próprio nó users/{uid}.
+// Nada é público; sem login, nada é acessível.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Tudo do usuário fica sob users/{uid}/... (mercados, produtos, listas,
+    // itens, precos). Só o dono autenticado acessa.
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Qualquer outro caminho: negado por padrão (não precisa declarar, mas
+    // deixamos explícito para documentar a intenção).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
