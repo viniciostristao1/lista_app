@@ -58,4 +58,20 @@ Tudo aninhado sob o usuário (regra de segurança: `users/{uid}` só pro dono):
 
 ## Ambiente
 VPS: 1 vCPU, 3.8 GB RAM (sem swap), ~34 GB livres. OK p/ codar; build de release
-sai na nuvem. Flutter/Android SDK sendo instalados.
+sai na nuvem. Flutter **3.44.7** / Dart **3.12.2** em `/root/flutter`.
+
+## Estado do Firebase (conectado em 2026-07-24)
+- Projeto: **lista-app-e08e2** (dono: viniciostristao@gmail.com).
+- App Android registrado: pacote **com.vinyapps.lista_app**.
+- **Auth Google** ativado. **Firestore** criado em `southamerica-east1` (modo produção).
+- Config LOCAL, fora do Git: `app/android/app/google-services.json` +
+  `app/lib/firebase_options.dart` (**só Android** por ora; Web quando formos ao preview).
+- Plugin `com.google.gms.google-services` no Gradle; `minSdk >= 23`.
+- ⚠️ `firebase login --no-localhost` está **bugado** ("Unable to verify client") →
+  configuramos via **console manual**, não via flutterfire CLI. Deploy de regras =
+  colar `firestore.rules` na aba **Regras** do console. Se precisar de CLI no futuro:
+  usar service account.
+
+## Estado do build (próximo marco = ver o app)
+- Sem Android SDK na VPS → APK de release sai na **nuvem (GitHub Actions)**.
+- Só Android configurado no Firebase → preview web exige registrar um app Web depois.
