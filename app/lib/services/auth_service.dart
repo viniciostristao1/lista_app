@@ -33,3 +33,13 @@ final authServiceProvider = Provider<AuthService>((ref) {
 final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authServiceProvider).authState;
 });
+
+/// UID do usuário logado. Só é lido dentro do app (depois do porteiro de auth),
+/// onde sempre há usuário.
+final uidProvider = Provider<String>((ref) {
+  final user = ref.watch(authStateProvider).asData?.value;
+  if (user == null) {
+    throw StateError('uidProvider lido sem usuário autenticado');
+  }
+  return user.uid;
+});
