@@ -90,6 +90,21 @@ class ProdutosRepository {
         .update({'precos.$mercadoId': FieldValue.delete()});
   }
 
+  /// Ao excluir um mercado, tira o preço dele de todos os produtos.
+  Future<void> removerMercadoDeTodos(String mercadoId) async {
+    final snap = await _refs.produtos.get();
+    final batch = _refs.db.batch();
+    var alterou = false;
+    for (final doc in snap.docs) {
+      final precos = doc.data()['precos'] as Map<String, dynamic>?;
+      if (precos != null && precos.containsKey(mercadoId)) {
+        batch.update(doc.reference, {'precos.$mercadoId': FieldValue.delete()});
+        alterou = true;
+      }
+    }
+    if (alterou) await batch.commit();
+  }
+
   /// Garante que o produto existe (usado ao adicionar item numa lista) e, se
   /// vier preço + mercado, também registra esse preço no catálogo. Retorna o id.
   Future<String> registrar({

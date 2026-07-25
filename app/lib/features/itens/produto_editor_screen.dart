@@ -180,21 +180,6 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             decoration: _dec('Ex: Café Pilão'),
           ),
           const SizedBox(height: 18),
-          _label('Categoria'),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final c in Categoria.values)
-                _chip(
-                  selecionado: _categoria == c,
-                  onTap: () => setState(() => _categoria = c),
-                  texto: c.label,
-                ),
-            ],
-          ),
-          const SizedBox(height: 18),
           _label('Marca (opcional)'),
           const SizedBox(height: 8),
           TextField(
@@ -250,6 +235,21 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             )
           else
             ...widget.mercados.map(_linhaPreco),
+          const SizedBox(height: 22),
+          _label('Categoria'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final c in Categoria.values)
+                _chip(
+                  selecionado: _categoria == c,
+                  onTap: () => setState(() => _categoria = c),
+                  texto: c.label,
+                ),
+            ],
+          ),
           const SizedBox(height: 26),
           SizedBox(
             width: double.infinity,

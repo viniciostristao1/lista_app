@@ -63,6 +63,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
+  /// Remove o item da lista. Se o produto for "novo" (sem preço cadastrado no
+  /// catálogo), ele some da aba Itens também.
+  Future<void> _removerDaLista(ItemLista it, Produto? p, String listaId) async {
+    await ref.read(listasRepoProvider).removerItem(listaId, it.id);
+    if (p != null && p.precos.isEmpty) {
+      await ref.read(produtosRepoProvider).excluirProduto(p.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ativas = ref.watch(listasAtivasProvider).asData?.value ?? const [];
@@ -465,8 +474,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ),
         child: const Icon(Icons.delete_outline, color: AppColors.danger),
       ),
-      onDismissed: (_) =>
-          ref.read(listasRepoProvider).removerItem(atual.id, it.id),
+      onDismissed: (_) => _removerDaLista(it, p, atual.id),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () => ref

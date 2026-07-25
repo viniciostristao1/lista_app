@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/services/mercados_repository.dart';
+import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 
 /// Abre o editor "Meus mercados" (até 3, com nome e cor).
@@ -76,7 +77,11 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
     try {
       final restantes = _slots.where((s) => s.id != null).map((s) => s.id!).toSet();
       for (final id in _idsIniciais) {
-        if (!restantes.contains(id)) await repo.excluir(id);
+        if (!restantes.contains(id)) {
+          await repo.excluir(id);
+          // some com os preços desse mercado em todos os produtos
+          await ref.read(produtosRepoProvider).removerMercadoDeTodos(id);
+        }
       }
       for (final s in _slots) {
         final nome = s.nomeCtrl.text.trim();

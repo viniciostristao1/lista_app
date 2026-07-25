@@ -68,6 +68,14 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **Decisão:** categorias = **lista fixa ampliada (13)**; NÃO faremos "editar
   categorias" (complexidade > ganho). Itens fica só com "Editar mercados".
 
+### 2026-07-25 (cont.) — 3 correções
+- Editor de produto: **Categoria** movida pro final (abaixo dos preços/mercados).
+- **Exclusão inteligente na Listas:** ao excluir um item cujo produto **não tem
+  preço** (novo/criado na hora), o produto some do catálogo junto; se tem preço
+  (cadastrado), permanece na aba Itens.
+- **Bug:** ao **excluir um mercado**, agora remove os preços dele de todos os
+  produtos (`ProdutosRepository.removerMercadoDeTodos`).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -119,3 +127,18 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   Grátis (Spark) cobre ~1.000–1.500 usuários ativos/mês; no Blaze ~US$0,001/usuário/mês
   (uso leve). Gargalo = **custo (baixo)**, não capacidade. Ligar alerta de orçamento.
 - Pendência aberta: aba **Pedidos** (repensar — será mais complexa).
+
+---
+
+## Publicar na Play Store (checklist, quando for a hora)
+1. Conta de desenvolvedor Google Play — **US$25 (uma vez)**.
+2. Trocar o build de APK para **AAB** assinado (a keystore de upload já existe).
+3. Ficha: nome, descrição (curta+longa), **ícone 512×512**, gráfico 1024×500, prints,
+   categoria, e-mail de contato.
+4. **Política de privacidade** (URL) — hospedar de graça (ex.: GitHub Pages).
+5. Formulário de **segurança de dados** (coleta: e-mail do login + itens do usuário) +
+   classificação de conteúdo + público-alvo.
+6. ⚠️ **Conta pessoal nova:** exige **teste fechado com ~12 testadores por 14 dias**
+   antes de liberar produção. Conta empresa pula, mas exige CNPJ/verificação.
+7. Revisão do Google: horas a dias. Update depois = subir AAB novo.
+8. Monetização (depois): AdMob ou premium.
