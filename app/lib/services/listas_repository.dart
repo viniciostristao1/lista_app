@@ -89,6 +89,37 @@ class ListasRepository {
   Future<void> removerItem(String listaId, String itemId) =>
       _refs.itens(listaId).doc(itemId).delete();
 
+  /// Retorna a lista de compras atual (a única ativa). Cria uma se não existir.
+  Future<Lista> obterOuCriarAtiva() async {
+    final snap = await _refs.listas.where('status', isEqualTo: 'ativa').get();
+    if (snap.docs.isNotEmpty) {
+      final ativas = snap.docs.map(Lista.fromDoc).toList();
+      ativas.sort((a, b) {
+        final da = a.createdAt;
+        final db = b.createdAt;
+        if (da == null || db == null) return 0;
+        return db.compareTo(da);
+      });
+      return ativas.first;
+    }
+    final id = await criar('Minha lista');
+    return Lista(id: id, nome: 'Minha lista', status: 'ativa');
+  }
+
+  /// Fecha a compra atual (vira histórico). Guarda um total estimado.
+  Future<void> finalizarSimples(
+    String listaId, {
+    required double total,
+    required int qtdItens,
+  }) {
+    return _refs.listas.doc(listaId).update({
+      'status': 'finalizada',
+      'finalizadaAt': Timestamp.now(),
+      'totalGasto': total,
+      'qtdItens': qtdItens,
+    });
+  }
+
   /// Finaliza a lista: vira "pedido". Congela total/qtd/mercado predominante,
   /// grava observações de preço e conta +1 em cada produto comprado.
   Future<void> finalizar(String listaId, List<ItemLista> itens) async {

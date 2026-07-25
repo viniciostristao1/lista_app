@@ -14,10 +14,7 @@ class ProdutosRepository {
   Stream<List<Produto>> watchAll() {
     return _refs.produtos.snapshots().map((snap) {
       final lista = snap.docs.map(Produto.fromDoc).toList();
-      lista.sort((a, b) {
-        final c = b.vezesComprado.compareTo(a.vezesComprado);
-        return c != 0 ? c : a.nomeLower.compareTo(b.nomeLower);
-      });
+      lista.sort((a, b) => a.nomeLower.compareTo(b.nomeLower)); // ordem alfabética
       return lista;
     });
   }

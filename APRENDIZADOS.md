@@ -33,6 +33,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **Próximo:** ligar a economia na aba Listas (menor preço + economia + % geral) e
   terminar a aba Pedidos (histórico + resumo do mês).
 
+### 2026-07-25 (cont.) — Aba Listas repensada: "lista rápida" de mercado
+- Listas virou **uma lista única** (a compra atual) — removido o gerenciar-várias.
+- Adicionar item = **buscar (🔍) no catálogo e puxar**; não se digita preço na lista
+  (o preço vem da aba Itens).
+- Destaque da lista = **economia** (Σ do 2º−menor) + **percentual**; "estimado" e nº
+  de itens como linha secundária.
+- Aba **Itens em ordem alfabética**.
+- Removidos `lista_detalhe_screen.dart` e `add_item_sheet.dart`.
+- **Pendente:** aba **Pedidos** (o usuário quer repensá-la; será mais complexa).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -74,5 +84,6 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   com 1 só mercado não entra. **Geral** = soma das economias + **percentual**.
 - **Alerta vermelho** quando o preço tem mais de **30 dias**.
 - Campos opcionais do produto: **marca, tamanho, unidade** (texto livre).
-- Pendências abertas: total da lista (cesta-mais-barata vs por-mercado) a confirmar;
-  aba Pedidos a construir.
+- **Lista rápida (25/07):** Listas = 1 lista só; adiciona por busca no catálogo, sem
+  digitar preço; destaque = economia + %; "estimado" como secundário.
+- Pendência aberta: aba **Pedidos** (repensar — será mais complexa).
