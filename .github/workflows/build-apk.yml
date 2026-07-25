@@ -33,6 +33,16 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/android/app/google-services.json
           echo "${{ secrets.FIREBASE_OPTIONS_DART }}" | base64 -d > app/lib/firebase_options.dart
 
+      - name: Assinatura de release (keystore + key.properties)
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/android/app/upload-keystore.jks
+          cat > app/android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=upload
+          storeFile=upload-keystore.jks
+          EOF
+
       - name: Dependências
         working-directory: app
         run: flutter pub get
