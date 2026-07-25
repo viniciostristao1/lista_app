@@ -1,6 +1,6 @@
-name: Build APK (debug)
+name: Build APK
 
-# Gera um APK de teste na nuvem a cada push no app, e também sob demanda.
+# Gera APKs de teste (release, por arquitetura) na nuvem a cada push no app.
 on:
   push:
     branches: [main]
@@ -37,13 +37,13 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Build APK (debug)
+      - name: Build APK (release, por arquitetura)
         working-directory: app
-        run: flutter build apk --debug
+        run: flutter build apk --release --split-per-abi
 
-      - name: Publica o APK como artefato
+      - name: Publica os APKs como artefato
         uses: actions/upload-artifact@v4
         with:
-          name: lista-app-debug
-          path: app/build/app/outputs/flutter-apk/app-debug.apk
+          name: lista-app-apks
+          path: app/build/app/outputs/flutter-apk/*-release.apk
           if-no-files-found: error

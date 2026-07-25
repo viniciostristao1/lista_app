@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,19 +20,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref.read(authServiceProvider).signInWithGoogle();
       // O redirecionamento para o app acontece pelo authStateProvider.
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      // Cancelamento do usuário não é erro.
+      if (e.code == 'canceled' || e.code == 'web-context-canceled') return;
+      _mostrarErro('firebase_auth/${e.code}', e.message ?? '(sem detalhe)');
     } catch (e) {
       if (!mounted) return;
-      // Cancelamento do usuário não é erro — só ignora.
-      final msg = e.toString().toLowerCase();
-      final cancelado = msg.contains('cancel') || msg.contains('closed');
-      if (!cancelado) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não consegui entrar. Tente de novo.')),
-        );
-      }
+      _mostrarErro('erro', e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _mostrarErro(String codigo, String detalhe) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Não consegui entrar'),
+        content: SingleChildScrollView(
+          child: SelectableText(
+            '$codigo\n\n$detalhe',
+            style: const TextStyle(fontSize: 12.5, color: AppColors.dim),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -43,7 +64,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              // marca
               Container(
                 width: 84,
                 height: 84,
