@@ -72,6 +72,22 @@ sai na nuvem. Flutter **3.44.7** / Dart **3.12.2** em `/root/flutter`.
   colar `firestore.rules` na aba **Regras** do console. Se precisar de CLI no futuro:
   usar service account.
 
+### Login Google — FUNCIONANDO (resolvido 2026-07-25)
+Método: `FirebaseAuth.signInWithProvider(GoogleAuthProvider())` (fluxo browser, sem
+google_sign_in nativo). 3 causas que travaram o login (todas resolvidas):
+1. **Auth não estava provisionada** — apesar do "liguei o Google" inicial, o provedor
+   não salvou. Sintoma: `CONFIGURATION_NOT_FOUND`. Fix: Authentication → Get Started →
+   Google → Ativar + **e-mail de suporte** → Salvar. **Verificar daqui** (sem app):
+   `curl -X POST 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<APIKEY>'`
+   → `CONFIGURATION_NOT_FOUND` = não provisionada; `ADMIN_ONLY_OPERATION` = OK.
+2. **cert-hash** (`invalid-cert-hash`) — o app precisa ser assinado com um keystore cujo
+   **SHA-1 esteja registrado** no Firebase (Configs do app Android → impressões SHA).
+   SHA-1 da chave de upload: `FB:02:95:85:16:45:D3:05:16:BA:58:08:38:EB:FD:2F:9E:23:C0:F0`.
+   Conferir assinatura de um APK: `apksigner verify --print-certs <apk>`.
+3. **Assinatura instável do CI** — resolvido com keystore fixo (secrets), acima.
+Release atual testável: **v0.1.2-teste3**. `google-services.json` ainda com oauth_client
+vazio (não importa p/ signInWithProvider; atualizar só se migrar p/ google_sign_in nativo).
+
 ## Estado do build / CI (APK funcionando desde 2026-07-24)
 - **Fase 1 = FUNCIONAL e testável.** Aba Listas completa (criar/abrir listas,
   add item c/ autocomplete, marcar, total ao vivo, editor de mercados, finalizar).
