@@ -89,6 +89,16 @@ class ListasRepository {
   Future<void> removerItem(String listaId, String itemId) =>
       _refs.itens(listaId).doc(itemId).delete();
 
+  /// Remove vários itens de uma vez (usado ao finalizar a compra de um mercado).
+  Future<void> removerItens(String listaId, List<String> ids) async {
+    if (ids.isEmpty) return;
+    final batch = _refs.db.batch();
+    for (final id in ids) {
+      batch.delete(_refs.itens(listaId).doc(id));
+    }
+    await batch.commit();
+  }
+
   /// Retorna a lista de compras atual (a única ativa). Cria uma se não existir.
   Future<Lista> obterOuCriarAtiva() async {
     final snap = await _refs.listas.where('status', isEqualTo: 'ativa').get();

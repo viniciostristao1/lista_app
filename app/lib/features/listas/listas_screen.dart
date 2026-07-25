@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:lista_app/features/listas/widgets/mercados_editor_sheet.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
@@ -16,6 +15,7 @@ import 'package:lista_app/util/format.dart';
 
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
 /// A barra de mercados no topo filtra a lista pelo mercado mais barato.
+/// (Editar mercados agora fica na aba Itens.)
 class ListasScreen extends ConsumerStatefulWidget {
   const ListasScreen({super.key});
 
@@ -77,11 +77,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         : (ref.watch(itensProvider(atual.id)).asData?.value ??
             const <ItemLista>[]);
 
-    // filtro válido (se o mercado filtrado foi apagado, volta pra Todos)
-    final filtro = (_filtroMercado != null &&
-            mercados.any((m) => m.id == _filtroMercado))
-        ? _filtroMercado
-        : null;
+    final filtro =
+        (_filtroMercado != null && mercados.any((m) => m.id == _filtroMercado))
+            ? _filtroMercado
+            : null;
 
     bool visivel(ItemLista it) {
       if (filtro == null) return true;
@@ -90,14 +89,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
     final itensVisiveis = itens.where(visivel).toList();
 
-    // economia/estimado do que está visível; estimado geral p/ finalizar.
-    var economia = 0.0, baseSegundo = 0.0, estimadoVis = 0.0, estimadoGeral = 0.0;
-    for (final it in itens) {
+    var economia = 0.0, baseSegundo = 0.0, estimadoVis = 0.0;
+    for (final it in itensVisiveis) {
       final p = produtosPorId[it.produtoId];
       if (p == null) continue;
       final menor = p.menorPreco;
-      if (menor != null) estimadoGeral += menor * it.quantidade;
-      if (!visivel(it)) continue;
       if (menor != null) estimadoVis += menor * it.quantidade;
       final segundo = p.segundoMenorPreco;
       if (segundo != null) {
@@ -125,7 +121,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               children: [
                 _barraFiltro(mercados, filtro),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 _cardEconomia(economia, percent, estimadoVis, itensVisiveis.length),
                 const SizedBox(height: 12),
                 _campoBusca(),
@@ -142,8 +138,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               ],
             ),
           ),
-          if (_busca.isEmpty && itens.isNotEmpty)
-            _botaoFinalizar(atual!, estimadoGeral, itens.length),
+          if (_busca.isEmpty && itensVisiveis.isNotEmpty)
+            _botaoFinalizar(atual!, itensVisiveis, mercadosPorId[filtro]?.nome),
         ],
       ),
     );
@@ -153,19 +149,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   Widget _barraFiltro(List<Mercado> mercados, String? filtro) {
     if (mercados.isEmpty) {
-      return InkWell(
-        borderRadius: BorderRadius.circular(13),
-        onTap: () => mostrarEditorMercados(context, mercados),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: AppColors.line),
-          ),
-          child: const Text('Toque para cadastrar seus mercados',
-              style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: AppColors.line),
         ),
+        child: const Text('Cadastre seus mercados na aba Itens (Editar mercados).',
+            style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
       );
     }
     return SizedBox(
@@ -185,27 +177,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               selecionado: filtro == m.id,
               onTap: () => setState(() => _filtroMercado = m.id),
             ),
-          GestureDetector(
-            onTap: () => mostrarEditorMercados(context, mercados),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.line),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.edit_outlined, size: 14, color: AppColors.dim2),
-                  SizedBox(width: 5),
-                  Text('editar',
-                      style: TextStyle(color: AppColors.dim2, fontSize: 12)),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -247,8 +218,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   style: TextStyle(
                     color: selecionado ? AppColors.green : AppColors.dim,
                     fontSize: 12.5,
-                    fontWeight:
-                        selecionado ? FontWeight.w600 : FontWeight.w500,
+                    fontWeight: selecionado ? FontWeight.w600 : FontWeight.w500,
                   )),
             ],
           ),
@@ -326,17 +296,20 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                         color: AppColors.green, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.nome,
+                      child: Text.rich(
+                        TextSpan(children: [
+                          TextSpan(
+                              text: p.nome,
                               style: const TextStyle(
-                                  fontSize: 14.5, fontWeight: FontWeight.w500)),
+                                  color: AppColors.text,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w500)),
                           if (p.detalhe.isNotEmpty)
-                            Text(p.detalhe,
+                            TextSpan(
+                                text: '  ${p.detalhe}',
                                 style: const TextStyle(
                                     color: AppColors.dim2, fontSize: 12)),
-                        ],
+                        ]),
                       ),
                     ),
                     if (p.menorPreco != null)
@@ -372,12 +345,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     ];
   }
 
-  // ---------- economia (destaque) ----------
+  // ---------- economia (destaque, compacto) ----------
 
   Widget _cardEconomia(
       double economia, double percent, double estimado, int qtd) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -392,7 +365,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         children: [
           const Text('Economia pegando os mais baratos',
               style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
@@ -403,25 +376,25 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       fontSize: 23,
                       fontWeight: FontWeight.w700)),
               if (percent > 0) ...[
-                const SizedBox(width: 7),
+                const SizedBox(width: 6),
                 Text('(${percent.toStringAsFixed(0)}%)',
                     style: const TextStyle(
                         color: AppColors.green,
                         fontSize: 14,
                         fontWeight: FontWeight.w600)),
               ],
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  economia > 0
+                      ? 'vs a 2ª opção mais barata'
+                      : 'cadastre em 2+ mercados para calcular',
+                  style: const TextStyle(color: AppColors.dim2, fontSize: 11.5),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          if (economia == 0)
-            const Text(
-              'Cadastre o mesmo item em 2+ mercados (aba Itens) para ver a economia.',
-              style: TextStyle(color: AppColors.dim2, fontSize: 12),
-            )
-          else
-            const Text('vs comprar tudo na 2ª opção mais barata',
-                style: TextStyle(color: AppColors.dim2, fontSize: 12)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           Text('Estimado ${reais(estimado)} · $qtd ${qtd == 1 ? 'item' : 'itens'}',
               style: const TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
@@ -438,11 +411,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     Lista atual,
   ) {
     final widgets = <Widget>[];
+    var primeiro = true;
     for (final cat in Categoria.values) {
       final grupo = itens.where((e) => e.categoria == cat).toList();
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
-        padding: const EdgeInsets.fromLTRB(2, 14, 2, 8),
+        padding: EdgeInsets.fromLTRB(2, primeiro ? 10 : 6, 2, 6),
         child: Text(cat.label.toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
@@ -450,6 +424,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.1)),
       ));
+      primeiro = false;
       for (final it in grupo) {
         widgets
             .add(_itemRow(it, produtosPorId[it.produtoId], mercadosPorId, atual));
@@ -615,7 +590,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  Widget _botaoFinalizar(Lista atual, double estimado, int qtd) {
+  Widget _botaoFinalizar(
+      Lista atual, List<ItemLista> visiveis, String? mercadoNome) {
     return SafeArea(
       minimum: const EdgeInsets.all(16),
       child: SizedBox(
@@ -624,15 +600,19 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           onPressed: () async {
             await ref
                 .read(listasRepoProvider)
-                .finalizarSimples(atual.id, total: estimado, qtdItens: qtd);
+                .removerItens(atual.id, visiveis.map((e) => e.id).toList());
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Compra finalizada! 🛒')),
+                SnackBar(
+                    content: Text(mercadoNome == null
+                        ? 'Compra finalizada! 🛒'
+                        : 'Itens de $mercadoNome concluídos ✓')),
               );
             }
           },
           icon: const Icon(Icons.check_circle_outline, size: 20),
-          label: const Text('Finalizar compra'),
+          label: Text(
+              mercadoNome == null ? 'Finalizar compra' : 'Finalizar $mercadoNome'),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.green.withValues(alpha: 0.14),
             foregroundColor: AppColors.green,

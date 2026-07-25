@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
+import 'package:lista_app/features/listas/widgets/mercados_editor_sheet.dart';
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/models/produto.dart';
 import 'package:lista_app/services/mercados_repository.dart';
@@ -60,23 +61,71 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Novo item'),
       ),
-      body: produtosAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: AppColors.green)),
-        error: (_, _) => const Center(
-            child: Text('Erro ao carregar.',
-                style: TextStyle(color: AppColors.dim))),
-        data: (todos) {
-          final lista = _busca.isEmpty
-              ? todos
-              : todos.where((p) => p.nomeLower.contains(_busca)).toList();
-          if (todos.isEmpty) return _vazio();
-          return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 100),
-            itemCount: lista.length,
-            itemBuilder: (_, i) => _cardProduto(lista[i], mercados, mercadosPorId),
-          );
-        },
+      body: Column(
+        children: [
+          // caixinhas de configuração (estreitas)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+            child: Row(
+              children: [
+                _boxEditar(
+                  icon: Icons.storefront_outlined,
+                  label: 'Editar mercados',
+                  onTap: () => mostrarEditorMercados(context, mercados),
+                ),
+                // "Editar categorias" entra aqui no próximo passo.
+              ],
+            ),
+          ),
+          Expanded(
+            child: produtosAsync.when(
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.green)),
+              error: (_, _) => const Center(
+                  child: Text('Erro ao carregar.',
+                      style: TextStyle(color: AppColors.dim))),
+              data: (todos) {
+                final lista = _busca.isEmpty
+                    ? todos
+                    : todos.where((p) => p.nomeLower.contains(_busca)).toList();
+                if (todos.isEmpty) return _vazio();
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 100),
+                  itemCount: lista.length,
+                  itemBuilder: (_, i) =>
+                      _cardProduto(lista[i], mercados, mercadosPorId),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _boxEditar({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: AppColors.green),
+            const SizedBox(width: 6),
+            Text(label,
+                style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+          ],
+        ),
       ),
     );
   }
@@ -108,28 +157,32 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(p.nome,
+                      child: Text.rich(
+                        TextSpan(children: [
+                          TextSpan(
+                              text: p.nome,
                               style: const TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w600)),
+                                  color: AppColors.text,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600)),
                           if (p.detalhe.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(p.detalhe,
-                                  style: const TextStyle(
-                                      color: AppColors.dim, fontSize: 12.5)),
-                            ),
-                        ],
+                            TextSpan(
+                                text: '   ${p.detalhe}',
+                                style: const TextStyle(
+                                    color: AppColors.dim, fontSize: 12.5)),
+                        ]),
                       ),
                     ),
-                    Text(p.categoria.label.toUpperCase(),
-                        style: const TextStyle(
-                            color: AppColors.dim2,
-                            fontSize: 10,
-                            letterSpacing: .6,
-                            fontWeight: FontWeight.w700)),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(p.categoria.label.toUpperCase(),
+                          style: const TextStyle(
+                              color: AppColors.dim2,
+                              fontSize: 10,
+                              letterSpacing: .6,
+                              fontWeight: FontWeight.w700)),
+                    ),
                   ],
                 ),
                 if (ordenados.isEmpty)
@@ -214,7 +267,8 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
               if (menor) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     color: AppColors.green.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(5),

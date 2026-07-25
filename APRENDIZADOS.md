@@ -49,6 +49,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Economia/estimado recomputam para o subconjunto visível; "Finalizar" usa a lista toda.
 - Estética: fonte do valor da economia reduzida (30 → 23).
 
+### 2026-07-25 (cont.) — Finalizar por mercado + editar mercados na Itens + estética
+- **Finalizar** respeita o filtro: remove só os itens do mercado filtrado
+  (botão "Finalizar {mercado}"); em "Todos", remove a lista toda.
+- **Editar mercados** movido pra aba **Itens** (caixinha estreita); ✎ saiu da Listas.
+- Economia mais compacta ("vs a 2ª opção" ao lado do %).
+- Itens: **marca/tamanho/unidade ao lado do nome** (card mais estreito).
+- Listas: menos espaço entre categorias.
+- **PRÓXIMO:** "editar categorias" (tornar as categorias editáveis) ao lado de
+  "editar mercados" na aba Itens.
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -92,4 +102,8 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Campos opcionais do produto: **marca, tamanho, unidade** (texto livre).
 - **Lista rápida (25/07):** Listas = 1 lista só; adiciona por busca no catálogo, sem
   digitar preço; destaque = economia + %; "estimado" como secundário.
-- Pendência aberta: aba **Pedidos** (repensar — será mais complexa).
+- Finalizar = remove os itens visíveis (por filtro de mercado); Todos = tudo. Ainda
+  **não** arquiva em histórico (isso entra quando repensarmos Pedidos).
+- Editar mercados vive na aba **Itens**.
+- Pendências abertas: **editar categorias** (tornar editáveis) e aba **Pedidos**
+  (repensar — será mais complexa).
