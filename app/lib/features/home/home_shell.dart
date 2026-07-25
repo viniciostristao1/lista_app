@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/features/itens/itens_screen.dart';
 import 'package:lista_app/features/listas/listas_screen.dart';
 import 'package:lista_app/theme/app_colors.dart';
 
 /// Casca principal do app: as 3 abas (Listas, Itens, Pedidos).
-/// Listas já é real; Itens e Pedidos entram nos próximos passos da Fase 1.
+/// Listas e Itens já são reais; Pedidos entra no próximo passo.
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
@@ -23,12 +24,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         index: _index,
         children: const [
           ListasScreen(),
-          _EmBreveScreen(
-            titulo: 'Itens',
-            icone: Icons.sell_outlined,
-            descricao:
-                'Seu catálogo: cada produto com o preço em cada mercado — o comparador.',
-          ),
+          ItensScreen(),
           _EmBreveScreen(
             titulo: 'Pedidos',
             icone: Icons.bar_chart_rounded,
