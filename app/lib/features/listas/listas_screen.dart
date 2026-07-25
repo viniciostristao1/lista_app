@@ -235,7 +235,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       onChanged: (v) => setState(() => _busca = v),
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
-        hintText: 'Buscar item cadastrado para adicionar…',
+        hintText: 'Buscar item cadastrado ou Novo',
         hintStyle: const TextStyle(color: AppColors.dim2, fontSize: 14),
         prefixIcon: const Icon(Icons.search, color: AppColors.dim, size: 20),
         suffixIcon: _busca.isEmpty
@@ -363,8 +363,16 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Economia pegando os mais baratos',
-              style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+          Row(
+            children: [
+              const Text('Economia',
+                  style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+              const Spacer(),
+              Text(
+                  'Total ${reais(estimado)} · $qtd ${qtd == 1 ? 'item' : 'itens'}',
+                  style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            ],
+          ),
           const SizedBox(height: 5),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -386,17 +394,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  economia > 0
-                      ? 'vs a 2ª opção mais barata'
-                      : 'cadastre em 2+ mercados para calcular',
+                  economia > 0 ? 'vs a 2ª opção' : 'cadastre em 2+ mercados',
                   style: const TextStyle(color: AppColors.dim2, fontSize: 11.5),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 7),
-          Text('Estimado ${reais(estimado)} · $qtd ${qtd == 1 ? 'item' : 'itens'}',
-              style: const TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
       ),
     );
@@ -413,7 +416,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final widgets = <Widget>[];
     var primeiro = true;
     for (final cat in Categoria.values) {
-      final grupo = itens.where((e) => e.categoria == cat).toList();
+      // categoria vem do catálogo (produto), não do retrato do item — assim,
+      // editar a categoria na aba Itens reflete aqui na hora.
+      final grupo = itens
+          .where((e) =>
+              (produtosPorId[e.produtoId]?.categoria ?? e.categoria) == cat)
+          .toList();
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
         padding: EdgeInsets.fromLTRB(2, primeiro ? 10 : 6, 2, 6),
@@ -481,7 +489,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      it.nome,
+                      p?.nome ?? it.nome,
                       style: TextStyle(
                         fontSize: 14.5,
                         color: it.comprado ? AppColors.dim : AppColors.text,

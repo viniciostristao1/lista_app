@@ -54,12 +54,11 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.green,
         foregroundColor: AppColors.onGreen,
         onPressed: () => mostrarEditorProduto(context, null, mercados),
-        icon: const Icon(Icons.add),
-        label: const Text('Novo item'),
+        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
@@ -214,7 +213,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                               size: 15, color: AppColors.green),
                           const SizedBox(width: 6),
                           Text(
-                            'economiza ${reais(p.economia)} vs 2º mais barato',
+                            'economiza ${reais(p.economia)} vs ${mercadosPorId[ordenados[1].key]?.nome ?? '2º mais barato'}',
                             style: const TextStyle(
                                 color: AppColors.green,
                                 fontSize: 12.5,

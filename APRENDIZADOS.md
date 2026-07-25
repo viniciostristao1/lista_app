@@ -59,6 +59,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **PRÓXIMO:** "editar categorias" (tornar as categorias editáveis) ao lado de
   "editar mercados" na aba Itens.
 
+### 2026-07-25 (cont.) — Polimentos + categorias fixas + bug de categoria
+- Itens: FAB só "+"; economia nomeia o 2º mercado ("vs {Mercado}").
+- Listas: busca "Buscar item cadastrado ou Novo"; caixa **Economia** compacta
+  (só "Economia" + "Total R$X · N itens" ao lado, "Estimado" virou "Total").
+- **Bug corrigido:** categoria/nome do item na lista agora vêm do **produto
+  (catálogo)**, não do retrato salvo no item → editar na aba Itens reflete na hora.
+- **Decisão:** categorias = **lista fixa ampliada (13)**; NÃO faremos "editar
+  categorias" (complexidade > ganho). Itens fica só com "Editar mercados".
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -105,5 +114,8 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Finalizar = remove os itens visíveis (por filtro de mercado); Todos = tudo. Ainda
   **não** arquiva em histórico (isso entra quando repensarmos Pedidos).
 - Editar mercados vive na aba **Itens**.
-- Pendências abertas: **editar categorias** (tornar editáveis) e aba **Pedidos**
-  (repensar — será mais complexa).
+- **Categorias:** lista fixa ampliada (13), não editáveis (decisão 25/07).
+- **Escala/custo:** a VPS só compila; o backend é o Firebase, que escala a milhões.
+  Grátis (Spark) cobre ~1.000–1.500 usuários ativos/mês; no Blaze ~US$0,001/usuário/mês
+  (uso leve). Gargalo = **custo (baixo)**, não capacidade. Ligar alerta de orçamento.
+- Pendência aberta: aba **Pedidos** (repensar — será mais complexa).
