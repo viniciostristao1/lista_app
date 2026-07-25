@@ -43,6 +43,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Removidos `lista_detalhe_screen.dart` e `add_item_sheet.dart`.
 - **Pendente:** aba **Pedidos** (o usuário quer repensá-la; será mais complexa).
 
+### 2026-07-25 (cont.) — Filtro por mercado na aba Listas
+- Legenda virou **barra de filtro**: chip "Todos" + um por mercado. Tocar num mercado
+  mostra só os itens em que ele é o mais barato. Mantido o "editar" (✎).
+- Economia/estimado recomputam para o subconjunto visível; "Finalizar" usa a lista toda.
+- Estética: fonte do valor da economia reduzida (30 → 23).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
