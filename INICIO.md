@@ -7,6 +7,10 @@ Meta: publicar na **Play Store**.
 > ⚠️ Projeto isolado. Vive **só** em `/root/lista_app/`.
 > NUNCA tocar em `/root/trading/`, `/root/trading_acoes/`, `/root/trading_opcoes/`.
 
+> 📓 **Fluxo fixo:** ao fim de cada bloco significativo, atualizar
+> [`APRENDIZADOS.md`](APRENDIZADOS.md) (diário + lições) e dar **commit/push**.
+> Ler `APRENDIZADOS.md` antes de mexer em login/build/assinatura (gotchas conhecidos).
+
 ## O que o app faz (MVP)
 Três abas:
 - **📋 Listas** — cria listas, adiciona itens (autocomplete do histórico), marca como
