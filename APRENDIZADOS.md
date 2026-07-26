@@ -87,6 +87,18 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Listas: **Copiar lista** (ícone exportar no topo) → escolhe mercado → copia "• item"
   pra área de transferência (`Clipboard`).
 
+### 2026-07-26 (cont.) — quantidade, aviso duplicado, calculadora, logo, fix do fixar
+- Listas: **stepper − N +** de quantidade em cada item (`setQuantidade`); buscar um
+  item que já está na lista mostra **"já está na lista"** (não duplica).
+- Itens: **data + categoria na mesma linha** à direita; **pino** à esquerda da data
+  quando fixado.
+- **FIX do fixar:** o pino agora **salva na hora** (`setFixado`) — antes dependia de
+  apertar Salvar e por isso o item "fixado" sumia no finalizar.
+- **Calculadora** de preço por quantidade (pesos diferentes) — botão ao lado de
+  Editar mercados na aba Itens.
+- **Logo novo:** dois "V" azuis (duplo-check), vetorial próprio (`widgets/logo_lista.dart`
+  via CustomPainter), na tela de login. **Pendente:** ícone do launcher (tela inicial).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

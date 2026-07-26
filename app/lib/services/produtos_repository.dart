@@ -98,6 +98,12 @@ class ProdutosRepository {
         .update({'precos.$mercadoId': FieldValue.delete()});
   }
 
+  /// Fixa/desfixa o produto (salva na hora).
+  Future<void> setFixado(String id, bool fixado) => _refs.produtos.doc(id).set(
+        {'fixado': fixado, 'updatedAt': Timestamp.now()},
+        SetOptions(merge: true),
+      );
+
   /// Ao excluir um mercado, tira o preço dele de todos os produtos.
   Future<void> removerMercadoDeTodos(String mercadoId) async {
     final snap = await _refs.produtos.get();

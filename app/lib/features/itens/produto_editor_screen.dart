@@ -172,7 +172,13 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             tooltip: _fixado ? 'Fixado (não sai ao finalizar)' : 'Fixar item',
             icon: Icon(_fixado ? Icons.push_pin : Icons.push_pin_outlined,
                 color: _fixado ? AppColors.green : AppColors.dim),
-            onPressed: () => setState(() => _fixado = !_fixado),
+            onPressed: () {
+              final novo = !_fixado;
+              setState(() => _fixado = novo);
+              if (_editando) {
+                ref.read(produtosRepoProvider).setFixado(_p!.id, novo);
+              }
+            },
           ),
           if (_editando)
             IconButton(

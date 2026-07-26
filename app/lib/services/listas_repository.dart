@@ -86,6 +86,9 @@ class ListasRepository {
   Future<void> setComprado(String listaId, String itemId, bool comprado) =>
       _refs.itens(listaId).doc(itemId).update({'comprado': comprado});
 
+  Future<void> setQuantidade(String listaId, String itemId, int quantidade) =>
+      _refs.itens(listaId).doc(itemId).update({'quantidade': quantidade});
+
   Future<void> removerItem(String listaId, String itemId) =>
       _refs.itens(listaId).doc(itemId).delete();
 

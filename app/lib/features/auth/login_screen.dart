@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/logo_lista.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -64,16 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  color: AppColors.green,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Icon(Icons.checklist_rounded,
-                    color: AppColors.onGreen, size: 46),
-              ),
+              const LogoLista(size: 88),
               const SizedBox(height: 24),
               Text('Lista',
                   style: Theme.of(context)

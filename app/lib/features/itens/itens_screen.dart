@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/features/itens/calculadora_screen.dart';
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
 import 'package:lista_app/features/listas/widgets/mercados_editor_sheet.dart';
 import 'package:lista_app/models/mercado.dart';
@@ -70,6 +71,12 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   icon: Icons.storefront_outlined,
                   label: 'Editar mercados',
                   onTap: () => mostrarEditorMercados(context, mercados),
+                ),
+                const SizedBox(width: 8),
+                _boxEditar(
+                  icon: Icons.calculate_outlined,
+                  label: 'Calculadora',
+                  onTap: () => mostrarCalculadora(context),
                 ),
               ],
             ),
@@ -154,15 +161,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // nome + detalhe à esquerda; [pino] data categoria à direita
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (p.fixado)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 6, top: 2),
-                        child: Icon(Icons.push_pin,
-                            size: 13, color: AppColors.green),
-                      ),
                     Expanded(
                       child: Text.rich(
                         TextSpan(children: [
@@ -181,25 +183,34 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (ultima != null)
-                          Text(diaMes(ultima),
-                              style: TextStyle(
-                                  color: velho
-                                      ? AppColors.danger
-                                      : AppColors.dim2,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 1),
-                        Text(p.categoria.label.toUpperCase(),
-                            style: const TextStyle(
-                                color: AppColors.dim2,
-                                fontSize: 10,
-                                letterSpacing: .6,
-                                fontWeight: FontWeight.w700)),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (p.fixado) ...[
+                            const Icon(Icons.push_pin,
+                                size: 12, color: AppColors.green),
+                            const SizedBox(width: 5),
+                          ],
+                          if (ultima != null) ...[
+                            Text(diaMes(ultima),
+                                style: TextStyle(
+                                    color: velho
+                                        ? AppColors.danger
+                                        : AppColors.dim2,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(width: 6),
+                          ],
+                          Text(p.categoria.label.toUpperCase(),
+                              style: const TextStyle(
+                                  color: AppColors.dim2,
+                                  fontSize: 10,
+                                  letterSpacing: .6,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
                     ),
                   ],
                 ),

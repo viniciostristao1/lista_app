@@ -15,7 +15,6 @@ import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
 
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
-/// A barra de mercados no topo filtra a lista pelo mercado mais barato.
 class ListasScreen extends ConsumerStatefulWidget {
   const ListasScreen({super.key});
 
@@ -55,8 +54,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
-  /// Remove o item da lista. Se o produto for "novo" (sem preço), some do
-  /// catálogo também.
+  void _jaNaLista() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Esse item já está na lista 🙂')),
+    );
+  }
+
   Future<void> _removerDaLista(ItemLista it, Produto? p, String listaId) async {
     await ref.read(listasRepoProvider).removerItem(listaId, it.id);
     if (p != null && p.precos.isEmpty) {
@@ -64,7 +67,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
   }
 
-  /// Exportar = copiar a lista (com • antes de cada item) para o mercado escolhido.
+  /// Exportar = copiar a lista (• antes de cada item) do mercado escolhido.
   Future<void> _exportar(
     List<ItemLista> itens,
     Map<String, Produto> produtosPorId,
@@ -110,6 +113,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         : (ref.watch(itensProvider(atual.id)).asData?.value ??
             const <ItemLista>[]);
 
+    final idsNaLista =
+        itens.map((e) => e.produtoId).whereType<String>().toSet();
+
     final filtro =
         (_filtroMercado != null && mercados.any((m) => m.id == _filtroMercado))
             ? _filtroMercado
@@ -121,7 +127,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
 
     final itensVisiveis = itens.where(visivel).toList();
-    // ao finalizar, itens fixados permanecem
     final removiveis = itensVisiveis
         .where((it) => produtosPorId[it.produtoId]?.fixado != true)
         .toList();
@@ -169,7 +174,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 _campoBusca(),
                 const SizedBox(height: 8),
                 if (_busca.isNotEmpty)
-                  ..._resultadosBusca(produtos)
+                  ..._resultadosBusca(produtos, idsNaLista)
                 else if (itens.isEmpty)
                   _vazio()
                 else if (itensVisiveis.isEmpty)
@@ -309,63 +314,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  List<Widget> _resultadosBusca(List<Produto> produtos) {
+  List<Widget> _resultadosBusca(List<Produto> produtos, Set<String> idsNaLista) {
     final q = _busca.trim().toLowerCase();
     final matches =
         produtos.where((p) => p.nomeLower.contains(q)).take(12).toList();
     final exato = produtos.any((p) => p.nomeLower == q);
 
     return [
-      for (final p in matches)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Material(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => _adicionarProduto(p),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.line),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.add_circle_outline,
-                        color: AppColors.green, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(children: [
-                          TextSpan(
-                              text: p.nome,
-                              style: const TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w500)),
-                          if (p.detalhe.isNotEmpty)
-                            TextSpan(
-                                text: '  ${p.detalhe}',
-                                style: const TextStyle(
-                                    color: AppColors.dim2, fontSize: 12)),
-                        ]),
-                      ),
-                    ),
-                    if (p.menorPreco != null)
-                      Text(reais(p.menorPreco!),
-                          style: const TextStyle(
-                              color: AppColors.green,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+      for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id)),
       if (q.isNotEmpty && !exato)
         Padding(
           padding: const EdgeInsets.only(top: 2),
@@ -385,6 +341,60 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
         ),
     ];
+  }
+
+  Widget _linhaBusca(Produto p, bool naLista) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: naLista ? _jaNaLista : () => _adicionarProduto(p),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Row(
+              children: [
+                Icon(naLista ? Icons.check_circle : Icons.add_circle_outline,
+                    color: naLista ? AppColors.dim2 : AppColors.green, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(children: [
+                      TextSpan(
+                          text: p.nome,
+                          style: TextStyle(
+                              color: naLista ? AppColors.dim : AppColors.text,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500)),
+                      if (p.detalhe.isNotEmpty)
+                        TextSpan(
+                            text: '  ${p.detalhe}',
+                            style: const TextStyle(
+                                color: AppColors.dim2, fontSize: 12)),
+                    ]),
+                  ),
+                ),
+                if (naLista)
+                  const Text('já está na lista',
+                      style: TextStyle(color: AppColors.dim2, fontSize: 11.5))
+                else if (p.menorPreco != null)
+                  Text(reais(p.menorPreco!),
+                      style: const TextStyle(
+                          color: AppColors.green,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ---------- economia (destaque, uma linha) ----------
@@ -514,7 +524,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -523,7 +533,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           child: Row(
             children: [
               _checkbox(it.comprado),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,6 +576,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   ],
                 ),
               ),
+              const SizedBox(width: 6),
+              _stepperQtd(atual.id, it),
+              const SizedBox(width: 8),
               Text(
                 menor == null ? '—' : reais(menor.value.valor),
                 style: TextStyle(
@@ -577,7 +590,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 ),
               ),
               if (cor != null) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Container(
                   width: 9,
                   height: 9,
@@ -587,6 +600,55 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _stepperQtd(String listaId, ItemLista it) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _btnQtd(
+          Icons.remove,
+          it.quantidade > 1
+              ? () => ref
+                  .read(listasRepoProvider)
+                  .setQuantidade(listaId, it.id, it.quantidade - 1)
+              : null,
+        ),
+        Container(
+          constraints: const BoxConstraints(minWidth: 20),
+          alignment: Alignment.center,
+          child: Text('${it.quantidade}',
+              style: const TextStyle(
+                  color: AppColors.text,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600)),
+        ),
+        _btnQtd(
+          Icons.add,
+          () => ref
+              .read(listasRepoProvider)
+              .setQuantidade(listaId, it.id, it.quantidade + 1),
+        ),
+      ],
+    );
+  }
+
+  Widget _btnQtd(IconData icon, VoidCallback? onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 26,
+        height: 26,
+        decoration: BoxDecoration(
+          color: AppColors.bg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.lineStrong),
+        ),
+        child: Icon(icon,
+            size: 15, color: onTap == null ? AppColors.dim2 : AppColors.text),
       ),
     );
   }
