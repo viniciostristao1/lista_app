@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
@@ -21,9 +22,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref.read(authServiceProvider).signInWithGoogle();
       // O redirecionamento para o app acontece pelo authStateProvider.
+    } on GoogleSignInException catch (e) {
+      if (!mounted) return;
+      if (e.code == GoogleSignInExceptionCode.canceled) return; // cancelou
+      _mostrarErro('google/${e.code.name}', e.description ?? '(sem detalhe)');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      // Cancelamento do usuário não é erro.
       if (e.code == 'canceled' || e.code == 'web-context-canceled') return;
       _mostrarErro('firebase_auth/${e.code}', e.message ?? '(sem detalhe)');
     } catch (e) {

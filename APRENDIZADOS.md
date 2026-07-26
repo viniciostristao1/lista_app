@@ -99,6 +99,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **Logo novo:** dois "V" azuis (duplo-check), vetorial próprio (`widgets/logo_lista.dart`
   via CustomPainter), na tela de login. **Pendente:** ícone do launcher (tela inicial).
 
+### 2026-07-26 (cont.) — Login migrado pro Google NATIVO
+- `signInWithProvider` (navegador) deu "Failed to generate/retrieve public encryption
+  key for Generic IDP flow" após um logout. Fluxo frágil (ver Aprendizado 9).
+- Migrado pra **google_sign_in 7.x nativo** + Web client ID como `serverClientId`.
+  Re-adicionado o pacote `google_sign_in`. Auth provisionada + SHA-1 já registrados.
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -125,9 +131,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
    Sempre distribuir o **arm64-v8a** (celulares modernos).
 8. **Riverpod 3.x:** ler valor de um provider assíncrono com `.asData?.value`
    (o `valueOrNull` não existe). `Provider`/`StreamProvider` clássicos funcionam.
-9. **google_sign_in 7.x** tem API nova e exige SHA-1/serverClientId. Optamos por
-   `FirebaseAuth.signInWithProvider(GoogleAuthProvider())` (fluxo pelo navegador) —
-   mais simples e funciona. Migrar pro nativo só se quiser o seletor de conta do Android.
+9. **Login Google:** começamos com `signInWithProvider` (Generic IDP/navegador) pra
+   evitar SHA-1/serverClientId, MAS é **frágil** — deu `CONFIGURATION_NOT_FOUND` e depois
+   "Failed to generate/retrieve public encryption key for Generic IDP flow".
+   **Migramos pro `google_sign_in` 7.x nativo** (Credential Manager):
+   `GoogleSignIn.instance.initialize(serverClientId: <Web client ID>)` → `.authenticate()`
+   → `GoogleAuthProvider.credential(idToken: account.authentication.idToken)` →
+   `signInWithCredential`. Web client ID em **Auth → Google → Config SDK Web**
+   (`585404124028-bjf...apps.googleusercontent.com`); exige **SHA-1 registrado** (temos).
+   Mais robusto e melhor UX (seletor de conta nativo).
 
 ---
 
