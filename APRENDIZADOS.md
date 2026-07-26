@@ -208,3 +208,10 @@ qualquer sessão futura (ou pessoa) entender o caminho.
    antes de liberar produção. Conta empresa pula, mas exige CNPJ/verificação.
 7. Revisão do Google: horas a dias. Update depois = subir AAB novo.
 8. Monetização (depois): AdMob ou premium.
+
+### Decisões de lançamento (definidas)
+- **Título na loja:** `Lista e comparador de mercado` (29/30 caracteres).
+- **Nome no ícone (label):** `Lista` (AndroidManifest `android:label`).
+- **Package (permanente):** `com.vinyapps.lista_app`.
+- **Monetização:** a decidir (recomendação: grátis, sem anúncios no lançamento).
+- Interação: o usuário prefere conversar (evitar o tool de perguntas com caixinhas).
