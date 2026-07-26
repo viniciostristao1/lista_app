@@ -39,7 +39,9 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   late final TextEditingController _marca;
   late final TextEditingController _tamanho;
   late final TextEditingController _unidade;
+  late final TextEditingController _obs;
   late Categoria _categoria;
+  late bool _fixado;
   late final Map<String, TextEditingController> _precoCtrls;
   bool _salvando = false;
 
@@ -53,7 +55,9 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     _marca = TextEditingController(text: _p?.marca ?? '');
     _tamanho = TextEditingController(text: _p?.tamanho ?? '');
     _unidade = TextEditingController(text: _p?.unidade ?? '');
+    _obs = TextEditingController(text: _p?.observacoes ?? '');
     _categoria = _p?.categoria ?? Categoria.mercearia;
+    _fixado = _p?.fixado ?? false;
     _precoCtrls = {
       for (final m in widget.mercados)
         m.id: TextEditingController(
@@ -70,6 +74,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     _marca.dispose();
     _tamanho.dispose();
     _unidade.dispose();
+    _obs.dispose();
     for (final c in _precoCtrls.values) {
       c.dispose();
     }
@@ -102,6 +107,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           marca: _nuloSeVazio(_marca),
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
+          observacoes: _nuloSeVazio(_obs),
+          fixado: _fixado,
         );
       } else {
         id = await repo.criarProduto(
@@ -110,10 +117,11 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           marca: _nuloSeVazio(_marca),
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
+          observacoes: _nuloSeVazio(_obs),
+          fixado: _fixado,
         );
       }
 
-      // preços por mercado: só grava (re-datando) o que mudou.
       for (final m in widget.mercados) {
         final novo = parsePreco(_precoCtrls[m.id]!.text);
         final antigo = _p?.precos[m.id]?.valor;
@@ -160,6 +168,12 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       appBar: AppBar(
         title: Text(_editando ? 'Editar item' : 'Novo item'),
         actions: [
+          IconButton(
+            tooltip: _fixado ? 'Fixado (não sai ao finalizar)' : 'Fixar item',
+            icon: Icon(_fixado ? Icons.push_pin : Icons.push_pin_outlined,
+                color: _fixado ? AppColors.green : AppColors.dim),
+            onPressed: () => setState(() => _fixado = !_fixado),
+          ),
           if (_editando)
             IconButton(
               tooltip: 'Excluir',
@@ -171,6 +185,23 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 40),
         children: [
+          if (_fixado)
+            Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: AppColors.green.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: const Row(children: [
+                Icon(Icons.push_pin, size: 15, color: AppColors.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Item fixado — não sai ao "Finalizar compra".',
+                      style: TextStyle(color: AppColors.green, fontSize: 12.5)),
+                ),
+              ]),
+            ),
           _label('Nome'),
           const SizedBox(height: 8),
           TextField(
@@ -199,7 +230,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _tamanho,
-                      style: const TextStyle(color: AppColors.text, fontSize: 15),
+                      style:
+                          const TextStyle(color: AppColors.text, fontSize: 15),
                       decoration: _dec('Ex: 500'),
                     ),
                   ],
@@ -214,7 +246,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _unidade,
-                      style: const TextStyle(color: AppColors.text, fontSize: 15),
+                      style:
+                          const TextStyle(color: AppColors.text, fontSize: 15),
                       decoration: _dec('Ex: g, kg, L, un'),
                     ),
                   ],
@@ -229,7 +262,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             const Padding(
               padding: EdgeInsets.only(top: 6),
               child: Text(
-                'Cadastre seus mercados primeiro (na aba Listas, toque na legenda de mercados).',
+                'Cadastre seus mercados primeiro (aba Itens → Editar mercados).',
                 style: TextStyle(color: AppColors.dim2, fontSize: 12.5),
               ),
             )
@@ -250,6 +283,16 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 ),
             ],
           ),
+          const SizedBox(height: 22),
+          _label('Observações (opcional)'),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _obs,
+            minLines: 2,
+            maxLines: 4,
+            style: const TextStyle(color: AppColors.text, fontSize: 15),
+            decoration: _dec('Ex: marca preferida, ponto da fruta, promoção…'),
+          ),
           const SizedBox(height: 26),
           SizedBox(
             width: double.infinity,
@@ -259,8 +302,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 backgroundColor: AppColors.green,
                 foregroundColor: AppColors.onGreen,
                 padding: const EdgeInsets.symmetric(vertical: 15),
-                shape:
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(_salvando ? 'Salvando…' : 'Salvar'),
             ),
@@ -291,7 +334,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 Text(m.nome,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.text, fontSize: 14)),
+                    style:
+                        const TextStyle(color: AppColors.text, fontSize: 14)),
                 if (atual != null)
                   Text(
                     atual.desatualizado
@@ -299,7 +343,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                         : haDias(atual.diasDesde),
                     style: TextStyle(
                       fontSize: 11,
-                      color: atual.desatualizado ? AppColors.danger : AppColors.dim2,
+                      color:
+                          atual.desatualizado ? AppColors.danger : AppColors.dim2,
                     ),
                   ),
               ],
@@ -358,11 +403,12 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: selecionado ? AppColors.green.withValues(alpha: 0.14) : AppColors.surface,
+          color: selecionado
+              ? AppColors.green.withValues(alpha: 0.14)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(
-            color: selecionado ? AppColors.green : AppColors.line,
-          ),
+          border:
+              Border.all(color: selecionado ? AppColors.green : AppColors.line),
         ),
         child: Text(texto,
             style: TextStyle(

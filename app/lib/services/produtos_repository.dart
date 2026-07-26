@@ -26,6 +26,8 @@ class ProdutosRepository {
     String? marca,
     String? tamanho,
     String? unidade,
+    String? observacoes,
+    bool fixado = false,
   }) async {
     final doc = await _refs.produtos.add({
       'nome': nome.trim(),
@@ -34,6 +36,8 @@ class ProdutosRepository {
       'marca': marca,
       'tamanho': tamanho,
       'unidade': unidade,
+      'observacoes': observacoes,
+      'fixado': fixado,
       'vezesComprado': 0,
       'createdAt': Timestamp.now(),
       'updatedAt': Timestamp.now(),
@@ -49,6 +53,8 @@ class ProdutosRepository {
     String? marca,
     String? tamanho,
     String? unidade,
+    String? observacoes,
+    bool fixado = false,
   }) {
     return _refs.produtos.doc(id).set({
       'nome': nome.trim(),
@@ -57,6 +63,8 @@ class ProdutosRepository {
       'marca': marca,
       'tamanho': tamanho,
       'unidade': unidade,
+      'observacoes': observacoes,
+      'fixado': fixado,
       'updatedAt': Timestamp.now(),
     }, SetOptions(merge: true));
   }

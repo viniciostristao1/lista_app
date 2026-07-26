@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'categoria.dart';
 
 /// Preço de um produto num mercado específico, com a data do cadastro.
-/// A data alimenta o alerta de "preço desatualizado".
 class PrecoMercado {
   const PrecoMercado({required this.valor, required this.data});
 
@@ -27,6 +26,8 @@ class Produto {
     this.marca,
     this.tamanho,
     this.unidade,
+    this.observacoes,
+    this.fixado = false,
     this.ultimoPreco,
     this.ultimoMercadoId,
     this.vezesComprado = 0,
@@ -40,6 +41,11 @@ class Produto {
   final String? marca;
   final String? tamanho;
   final String? unidade;
+  final String? observacoes;
+
+  /// Fixado = não sai da lista ao "Finalizar compra" (só por exclusão manual).
+  final bool fixado;
+
   final double? ultimoPreco;
   final String? ultimoMercadoId;
   final int vezesComprado;
@@ -77,6 +83,14 @@ class Produto {
     return segundo - menor;
   }
 
+  /// Data da atualização de preço mais recente (para exibir dia/mês no card).
+  DateTime? get ultimaAtualizacao {
+    if (precos.isEmpty) return null;
+    return precos.values
+        .map((e) => e.data)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
   factory Produto.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? const {};
     final precosRaw = (d['precos'] as Map<String, dynamic>?) ?? const {};
@@ -97,6 +111,8 @@ class Produto {
       marca: d['marca'] as String?,
       tamanho: d['tamanho'] as String?,
       unidade: d['unidade'] as String?,
+      observacoes: d['observacoes'] as String?,
+      fixado: (d['fixado'] as bool?) ?? false,
       ultimoPreco: (d['ultimoPreco'] as num?)?.toDouble(),
       ultimoMercadoId: d['ultimoMercadoId'] as String?,
       vezesComprado: (d['vezesComprado'] as num?)?.toInt() ?? 0,

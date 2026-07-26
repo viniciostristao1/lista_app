@@ -76,6 +76,17 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **Bug:** ao **excluir um mercado**, agora remove os preços dele de todos os
   produtos (`ProdutosRepository.removerMercadoDeTodos`).
 
+### 2026-07-26 — 5 features: fixar, copiar, data no card, observações, economia 1 linha
+- Produto ganhou **fixado** (pino) + **observações**.
+- Editor: **pino** no AppBar (fixa/desfixa) + campo **Observações**; categoria por último.
+- **Fixado não sai ao "Finalizar compra"** (só por exclusão manual / da aba Itens);
+  `removiveis = visíveis não-fixados`.
+- Itens: **data dd/mm** da última atualização à direita (antes da categoria, vermelha
+  se >30d); pílulas de preço sem a linha de data (mais estreitas); pino nos fixados.
+- Listas: caixa **Economia** numa linha ("Economia de R$X (Y%)" + Total/itens à direita).
+- Listas: **Copiar lista** (ícone exportar no topo) → escolhe mercado → copia "• item"
+  pra área de transferência (`Clipboard`).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

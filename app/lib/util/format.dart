@@ -25,6 +25,10 @@ String haDias(int dias) {
 /// Valor -> texto editável no padrão BR: 18.5 -> "18,50".
 String valorEditavel(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
 
+/// Data curta dia/mês (sem ano): 2026-07-05 -> "05/07".
+String diaMes(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+
 /// Lê um preço digitado ("18,50", "1.234,56", "18.5") -> double? (null se vazio).
 double? parsePreco(String texto) {
   var t = texto.replaceAll(RegExp(r'[^0-9.,]'), '');

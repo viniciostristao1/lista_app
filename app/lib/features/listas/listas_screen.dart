@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/models/categoria.dart';
@@ -15,7 +16,6 @@ import 'package:lista_app/util/format.dart';
 
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
 /// A barra de mercados no topo filtra a lista pelo mercado mais barato.
-/// (Editar mercados agora fica na aba Itens.)
 class ListasScreen extends ConsumerStatefulWidget {
   const ListasScreen({super.key});
 
@@ -37,12 +37,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   Future<void> _adicionarProduto(Produto p) async {
     final repo = ref.read(listasRepoProvider);
     final atual = await repo.obterOuCriarAtiva();
-    await repo.adicionarItem(
-      atual.id,
-      produtoId: p.id,
-      nome: p.nome,
-      categoria: p.categoria,
-    );
+    await repo.adicionarItem(atual.id,
+        produtoId: p.id, nome: p.nome, categoria: p.categoria);
     _buscaCtrl.clear();
     setState(() => _busca = '');
   }
@@ -53,22 +49,50 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         .criarProduto(nome: nome, categoria: Categoria.outros);
     final listaRepo = ref.read(listasRepoProvider);
     final atual = await listaRepo.obterOuCriarAtiva();
-    await listaRepo.adicionarItem(
-      atual.id,
-      produtoId: id,
-      nome: nome,
-      categoria: Categoria.outros,
-    );
+    await listaRepo.adicionarItem(atual.id,
+        produtoId: id, nome: nome, categoria: Categoria.outros);
     _buscaCtrl.clear();
     setState(() => _busca = '');
   }
 
-  /// Remove o item da lista. Se o produto for "novo" (sem preço cadastrado no
-  /// catálogo), ele some da aba Itens também.
+  /// Remove o item da lista. Se o produto for "novo" (sem preço), some do
+  /// catálogo também.
   Future<void> _removerDaLista(ItemLista it, Produto? p, String listaId) async {
     await ref.read(listasRepoProvider).removerItem(listaId, it.id);
     if (p != null && p.precos.isEmpty) {
       await ref.read(produtosRepoProvider).excluirProduto(p.id);
+    }
+  }
+
+  /// Exportar = copiar a lista (com • antes de cada item) para o mercado escolhido.
+  Future<void> _exportar(
+    List<ItemLista> itens,
+    Map<String, Produto> produtosPorId,
+    List<Mercado> mercados,
+  ) async {
+    final escolha = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => _SheetExportar(mercados: mercados),
+    );
+    if (escolha == null) return;
+    final selec = escolha == 'todos' ? null : escolha;
+    final incluidos = itens.where((it) {
+      if (selec == null) return true;
+      return produtosPorId[it.produtoId]?.mercadoMaisBarato == selec;
+    }).toList();
+    if (incluidos.isEmpty) return;
+    final texto = incluidos
+        .map((it) => '• ${produtosPorId[it.produtoId]?.nome ?? it.nome}')
+        .join('\n');
+    await Clipboard.setData(ClipboardData(text: texto));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lista copiada! 📋 Cole onde quiser.')),
+      );
     }
   }
 
@@ -97,6 +121,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
 
     final itensVisiveis = itens.where(visivel).toList();
+    // ao finalizar, itens fixados permanecem
+    final removiveis = itensVisiveis
+        .where((it) => produtosPorId[it.produtoId]?.fixado != true)
+        .toList();
 
     var economia = 0.0, baseSegundo = 0.0, estimadoVis = 0.0;
     for (final it in itensVisiveis) {
@@ -116,6 +144,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       appBar: AppBar(
         title: const Text('Minha lista'),
         actions: [
+          IconButton(
+            tooltip: 'Copiar lista',
+            icon: const Icon(Icons.ios_share, color: AppColors.dim),
+            onPressed: () => _exportar(itens, produtosPorId, mercados),
+          ),
           IconButton(
             tooltip: 'Sair',
             icon: const Icon(Icons.logout_rounded, color: AppColors.dim),
@@ -147,8 +180,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               ],
             ),
           ),
-          if (_busca.isEmpty && itensVisiveis.isNotEmpty)
-            _botaoFinalizar(atual!, itensVisiveis, mercadosPorId[filtro]?.nome),
+          if (_busca.isEmpty && removiveis.isNotEmpty)
+            _botaoFinalizar(atual!, removiveis, mercadosPorId[filtro]?.nome),
         ],
       ),
     );
@@ -354,12 +387,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     ];
   }
 
-  // ---------- economia (destaque, compacto) ----------
+  // ---------- economia (destaque, uma linha) ----------
 
   Widget _cardEconomia(
       double economia, double percent, double estimado, int qtd) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -369,44 +402,45 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.line),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text('Economia',
-                  style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-              const Spacer(),
-              Text(
-                  'Total ${reais(estimado)} · $qtd ${qtd == 1 ? 'item' : 'itens'}',
-                  style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(reais(economia),
-                  style: const TextStyle(
-                      color: AppColors.green,
-                      fontSize: 23,
-                      fontWeight: FontWeight.w700)),
-              if (percent > 0) ...[
-                const SizedBox(width: 6),
-                Text('(${percent.toStringAsFixed(0)}%)',
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Text.rich(TextSpan(children: [
+                const TextSpan(
+                    text: 'Economia de ',
+                    style: TextStyle(color: AppColors.dim, fontSize: 13)),
+                TextSpan(
+                    text: reais(economia),
                     style: const TextStyle(
                         color: AppColors.green,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
-              ],
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  economia > 0 ? 'vs a 2ª opção' : 'cadastre em 2+ mercados',
-                  style: const TextStyle(color: AppColors.dim2, fontSize: 11.5),
-                ),
-              ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700)),
+                if (percent > 0)
+                  TextSpan(
+                      text: ' (${percent.toStringAsFixed(0)}%)',
+                      style: const TextStyle(
+                          color: AppColors.green,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600)),
+              ])),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Total ${reais(estimado)}',
+                  style: const TextStyle(
+                      color: AppColors.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600)),
+              Text('$qtd ${qtd == 1 ? 'item' : 'itens'}',
+                  style:
+                      const TextStyle(color: AppColors.dim2, fontSize: 11.5)),
             ],
           ),
         ],
@@ -425,8 +459,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final widgets = <Widget>[];
     var primeiro = true;
     for (final cat in Categoria.values) {
-      // categoria vem do catálogo (produto), não do retrato do item — assim,
-      // editar a categoria na aba Itens reflete aqui na hora.
       final grupo = itens
           .where((e) =>
               (produtosPorId[e.produtoId]?.categoria ?? e.categoria) == cat)
@@ -496,15 +528,28 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      p?.nome ?? it.nome,
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        color: it.comprado ? AppColors.dim : AppColors.text,
-                        decoration:
-                            it.comprado ? TextDecoration.lineThrough : null,
-                        decorationColor: AppColors.dim2,
-                      ),
+                    Row(
+                      children: [
+                        if (p?.fixado == true) ...[
+                          const Icon(Icons.push_pin,
+                              size: 12, color: AppColors.green),
+                          const SizedBox(width: 5),
+                        ],
+                        Flexible(
+                          child: Text(
+                            p?.nome ?? it.nome,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              color:
+                                  it.comprado ? AppColors.dim : AppColors.text,
+                              decoration: it.comprado
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              decorationColor: AppColors.dim2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     if (velho)
                       const Padding(
@@ -607,7 +652,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Widget _botaoFinalizar(
-      Lista atual, List<ItemLista> visiveis, String? mercadoNome) {
+      Lista atual, List<ItemLista> removiveis, String? mercadoNome) {
     return SafeArea(
       minimum: const EdgeInsets.all(16),
       child: SizedBox(
@@ -616,7 +661,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           onPressed: () async {
             await ref
                 .read(listasRepoProvider)
-                .removerItens(atual.id, visiveis.map((e) => e.id).toList());
+                .removerItens(atual.id, removiveis.map((e) => e.id).toList());
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -627,8 +672,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             }
           },
           icon: const Icon(Icons.check_circle_outline, size: 20),
-          label: Text(
-              mercadoNome == null ? 'Finalizar compra' : 'Finalizar $mercadoNome'),
+          label: Text(mercadoNome == null
+              ? 'Finalizar compra'
+              : 'Finalizar $mercadoNome'),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.green.withValues(alpha: 0.14),
             foregroundColor: AppColors.green,
@@ -636,6 +682,68 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Folha de seleção do mercado para "Copiar lista".
+class _SheetExportar extends StatelessWidget {
+  const _SheetExportar({required this.mercados});
+  final List<Mercado> mercados;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 5,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.dim2,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Text('Copiar lista de:',
+                  style: TextStyle(
+                      color: AppColors.text,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ),
+          _opcao(context, 'todos', 'Todos os itens', null),
+          for (final m in mercados) _opcao(context, m.id, m.nome, m.cor),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _opcao(BuildContext context, String valor, String label, Color? cor) {
+    return InkWell(
+      onTap: () => Navigator.pop(context, valor),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                  color: cor ?? AppColors.dim2, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 12),
+            Text(label,
+                style: const TextStyle(color: AppColors.text, fontSize: 14.5)),
+          ],
         ),
       ),
     );

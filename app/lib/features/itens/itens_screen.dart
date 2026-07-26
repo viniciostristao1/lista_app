@@ -62,7 +62,6 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
       ),
       body: Column(
         children: [
-          // caixinhas de configuração (estreitas)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             child: Row(
@@ -72,7 +71,6 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   label: 'Editar mercados',
                   onTap: () => mostrarEditorMercados(context, mercados),
                 ),
-                // "Editar categorias" entra aqui no próximo passo.
               ],
             ),
           ),
@@ -135,6 +133,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     Map<String, Mercado> mercadosPorId,
   ) {
     final ordenados = p.precosOrdenados;
+    final ultima = p.ultimaAtualizacao;
+    final velho =
+        ultima != null && DateTime.now().difference(ultima).inDays > 30;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -155,6 +157,12 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (p.fixado)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 6, top: 2),
+                        child: Icon(Icons.push_pin,
+                            size: 13, color: AppColors.green),
+                      ),
                     Expanded(
                       child: Text.rich(
                         TextSpan(children: [
@@ -173,14 +181,25 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(p.categoria.label.toUpperCase(),
-                          style: const TextStyle(
-                              color: AppColors.dim2,
-                              fontSize: 10,
-                              letterSpacing: .6,
-                              fontWeight: FontWeight.w700)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (ultima != null)
+                          Text(diaMes(ultima),
+                              style: TextStyle(
+                                  color: velho
+                                      ? AppColors.danger
+                                      : AppColors.dim2,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 1),
+                        Text(p.categoria.label.toUpperCase(),
+                            style: const TextStyle(
+                                color: AppColors.dim2,
+                                fontSize: 10,
+                                letterSpacing: .6,
+                                fontWeight: FontWeight.w700)),
+                      ],
                     ),
                   ],
                 ),
@@ -236,7 +255,6 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     required PrecoMercado preco,
     required bool menor,
   }) {
-    final velho = preco.desatualizado;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
       decoration: BoxDecoration(
@@ -288,23 +306,6 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   color: menor ? AppColors.green : AppColors.text,
                   fontSize: 14,
                   fontWeight: FontWeight.w700)),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (velho)
-                const Padding(
-                  padding: EdgeInsets.only(right: 3),
-                  child: Icon(Icons.warning_amber_rounded,
-                      size: 11, color: AppColors.danger),
-                ),
-              Text(
-                velho ? 'desatualizado' : haDias(preco.diasDesde),
-                style: TextStyle(
-                    fontSize: 10,
-                    color: velho ? AppColors.danger : AppColors.dim2),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -326,7 +327,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             const Text(
-              'Toque em "Novo item" para cadastrar um produto\ne comparar o preço entre seus mercados.',
+              'Toque em "+" para cadastrar um produto\ne comparar o preço entre seus mercados.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.dim, height: 1.5),
             ),
