@@ -105,6 +105,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Migrado pra **google_sign_in 7.x nativo** + Web client ID como `serverClientId`.
   Re-adicionado o pacote `google_sign_in`. Auth provisionada + SHA-1 já registrados.
 
+### 2026-07-26 (cont.) — Aba PEDIDOS + peso + logout rápido
+- Label "Tamanho" → **"Peso"**.
+- **Logout lento (~7s) corrigido:** `_auth.signOut()` roda **primeiro** (tela muda na
+  hora); o `GoogleSignIn.signOut()` roda depois sem travar a UI.
+- **Aba Pedidos construída** 🎉: finalizar compra agora **arquiva um pedido** (data,
+  mercado, total, economia, retrato dos itens) em vez de só apagar. Tela: filtro por
+  mercado (Todos + chips), **resumo do mês** (economia + total, filtrado), lista de
+  pedidos, e **desfazer pedido** (devolve os itens à lista atual + apaga o pedido).
+  Model `Pedido`/`PedidoItem`, `PedidosRepository`, coleção `users/{uid}/pedidos`.
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
@@ -154,14 +164,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Campos opcionais do produto: **marca, tamanho, unidade** (texto livre).
 - **Lista rápida (25/07):** Listas = 1 lista só; adiciona por busca no catálogo, sem
   digitar preço; destaque = economia + %; "estimado" como secundário.
-- Finalizar = remove os itens visíveis (por filtro de mercado); Todos = tudo. Ainda
-  **não** arquiva em histórico (isso entra quando repensarmos Pedidos).
+- Finalizar = **arquiva um pedido** (data/mercado/total/economia/itens) e remove os
+  itens visíveis não-fixados. Dá pra **desfazer** o pedido (itens voltam à lista).
 - Editar mercados vive na aba **Itens**.
 - **Categorias:** lista fixa ampliada (13), não editáveis (decisão 25/07).
 - **Escala/custo:** a VPS só compila; o backend é o Firebase, que escala a milhões.
   Grátis (Spark) cobre ~1.000–1.500 usuários ativos/mês; no Blaze ~US$0,001/usuário/mês
   (uso leve). Gargalo = **custo (baixo)**, não capacidade. Ligar alerta de orçamento.
-- Pendência aberta: aba **Pedidos** (repensar — será mais complexa).
+- Aba **Pedidos** CONSTRUÍDA (26/07): histórico + resumo do mês + desfazer pedido.
+- Próximos possíveis: ícone do launcher (logo), polimento, e preparar o AAB/Play Store.
 
 ---
 

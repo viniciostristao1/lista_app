@@ -6,10 +6,12 @@ import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
 import 'package:lista_app/models/mercado.dart';
+import 'package:lista_app/models/pedido.dart';
 import 'package:lista_app/models/produto.dart';
 import 'package:lista_app/services/auth_service.dart';
 import 'package:lista_app/services/listas_repository.dart';
 import 'package:lista_app/services/mercados_repository.dart';
+import 'package:lista_app/services/pedidos_repository.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
@@ -186,7 +188,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             ),
           ),
           if (_busca.isEmpty && removiveis.isNotEmpty)
-            _botaoFinalizar(atual!, removiveis, mercadosPorId[filtro]?.nome),
+            _botaoFinalizar(atual!, removiveis, produtosPorId, filtro,
+                mercadosPorId[filtro]?.nome),
         ],
       ),
     );
@@ -714,22 +717,49 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Widget _botaoFinalizar(
-      Lista atual, List<ItemLista> removiveis, String? mercadoNome) {
+    Lista atual,
+    List<ItemLista> removiveis,
+    Map<String, Produto> produtosPorId,
+    String? filtroMercadoId,
+    String? mercadoNome,
+  ) {
     return SafeArea(
       minimum: const EdgeInsets.all(16),
       child: SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
           onPressed: () async {
+            // arquiva um pedido (histórico) e remove os itens da lista
+            var total = 0.0, economia = 0.0;
+            final pItens = <PedidoItem>[];
+            for (final it in removiveis) {
+              final p = produtosPorId[it.produtoId];
+              final menor = p?.menorPreco;
+              if (menor != null) total += menor * it.quantidade;
+              if (p?.segundoMenorPreco != null) {
+                economia += p!.economia * it.quantidade;
+              }
+              pItens.add(PedidoItem(
+                produtoId: it.produtoId,
+                nome: p?.nome ?? it.nome,
+                categoria: p?.categoria ?? it.categoria,
+                quantidade: it.quantidade,
+                precoUnit: menor,
+              ));
+            }
+            await ref.read(pedidosRepoProvider).criar(
+                  mercadoId: filtroMercadoId,
+                  total: total,
+                  economia: economia,
+                  itens: pItens,
+                );
             await ref
                 .read(listasRepoProvider)
                 .removerItens(atual.id, removiveis.map((e) => e.id).toList());
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(mercadoNome == null
-                        ? 'Compra finalizada! 🛒'
-                        : 'Itens de $mercadoNome concluídos ✓')),
+                const SnackBar(
+                    content: Text('Compra finalizada! 🛒 (veja em Pedidos)')),
               );
             }
           },

@@ -34,12 +34,14 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    // Firebase primeiro: a tela muda na hora. O signOut do Google roda depois,
+    // sem travar a UI (era o que causava ~7s de espera).
+    await _auth.signOut();
     try {
       await GoogleSignIn.instance.signOut();
     } catch (_) {
       // ignora se o google_sign_in ainda não foi inicializado
     }
-    await _auth.signOut();
   }
 }
 

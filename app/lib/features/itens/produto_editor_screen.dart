@@ -232,7 +232,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _label('Tamanho (opcional)'),
+                    _label('Peso (opcional)'),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _tamanho,

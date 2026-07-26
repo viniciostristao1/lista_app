@@ -24,6 +24,8 @@ class FirestoreRefs {
       listas.doc(listaId).collection('itens');
   CollectionReference<Map<String, dynamic>> get precos =>
       _user.collection('precos');
+  CollectionReference<Map<String, dynamic>> get pedidos =>
+      _user.collection('pedidos');
 }
 
 final firestoreRefsProvider = Provider<FirestoreRefs>((ref) {
