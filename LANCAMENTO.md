@@ -53,7 +53,8 @@ Perguntas do formulário:
 - App direcionado a **crianças**? **Não.**
 
 ## Política de privacidade
-- URL: (preenchida ao publicar a página) — hospedada no GitHub Pages (repo público).
+- **URL:** https://viniciostristao1.github.io/lista-privacidade/
+- Hospedada no GitHub Pages (repo público `viniciostristao1/lista-privacidade`).
 
 ## Materiais gráficos
 - **Ícone 512×512:** gerado (a partir de `assets/icon/icon_full.png`).
