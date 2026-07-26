@@ -89,6 +89,37 @@ class ListasRepository {
   Future<void> setQuantidade(String listaId, String itemId, int quantidade) =>
       _refs.itens(listaId).doc(itemId).update({'quantidade': quantidade});
 
+  /// Adiciona o produto à lista só se ainda não estiver (usado pelo "fixar").
+  Future<void> adicionarProdutoSeAusente(
+    String listaId, {
+    required String produtoId,
+    required String nome,
+    required Categoria categoria,
+  }) async {
+    final existentes = await _refs
+        .itens(listaId)
+        .where('produtoId', isEqualTo: produtoId)
+        .limit(1)
+        .get();
+    if (existentes.docs.isNotEmpty) return;
+    await adicionarItem(listaId,
+        produtoId: produtoId, nome: nome, categoria: categoria);
+  }
+
+  /// Remove da lista os itens de um produto (usado ao "desfixar").
+  Future<void> removerItensPorProduto(String listaId, String produtoId) async {
+    final snap = await _refs
+        .itens(listaId)
+        .where('produtoId', isEqualTo: produtoId)
+        .get();
+    if (snap.docs.isEmpty) return;
+    final batch = _refs.db.batch();
+    for (final d in snap.docs) {
+      batch.delete(d.reference);
+    }
+    await batch.commit();
+  }
+
   Future<void> removerItem(String listaId, String itemId) =>
       _refs.itens(listaId).doc(itemId).delete();
 

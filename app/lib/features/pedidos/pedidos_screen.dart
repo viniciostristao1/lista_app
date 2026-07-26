@@ -158,42 +158,39 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.line),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Este mês${mercadoNome == null ? '' : ' · $mercadoNome'}',
-            style: const TextStyle(color: AppColors.dim, fontSize: 12.5),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Text.rich(TextSpan(children: [
+                const TextSpan(
+                    text: 'Este mês economizou ',
+                    style: TextStyle(color: AppColors.dim, fontSize: 13)),
+                TextSpan(
+                    text: reais(economia),
+                    style: const TextStyle(
+                        color: AppColors.green,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700)),
+              ])),
+            ),
           ),
-          const SizedBox(height: 6),
-          Row(
+          const SizedBox(width: 10),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Economizou',
-                      style: TextStyle(color: AppColors.dim2, fontSize: 11)),
-                  Text(reais(economia),
-                      style: const TextStyle(
-                          color: AppColors.green,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700)),
-                ],
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text('Total gasto',
-                      style: TextStyle(color: AppColors.dim2, fontSize: 11)),
-                  Text(reais(total),
-                      style: const TextStyle(
-                          color: AppColors.text,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600)),
-                ],
-              ),
+              Text('Total ${reais(total)}',
+                  style: const TextStyle(
+                      color: AppColors.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600)),
+              if (mercadoNome != null)
+                Text(mercadoNome,
+                    style:
+                        const TextStyle(color: AppColors.dim2, fontSize: 11.5)),
             ],
           ),
         ],

@@ -716,6 +716,26 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
+  (double, double, List<PedidoItem>) _montarPedido(
+      List<ItemLista> itens, Map<String, Produto> produtosPorId) {
+    var total = 0.0, economia = 0.0;
+    final pItens = <PedidoItem>[];
+    for (final it in itens) {
+      final p = produtosPorId[it.produtoId];
+      final menor = p?.menorPreco;
+      if (menor != null) total += menor * it.quantidade;
+      if (p?.segundoMenorPreco != null) economia += p!.economia * it.quantidade;
+      pItens.add(PedidoItem(
+        produtoId: it.produtoId,
+        nome: p?.nome ?? it.nome,
+        categoria: p?.categoria ?? it.categoria,
+        quantidade: it.quantidade,
+        precoUnit: menor,
+      ));
+    }
+    return (total, economia, pItens);
+  }
+
   Widget _botaoFinalizar(
     Lista atual,
     List<ItemLista> removiveis,
@@ -729,30 +749,27 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         width: double.infinity,
         child: FilledButton.icon(
           onPressed: () async {
-            // arquiva um pedido (histórico) e remove os itens da lista
-            var total = 0.0, economia = 0.0;
-            final pItens = <PedidoItem>[];
-            for (final it in removiveis) {
-              final p = produtosPorId[it.produtoId];
-              final menor = p?.menorPreco;
-              if (menor != null) total += menor * it.quantidade;
-              if (p?.segundoMenorPreco != null) {
-                economia += p!.economia * it.quantidade;
+            final pedidosRepo = ref.read(pedidosRepoProvider);
+            // filtro específico = 1 pedido; "Todos" = separa por mercado mais barato
+            final grupos = <String?, List<ItemLista>>{};
+            if (filtroMercadoId != null) {
+              grupos[filtroMercadoId] = removiveis;
+            } else {
+              for (final it in removiveis) {
+                final mid = produtosPorId[it.produtoId]?.mercadoMaisBarato;
+                grupos.putIfAbsent(mid, () => []).add(it);
               }
-              pItens.add(PedidoItem(
-                produtoId: it.produtoId,
-                nome: p?.nome ?? it.nome,
-                categoria: p?.categoria ?? it.categoria,
-                quantidade: it.quantidade,
-                precoUnit: menor,
-              ));
             }
-            await ref.read(pedidosRepoProvider).criar(
-                  mercadoId: filtroMercadoId,
-                  total: total,
-                  economia: economia,
-                  itens: pItens,
-                );
+            for (final entry in grupos.entries) {
+              final (total, economia, pItens) =
+                  _montarPedido(entry.value, produtosPorId);
+              await pedidosRepo.criar(
+                mercadoId: entry.key,
+                total: total,
+                economia: economia,
+                itens: pItens,
+              );
+            }
             await ref
                 .read(listasRepoProvider)
                 .removerItens(atual.id, removiveis.map((e) => e.id).toList());

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/models/produto.dart';
+import 'package:lista_app/services/listas_repository.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
@@ -120,6 +121,12 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           observacoes: _nuloSeVazio(_obs),
           fixado: _fixado,
         );
+        if (_fixado) {
+          final listaRepo = ref.read(listasRepoProvider);
+          final atual = await listaRepo.obterOuCriarAtiva();
+          await listaRepo.adicionarProdutoSeAusente(atual.id,
+              produtoId: id, nome: nome, categoria: _categoria);
+        }
       }
 
       for (final m in widget.mercados) {
@@ -172,11 +179,19 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             tooltip: _fixado ? 'Fixado (não sai ao finalizar)' : 'Fixar item',
             icon: Icon(_fixado ? Icons.push_pin : Icons.push_pin_outlined,
                 color: _fixado ? AppColors.green : AppColors.dim),
-            onPressed: () {
+            onPressed: () async {
               final novo = !_fixado;
               setState(() => _fixado = novo);
-              if (_editando) {
-                ref.read(produtosRepoProvider).setFixado(_p!.id, novo);
+              if (!_editando) return;
+              await ref.read(produtosRepoProvider).setFixado(_p!.id, novo);
+              // fixar -> vai pra lista; desfixar -> sai da lista
+              final listaRepo = ref.read(listasRepoProvider);
+              final atual = await listaRepo.obterOuCriarAtiva();
+              if (novo) {
+                await listaRepo.adicionarProdutoSeAusente(atual.id,
+                    produtoId: _p!.id, nome: _p!.nome, categoria: _p!.categoria);
+              } else {
+                await listaRepo.removerItensPorProduto(atual.id, _p!.id);
               }
             },
           ),

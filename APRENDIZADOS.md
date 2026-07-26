@@ -115,6 +115,18 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   pedidos, e **desfazer pedido** (devolve os itens à lista atual + apaga o pedido).
   Model `Pedido`/`PedidoItem`, `PedidosRepository`, coleção `users/{uid}/pedidos`.
 
+### 2026-07-26 (cont.) — split por mercado, fixar→lista, card mês, logo+ícone
+- Finalizar em **"Todos"** agora **separa por mercado** (1 pedido por mercado mais
+  barato; itens sem preço vão num pedido "Vários"). Filtro específico = 1 pedido.
+- **Fixar** um item (aba Itens) agora **adiciona-o à lista na hora** (via
+  `adicionarProdutoSeAusente`); **desfixar** remove (`removerItensPorProduto`).
+- Pedidos: **"Este mês economizou R$X"** numa linha só (+ Total à direita).
+- **Logo + ícone do app** novos: carrinho minimalista com 2 "V" dentro, azul claro
+  degradê em fundo azul escuro. Pipeline: SVG (`scratchpad/icon_*.svg`) → PNG via
+  **rsvg-convert** (`apt install librsvg2-bin`) → `assets/icon/icon_full.png` +
+  `icon_fg.png` → **flutter_launcher_icons** (dev dep + config no pubspec) gera os
+  mipmaps/adaptive. Logo interno = `Image.asset(icon_full.png)`.
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
