@@ -127,6 +127,14 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   `icon_fg.png` → **flutter_launcher_icons** (dev dep + config no pubspec) gera os
   mipmaps/adaptive. Logo interno = `Image.asset(icon_full.png)`.
 
+### 2026-07-26 (cont.) — Pedidos: excluir, "Sem mercado", filtro ano/mês + ícone maior
+- Pedidos (detalhe): **"Excluir pedido"** (apaga sem devolver itens) acima de "Desfazer".
+- Pedido sem mercado (itens sem preço) agora diz **"Sem mercado"** (era "Vários mercados").
+- **Filtro de ano (dropdown no AppBar) + mês (chips)** na aba Pedidos. Resumo e lista
+  respeitam ano+mês+mercado — **somas corretas** por período.
+- Ícone/logo: carrinho **maior** e os 2 "V" **saindo pra cima** do carrinho (SVG scale
+  1.26/1.12 + V-paths mais altos).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
