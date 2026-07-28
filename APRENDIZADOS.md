@@ -164,6 +164,9 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **Lição:** limpeza-no-evento não conserta dados legados; para invariantes de dados
   ("nenhum preço aponta pra mercado inexistente"), vale um **backstop idempotente** que
   reconcilia no load, além do gancho na ação.
+- **Release:** `v0.13.0-teste16` (título "teste 0.15"), commit `05b09b6`. O release
+  passou a carregar **APK arm64 + AAB do mesmo commit** → virou o "pacote canônico".
+  Qual AAB subir na Play Store: `LANCAMENTO.md § Build canônico` (= release mais recente).
 
 ---
 

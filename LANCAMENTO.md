@@ -2,6 +2,18 @@
 
 Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
 
+## ⭐ Build canônico a subir (qual AAB usar)
+> **Fonte de verdade do "app correto": o release mais recente no GitHub.**
+> Todo push em `app/**` gera APK **e** AAB do mesmo commit (CI `build-apk.yml`).
+
+- **AAB para a Play Store (ATUAL, 2026-07-28):**
+  release **`v0.13.0-teste16`** → asset **`lista-app-v0.13.0.aab`** — commit `05b09b6`,
+  já com o fix dos preços órfãos de mercado excluído.
+  - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.13.0-teste16
+- **NÃO usar** o AAB antigo do release `playstore-pacote-1` (26/07) — é anterior ao fix.
+- **Regra:** ao cortar um build novo depois desta data, atualizar esta linha com o
+  novo release/tag. O AAB a subir é sempre o do **release mais recente**.
+
 ## Identidade
 - **Título da loja (≤30):** `Lista e comparador de mercado`
 - **Nome no ícone:** `Lista`
@@ -70,7 +82,8 @@ Perguntas do formulário:
 - [ ] Data Safety (respostas acima).
 - [ ] Classificação de conteúdo (questionário → "Livre").
 - [ ] Política de privacidade (URL).
-- [ ] Subir o **AAB** assinado.
+- [ ] Subir o **AAB** assinado → usar o **build canônico** do topo (`v0.13.0-teste16`
+  → `lista-app-v0.13.0.aab`), NÃO o `playstore-pacote-1` antigo.
 - [ ] Teste fechado: 20 testadores por 14 dias.
 - [ ] Liberar produção.
 ```
