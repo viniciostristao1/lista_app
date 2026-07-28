@@ -11,6 +11,43 @@ Meta: publicar na **Play Store**.
 > [`APRENDIZADOS.md`](APRENDIZADOS.md) (diário + lições) e dar **commit/push**.
 > Ler `APRENDIZADOS.md` antes de mexer em login/build/assinatura (gotchas conhecidos).
 
+## ⭐ ESTADO ATUAL (2026-07-28) — ler primeiro pós-/clear
+
+**O app está COMPLETO e funcional** (em Português). Fase atual = **LANÇAMENTO na Play Store**.
+
+**O que existe e funciona:**
+- 3 abas completas: **Listas** (compra atual, busca no catálogo, economia, quantidade,
+  fixar, filtro/exportar), **Itens** (catálogo + comparador de preço por mercado +
+  frescor/data + calculadora), **Pedidos** (histórico separado por mercado + filtro
+  ano/mês + resumo do mês + desfazer/excluir pedido).
+- **Login Google NATIVO** (google_sign_in) funcionando. Firebase `lista-app-e08e2`.
+- **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
+- Distribuição de teste: **releases no GitHub** (APK arm64). Último: `v0.12.0-teste15`.
+  **AAB** de produção: release `playstore-pacote-1`.
+
+**Lançamento — onde paramos:**
+- Conta de desenvolvedor Google Play **criada + paga (US$25) + documentos enviados**
+  → **AGUARDANDO verificação de identidade do Google** (horas a dias).
+- **Pacote pronto** (tudo em `LANCAMENTO.md` + `store/`): AAB, feature graphic 1024×500,
+  ícone 512, 3-4 screenshots (`store/screenshots/`), política no ar
+  (https://viniciostristao1.github.io/lista-privacidade/), textos + Data Safety.
+- **Decisão:** lançar em **PT agora**; **Inglês (i18n) depois** como atualização.
+- **Monetização:** grátis, sem anúncios (decisão do usuário).
+
+**O que falta (para o próximo passo):**
+1. Google aprovar a verificação → então **Marco ②**: criar o app no Play Console,
+   preencher a ficha (colar de `LANCAMENTO.md`), subir AAB + gráficos + screenshots,
+   Data Safety, classificação, link da política.
+2. **Teste fechado: 20 testadores / 14 dias.** 3. Produção.
+4. **Pendência prometida:** dar ao usuário uma **cópia da keystore** (upload key) pra
+   backup pessoal (está em `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD` nos secrets do repo).
+
+**Ideias futuras (pós-lançamento):** Inglês (internacionalização) · monetização (AdMob
+ou premium) · molduras nos screenshots · BEM no futuro: rede social + preços por bairro.
+
+**Dados do usuário ficam na NUVEM (Firebase), ligados ao login** — trocar do APK do
+GitHub para a versão da Play Store NÃO perde nada (loga e tudo volta).
+
 ## O que o app faz (MVP)
 Três abas:
 - **📋 Listas** — cria listas, adiciona itens (autocomplete do histórico), marca como

@@ -9,6 +9,7 @@ Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
 - **Categoria sugerida:** Compras (Shopping)
 - **Monetização:** Grátis, sem anúncios, sem compras no app.
 - **E-mail de contato:** viniciostristao@gmail.com
+- **Idiomas:** PT no lançamento; Inglês (internacionalização) depois, como atualização.
 
 ## Descrição curta (≤80 caracteres)
 ```
@@ -59,10 +60,12 @@ Perguntas do formulário:
 ## Materiais gráficos
 - **Ícone 512×512:** gerado (a partir de `assets/icon/icon_full.png`).
 - **Feature graphic 1024×500:** gerado (`scratchpad/feature.png`).
-- **Screenshots (2–8, celular):** ⏳ o usuário tira no app (Listas, Itens, Pedidos, adicionar item).
+- **Screenshots:** ✅ em `store/screenshots/` (01-listas, 02-itens, 03-pedidos, 04-busca).
+  Usar 01, 02 e 03 (a 04 tem teclado na tela).
 
 ## Checklist do Play Console
-- [ ] Conta de desenvolvedor (US$25, CPF).
+- [x] Conta de desenvolvedor (US$25, CPF) — **paga + documentos enviados; AGUARDANDO
+  verificação de identidade do Google** (situação em 2026-07-28).
 - [ ] Criar app → preencher ficha (título/descrições/ícone/feature/screenshots).
 - [ ] Data Safety (respostas acima).
 - [ ] Classificação de conteúdo (questionário → "Livre").

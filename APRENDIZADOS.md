@@ -135,6 +135,19 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - Ícone/logo: carrinho **maior** e os 2 "V" **saindo pra cima** do carrinho (SVG scale
   1.26/1.12 + V-paths mais altos).
 
+### 2026-07-27/28 — Pacote Play Store + conta enviada + HANDOFF
+- **Pacote de lançamento pronto:** AAB (release `playstore-pacote-1`), feature graphic
+  1024×500 + ícone 512 (`store/`), política em GitHub Pages (repo público
+  `viniciostristao1/lista-privacidade` → https://viniciostristao1.github.io/lista-privacidade/),
+  textos + Data Safety (`LANCAMENTO.md`), screenshots (`store/screenshots/`, usar 01-03).
+  AAB gerado no CI (`flutter build appbundle --release`).
+- **Conta de dev Google Play:** criada + paga (US$25) + documentos enviados → **aguardando
+  verificação do Google**.
+- **Decisões:** lançar em **PT**; **Inglês (i18n) depois**, como atualização. Grátis, sem anúncios.
+- **Handoff completo** no `INICIO.md` (§ ⭐ ESTADO ATUAL) — é a fonte de verdade pós-/clear.
+  Também há a memória `project_lista_app.md`. (Não pus no `MEMORY.md` global porque o índice
+  do trading já está acima do limite de tamanho — problema pré-existente do trading, à parte.)
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
