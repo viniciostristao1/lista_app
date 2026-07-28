@@ -148,6 +148,23 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   Também há a memória `project_lista_app.md`. (Não pus no `MEMORY.md` global porque o índice
   do trading já está acima do limite de tamanho — problema pré-existente do trading, à parte.)
 
+### 2026-07-28 — Fix: preços órfãos de mercado excluído (aba Itens)
+- **Sintoma:** ao excluir um mercado, os preços dele continuavam aparecendo nos itens,
+  só que sem nome (pílula com "—").
+- **Causa:** a limpeza (`removerMercadoDeTodos`, do commit `c368c83`) só age **no momento
+  da exclusão**. Preços criados antes desse fix (ou exclusão que não completou) ficam
+  como órfãos no banco e ninguém os remove depois.
+- **Fix (auto-corretivo, 2 camadas):**
+  1. `ProdutosRepository.limparPrecosOrfaos(mercadosValidos)` — varre os produtos e
+     apaga preços de mercado inexistente + zera `ultimoMercadoId/ultimoPreco` órfão.
+     **Guarda:** no-op se `mercadosValidos` vier vazio (evita apagar tudo num loading).
+     Disparado 1×/conjunto de mercados ao abrir a aba Itens (`_talvezLimparOrfaos`).
+  2. Card da aba Itens filtra `precosOrdenados` pelos mercados existentes → o "—" some
+     na hora (e `economia`/`última atualização` recomputam só com mercados válidos).
+- **Lição:** limpeza-no-evento não conserta dados legados; para invariantes de dados
+  ("nenhum preço aponta pra mercado inexistente"), vale um **backstop idempotente** que
+  reconcilia no load, além do gancho na ação.
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

@@ -119,6 +119,43 @@ class ProdutosRepository {
     if (alterou) await batch.commit();
   }
 
+  /// Higieniza o catálogo: remove de todos os produtos os preços de mercados
+  /// que não existem mais (órfãos de exclusões antigas ou incompletas) e zera
+  /// o "último mercado" se ele apontar para um mercado excluído.
+  ///
+  /// Segurança: NUNCA chamar com [mercadosValidos] vazio — isso apagaria todos
+  /// os preços. Retorna quantos produtos foram alterados (0 = nada a limpar).
+  Future<int> limparPrecosOrfaos(Set<String> mercadosValidos) async {
+    if (mercadosValidos.isEmpty) return 0;
+    final snap = await _refs.produtos.get();
+    final batch = _refs.db.batch();
+    var tocados = 0;
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final precos = data['precos'] as Map<String, dynamic>?;
+      final orfaos = precos == null
+          ? const <String>[]
+          : precos.keys.where((id) => !mercadosValidos.contains(id)).toList();
+      final ultimoMerc = data['ultimoMercadoId'] as String?;
+      final ultimoOrfao =
+          ultimoMerc != null && !mercadosValidos.contains(ultimoMerc);
+      if (orfaos.isEmpty && !ultimoOrfao) continue;
+
+      final updates = <String, dynamic>{};
+      for (final id in orfaos) {
+        updates['precos.$id'] = FieldValue.delete();
+      }
+      if (ultimoOrfao) {
+        updates['ultimoMercadoId'] = FieldValue.delete();
+        updates['ultimoPreco'] = FieldValue.delete();
+      }
+      batch.update(doc.reference, updates);
+      tocados++;
+    }
+    if (tocados > 0) await batch.commit();
+    return tocados;
+  }
+
   /// Garante que o produto existe (usado ao adicionar item numa lista) e, se
   /// vier preço + mercado, também registra esse preço no catálogo. Retorna o id.
   Future<String> registrar({

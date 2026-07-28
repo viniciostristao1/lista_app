@@ -21,6 +21,25 @@ class ItensScreen extends ConsumerStatefulWidget {
 class _ItensScreenState extends ConsumerState<ItensScreen> {
   String _busca = '';
 
+  /// Assinatura do conjunto de mercados já higienizado (evita repetir a limpeza).
+  String? _limpezaFeitaPara;
+
+  /// Backstop: apaga do banco preços de mercados que não existem mais. Roda uma
+  /// vez por conjunto de mercados, e só quando há órfão de fato. Nunca com lista
+  /// vazia (a guarda em [limparPrecosOrfaos] evita apagar tudo num loading).
+  void _talvezLimparOrfaos(List<Mercado> mercados, List<Produto> produtos) {
+    if (mercados.isEmpty) return;
+    final validos = mercados.map((m) => m.id).toSet();
+    final assinatura = (validos.toList()..sort()).join(',');
+    if (assinatura == _limpezaFeitaPara) return;
+    _limpezaFeitaPara = assinatura;
+    final temOrfao =
+        produtos.any((p) => p.precos.keys.any((id) => !validos.contains(id)));
+    if (!temOrfao) return;
+    Future.microtask(
+        () => ref.read(produtosRepoProvider).limparPrecosOrfaos(validos));
+  }
+
   @override
   Widget build(BuildContext context) {
     final produtosAsync = ref.watch(produtosProvider);
@@ -89,6 +108,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   child: Text('Erro ao carregar.',
                       style: TextStyle(color: AppColors.dim))),
               data: (todos) {
+                _talvezLimparOrfaos(mercados, todos);
                 final lista = _busca.isEmpty
                     ? todos
                     : todos.where((p) => p.nomeLower.contains(_busca)).toList();
@@ -139,10 +159,22 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     List<Mercado> mercados,
     Map<String, Mercado> mercadosPorId,
   ) {
-    final ordenados = p.precosOrdenados;
-    final ultima = p.ultimaAtualizacao;
+    // Ignora preços de mercados que não existem mais (órfãos): o backstop os
+    // apaga do banco, mas aqui o "—" some na hora, antes disso completar.
+    final ordenados = p.precosOrdenados
+        .where((e) => mercadosPorId.containsKey(e.key))
+        .toList();
+    final ultima = ordenados.isEmpty
+        ? null
+        : ordenados
+            .map((e) => e.value.data)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
     final velho =
         ultima != null && DateTime.now().difference(ultima).inDays > 30;
+    // economia = 2º menor - menor, só entre mercados válidos.
+    final economia = ordenados.length >= 2
+        ? ordenados[1].value.valor - ordenados[0].value.valor
+        : 0.0;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -234,7 +266,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                         ),
                     ],
                   ),
-                  if (p.economia > 0)
+                  if (economia > 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
                       child: Row(
@@ -243,7 +275,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                               size: 15, color: AppColors.green),
                           const SizedBox(width: 6),
                           Text(
-                            'economiza ${reais(p.economia)} vs ${mercadosPorId[ordenados[1].key]?.nome ?? '2º mais barato'}',
+                            'economiza ${reais(economia)} vs ${mercadosPorId[ordenados[1].key]?.nome ?? '2º mais barato'}',
                             style: const TextStyle(
                                 color: AppColors.green,
                                 fontSize: 12.5,
