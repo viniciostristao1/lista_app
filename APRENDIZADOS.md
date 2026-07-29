@@ -174,6 +174,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   travar o formato depois), **alternativas de login** (Q3 — hoje Google-only, "esqueci a
   senha" é não-problema por design), e diversos (i18n, monetização, molduras, rede social).
 
+### 2026-07-29 — Changelog do usuário (`ATUALIZACOES.md`)
+- Criado **`ATUALIZACOES.md`** = uma linha + data por versão ("o que mudou / o que
+  re-testar"), backfill dos releases recentes. **Fluxo travado no `INICIO.md`:** toda
+  melhoria visível/release novo entra 1 linha ali (topo = recente). Três arquivos, papéis
+  distintos: `APRENDIZADOS` (técnico) · `ATUALIZACOES` (changelog usuário) · `IDEIAS` (futuro).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

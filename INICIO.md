@@ -8,8 +8,12 @@ Meta: publicar na **Play Store**.
 > NUNCA tocar em `/root/trading/`, `/root/trading_acoes/`, `/root/trading_opcoes/`.
 
 > 📓 **Fluxo fixo:** ao fim de cada bloco significativo, atualizar
-> [`APRENDIZADOS.md`](APRENDIZADOS.md) (diário + lições) e dar **commit/push**.
+> [`APRENDIZADOS.md`](APRENDIZADOS.md) (diário técnico + lições) e dar **commit/push**.
 > Ler `APRENDIZADOS.md` antes de mexer em login/build/assinatura (gotchas conhecidos).
+> **⚠️ Toda melhoria visível ao usuário / release novo → UMA LINHA (resumo + data) em
+> [`ATUALIZACOES.md`](ATUALIZACOES.md)** — é o "o que mudou / o que re-testar" pro usuário
+> (topo = mais recente). Planos futuros → [`IDEIAS.md`](IDEIAS.md). Os três arquivos têm
+> papéis distintos: técnico (`APRENDIZADOS`) · changelog do usuário (`ATUALIZACOES`) · futuro (`IDEIAS`).
 
 ## ⭐ ESTADO ATUAL (2026-07-28) — ler primeiro pós-/clear
 
