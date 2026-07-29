@@ -45,8 +45,10 @@ Meta: publicar na **Play Store**.
 4. **Pendência prometida:** dar ao usuário uma **cópia da keystore** (upload key) pra
    backup pessoal (está em `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD` nos secrets do repo).
 
-**Ideias futuras (pós-lançamento):** Inglês (internacionalização) · monetização (AdMob
-ou premium) · molduras nos screenshots · BEM no futuro: rede social + preços por bairro.
+**Ideias & planos futuros → [`IDEIAS.md`](IDEIAS.md)** (fila pós-lançamento, datada e com
+status). Hoje lá: **mercado dedicado a um item** (Q1+Q2, `[EM DISCUSSÃO]` — formato a
+travar), **alternativas de login/recuperação** (Q3: hoje Google-only, sem senha por
+design), i18n (inglês), monetização, molduras nos screenshots, rede social + preços por bairro.
 
 **Dados do usuário ficam na NUVEM (Firebase), ligados ao login** — trocar do APK do
 GitHub para a versão da Play Store NÃO perde nada (loga e tudo volta).

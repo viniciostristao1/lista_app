@@ -168,6 +168,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   passou a carregar **APK arm64 + AAB do mesmo commit** → virou o "pacote canônico".
   Qual AAB subir na Play Store: `LANCAMENTO.md § Build canônico` (= release mais recente).
 
+### 2026-07-29 — Fila de planos futuros (`IDEIAS.md`)
+- Criado **`IDEIAS.md`** (planos pós-lançamento, datados e com status), referenciado no
+  `INICIO.md`. Semeado com: **mercado dedicado a um item** (Q1+Q2, `[EM DISCUSSÃO]` — vamos
+  travar o formato depois), **alternativas de login** (Q3 — hoje Google-only, "esqueci a
+  senha" é não-problema por design), e diversos (i18n, monetização, molduras, rede social).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
