@@ -12,10 +12,11 @@ Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
   **TESTADA pelo usuário ✅.** É o **fallback seguro** (última boa conhecida), guardada
   (release + tag + APK/AAB). Se A der problema, lança-se B.
   - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.13.0-teste16
-- **A — `v0.14.0-teste17`** (commit `f7e4206`) → asset `lista-app-v0.14.0.aab` — versão
+- **A — `v0.14.1-teste18`** (commit `89131a5`) → asset `lista-app-v0.14.1.aab` — versão
   **MELHORADA** com a feature **"mercado dedicado a um item"**. É o **ALVO de lançamento na
   Play Store**. **A verificar pelo usuário** (ainda não testada). Vira a oficial quando validada.
-  - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.14.0-teste17
+  - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.14.1-teste18
+  - *(supera a `v0.14.0-teste17`, que tinha o mesmo, com o botão "num mercado só" desajustado.)*
 
 **Oficial de lançamento pretendida = A** (assim que o usuário testar e aprovar). Enquanto
 A não é validada, o pronto-e-testado é **B** — e é o que se sobe se precisar publicar já.

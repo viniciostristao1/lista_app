@@ -13,7 +13,7 @@ esquecer. Evita re-discutir do zero e serve de fila pós-lançamento.
 
 ---
 
-## 1. Mercado dedicado a um item (perguntas 1 + 2)  — `[EM TESTE]` · **implementado 2026-07-30 (release A `v0.14.0-teste17`)**
+## 1. Mercado dedicado a um item (perguntas 1 + 2)  — `[EM TESTE]` · **implementado 2026-07-30 (release A `v0.14.1-teste18`)**
 *(implementado; move pra `[FEITO]` quando o usuário validar. O que foi feito: `APRENDIZADOS.md` 2026-07-30.)*
 
 **Dor:** hoje todo item da lista é comparável (preço por mercado + economia). Faltam

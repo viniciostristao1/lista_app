@@ -196,6 +196,9 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   `removerMercadoDeTodos`/`limparPrecosOrfaos` também limpam `mercadoFixo`/`fixado` órfãos.
   Bug pego na revisão: não apagar produto **dedicado** ao remover da lista (é entrada deliberada).
 - **B (`v0.13.0-teste16`) é o fallback testado; A está A VERIFICAR pelo usuário** (ver `LANCAMENTO.md`).
+- **Polido o botão** "Comprar sempre num mercado só" (full-width; a frase + ícone estouravam o
+  contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
+  **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
 ---
 
