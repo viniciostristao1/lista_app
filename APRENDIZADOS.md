@@ -187,6 +187,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   tem mercado. UX = botão "📌 Comprar sempre num mercado só" (qual mercado + ☐ recorrente),
   some a grade de preço. **Ainda NÃO implementado** — mexe na aba Itens (novos screenshots + AAB).
 
+### 2026-07-30 — Implementado: "mercado dedicado a um item" (versão A)
+- Feature do `IDEIAS.md § 1` implementada → **release A = `v0.14.0-teste17`** (commit `f7e4206`).
+  Modelo `Produto` ganhou `mercadoFixo`; getters de preço retornam **vazio** quando dedicado
+  (não-destrutivo — preços ficam no banco e voltam ao "voltar a comparar"). Editor de Itens:
+  botão "Comprar sempre num mercado só" (chips + recorrente), pino do appbar removido. Listas
+  usam **mercado efetivo** = `mercadoFixo ?? mais barato` (filtro/finalizar/exportar/cor).
+  `removerMercadoDeTodos`/`limparPrecosOrfaos` também limpam `mercadoFixo`/`fixado` órfãos.
+  Bug pego na revisão: não apagar produto **dedicado** ao remover da lista (é entrada deliberada).
+- **B (`v0.13.0-teste16`) é o fallback testado; A está A VERIFICAR pelo usuário** (ver `LANCAMENTO.md`).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

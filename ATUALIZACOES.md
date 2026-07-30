@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-07-30 · `v0.14.0-teste17`** — Novo: item **"de um mercado só"** (aba Itens → abrir o item → **"Comprar sempre num mercado só"**): escolhe o mercado, o preço some, e o item passa a viver naquele mercado (ex.: carne no açougue). Com opção **recorrente** (não sai ao finalizar — ex.: pão na padaria).
 - **2026-07-28 · `v0.13.0-teste16`** — Ao excluir um mercado, os preços dele somem dos itens (antes ficavam como pílula "—"); órfãos antigos são limpos ao abrir a aba Itens.
 - **2026-07-26 · `v0.12.0-teste15`** — Pedidos: excluir pedido, "Sem mercado", filtro por ano/mês, ícone maior.
 - **2026-07-26 · `v0.11.0-teste14`** — Ícone novo + ajustes visuais.

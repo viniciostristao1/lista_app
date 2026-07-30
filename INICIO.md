@@ -28,8 +28,8 @@ Meta: publicar na **Play Store**.
 - **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = versão melhorada** com a feature **"mercado dedicado a um item"** (em implementação) —
-  **alvo de lançamento**, a verificar pelo usuário. Detalhe/qual-AAB-subir em
+  **A = `v0.14.0-teste17`** (commit `f7e4206`) com a feature **"mercado dedicado a um item"** —
+  **alvo de lançamento**, **a verificar pelo usuário**. Detalhe/qual-AAB-subir em
   `LANCAMENTO.md § Build canônico`. ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**
