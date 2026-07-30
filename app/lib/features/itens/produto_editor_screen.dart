@@ -42,7 +42,9 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   late final TextEditingController _unidade;
   late final TextEditingController _obs;
   late Categoria _categoria;
-  late bool _fixado;
+  late bool _recorrente; // = "fixado": não sai ao finalizar (exige mercado fixo)
+  String? _mercadoFixo; // item "de um mercado só" (null = comparável)
+  bool _abrirMercadoFixo = false; // abriu o modo "num mercado só"
   late final Map<String, TextEditingController> _precoCtrls;
   bool _salvando = false;
 
@@ -58,7 +60,9 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     _unidade = TextEditingController(text: _p?.unidade ?? '');
     _obs = TextEditingController(text: _p?.observacoes ?? '');
     _categoria = _p?.categoria ?? Categoria.mercearia;
-    _fixado = _p?.fixado ?? false;
+    _recorrente = _p?.fixado ?? false;
+    _mercadoFixo = _p?.mercadoFixo;
+    _abrirMercadoFixo = _mercadoFixo != null;
     _precoCtrls = {
       for (final m in widget.mercados)
         m.id: TextEditingController(
@@ -95,9 +99,17 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       );
       return;
     }
+    final dedicado = _mercadoFixo != null;
+    if (_recorrente && !dedicado) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escolha em qual mercado esse item recorrente fica.')),
+      );
+      return;
+    }
     setState(() => _salvando = true);
     try {
       final repo = ref.read(produtosRepoProvider);
+      final eraRecorrente = _p?.fixado ?? false;
       final String id;
       if (_editando) {
         id = _p!.id;
@@ -109,7 +121,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
           observacoes: _nuloSeVazio(_obs),
-          fixado: _fixado,
+          fixado: _recorrente,
+          mercadoFixo: _mercadoFixo,
         );
       } else {
         id = await repo.criarProduto(
@@ -119,26 +132,38 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
           observacoes: _nuloSeVazio(_obs),
-          fixado: _fixado,
+          fixado: _recorrente,
+          mercadoFixo: _mercadoFixo,
         );
-        if (_fixado) {
-          final listaRepo = ref.read(listasRepoProvider);
-          final atual = await listaRepo.obterOuCriarAtiva();
-          await listaRepo.adicionarProdutoSeAusente(atual.id,
-              produtoId: id, nome: nome, categoria: _categoria);
+      }
+
+      // Preços só no modo comparar. Item dedicado não tem preço (mantém os
+      // preços antigos no banco intactos, para "voltar a comparar" restaurá-los).
+      if (!dedicado) {
+        for (final m in widget.mercados) {
+          final novo = parsePreco(_precoCtrls[m.id]!.text);
+          final antigo = _p?.precos[m.id]?.valor;
+          if (novo == null && antigo != null) {
+            await repo.removerPreco(id, m.id);
+          } else if (novo != null &&
+              (antigo == null || (novo - antigo).abs() > 0.001)) {
+            await repo.definirPreco(id, m.id, novo);
+          }
         }
       }
 
-      for (final m in widget.mercados) {
-        final novo = parsePreco(_precoCtrls[m.id]!.text);
-        final antigo = _p?.precos[m.id]?.valor;
-        if (novo == null && antigo != null) {
-          await repo.removerPreco(id, m.id);
-        } else if (novo != null &&
-            (antigo == null || (novo - antigo).abs() > 0.001)) {
-          await repo.definirPreco(id, m.id, novo);
+      // Recorrente entra na lista; deixar de ser recorrente sai da lista.
+      if (_recorrente != eraRecorrente) {
+        final listaRepo = ref.read(listasRepoProvider);
+        final atual = await listaRepo.obterOuCriarAtiva();
+        if (_recorrente) {
+          await listaRepo.adicionarProdutoSeAusente(atual.id,
+              produtoId: id, nome: nome, categoria: _categoria);
+        } else {
+          await listaRepo.removerItensPorProduto(atual.id, id);
         }
       }
+
       if (mounted) Navigator.pop(context);
     } finally {
       if (mounted) setState(() => _salvando = false);
@@ -175,26 +200,6 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       appBar: AppBar(
         title: Text(_editando ? 'Editar item' : 'Novo item'),
         actions: [
-          IconButton(
-            tooltip: _fixado ? 'Fixado (não sai ao finalizar)' : 'Fixar item',
-            icon: Icon(_fixado ? Icons.push_pin : Icons.push_pin_outlined,
-                color: _fixado ? AppColors.green : AppColors.dim),
-            onPressed: () async {
-              final novo = !_fixado;
-              setState(() => _fixado = novo);
-              if (!_editando) return;
-              await ref.read(produtosRepoProvider).setFixado(_p!.id, novo);
-              // fixar -> vai pra lista; desfixar -> sai da lista
-              final listaRepo = ref.read(listasRepoProvider);
-              final atual = await listaRepo.obterOuCriarAtiva();
-              if (novo) {
-                await listaRepo.adicionarProdutoSeAusente(atual.id,
-                    produtoId: _p!.id, nome: _p!.nome, categoria: _p!.categoria);
-              } else {
-                await listaRepo.removerItensPorProduto(atual.id, _p!.id);
-              }
-            },
-          ),
           if (_editando)
             IconButton(
               tooltip: 'Excluir',
@@ -206,7 +211,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 40),
         children: [
-          if (_fixado)
+          if (_recorrente)
             Container(
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
@@ -218,7 +223,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 Icon(Icons.push_pin, size: 15, color: AppColors.green),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Item fixado — não sai ao "Finalizar compra".',
+                  child: Text('Compra recorrente — não sai ao "Finalizar compra".',
                       style: TextStyle(color: AppColors.green, fontSize: 12.5)),
                 ),
               ]),
@@ -277,18 +282,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             ],
           ),
           const SizedBox(height: 22),
-          _label('Preço por mercado'),
-          const SizedBox(height: 4),
-          if (widget.mercados.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(top: 6),
-              child: Text(
-                'Cadastre seus mercados primeiro (aba Itens → Editar mercados).',
-                style: TextStyle(color: AppColors.dim2, fontSize: 12.5),
-              ),
-            )
-          else
-            ...widget.mercados.map(_linhaPreco),
+          _secaoMercado(),
           const SizedBox(height: 22),
           _label('Categoria'),
           const SizedBox(height: 8),
@@ -330,6 +324,125 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Seção "preço/mercado": modo comparar (grade de preço + botão) OU modo
+  /// "num mercado só" (escolhe mercado + recorrente, sem preço).
+  Widget _secaoMercado() {
+    if (widget.mercados.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label('Preço por mercado'),
+          const SizedBox(height: 6),
+          const Text(
+            'Cadastre seus mercados primeiro (aba Itens → Editar mercados).',
+            style: TextStyle(color: AppColors.dim2, fontSize: 12.5),
+          ),
+        ],
+      );
+    }
+
+    final dedicando = _abrirMercadoFixo || _mercadoFixo != null;
+    if (!dedicando) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label('Preço por mercado'),
+          ...widget.mercados.map(_linhaPreco),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: () => setState(() => _abrirMercadoFixo = true),
+            icon: const Icon(Icons.push_pin_outlined,
+                size: 18, color: AppColors.green),
+            label: const Text('Comprar sempre num mercado só',
+                style: TextStyle(color: AppColors.green)),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.line),
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label('Comprar sempre num mercado só'),
+        const SizedBox(height: 4),
+        const Text('Sem comparação de preço — anote em Observações se quiser.',
+            style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
+        const SizedBox(height: 12),
+        const Text('Em qual mercado?',
+            style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [for (final m in widget.mercados) _chipMercado(m)],
+        ),
+        CheckboxListTile(
+          value: _recorrente,
+          onChanged: _mercadoFixo == null
+              ? null
+              : (v) => setState(() => _recorrente = v ?? false),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          dense: true,
+          activeColor: AppColors.green,
+          title: const Text('Compra recorrente (não sai ao finalizar)',
+              style: TextStyle(color: AppColors.text, fontSize: 13.5)),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => setState(() {
+              _abrirMercadoFixo = false;
+              _mercadoFixo = null;
+              _recorrente = false;
+            }),
+            icon: const Icon(Icons.arrow_back, size: 16, color: AppColors.dim),
+            label: const Text('Voltar a comparar preços',
+                style: TextStyle(color: AppColors.dim)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _chipMercado(Mercado m) {
+    final sel = _mercadoFixo == m.id;
+    return GestureDetector(
+      onTap: () => setState(() => _mercadoFixo = m.id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              sel ? AppColors.green.withValues(alpha: 0.14) : AppColors.surface,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: sel ? AppColors.green : AppColors.line),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: m.cor, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text(m.nome,
+                style: TextStyle(
+                    color: sel ? AppColors.green : AppColors.dim,
+                    fontSize: 13,
+                    fontWeight: sel ? FontWeight.w600 : FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }

@@ -33,8 +33,9 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     final assinatura = (validos.toList()..sort()).join(',');
     if (assinatura == _limpezaFeitaPara) return;
     _limpezaFeitaPara = assinatura;
-    final temOrfao =
-        produtos.any((p) => p.precos.keys.any((id) => !validos.contains(id)));
+    final temOrfao = produtos.any((p) =>
+        p.precos.keys.any((id) => !validos.contains(id)) ||
+        (p.mercadoFixo != null && !validos.contains(p.mercadoFixo)));
     if (!temOrfao) return;
     Future.microtask(
         () => ref.read(produtosRepoProvider).limparPrecosOrfaos(validos));
@@ -246,7 +247,9 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                     ),
                   ],
                 ),
-                if (ordenados.isEmpty)
+                if (p.dedicado)
+                  _badgeDedicado(mercadosPorId[p.mercadoFixo], p.fixado)
+                else if (ordenados.isEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 10),
                     child: Text('Sem preço cadastrado — toque para adicionar.',
@@ -289,6 +292,40 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Item "de um mercado só": em vez das pílulas de preço, mostra onde comprar.
+  Widget _badgeDedicado(Mercado? mercado, bool recorrente) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 11),
+      child: Row(
+        children: [
+          const Icon(Icons.storefront, size: 15, color: AppColors.green),
+          const SizedBox(width: 7),
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(
+                color: mercado?.cor ?? AppColors.dim2, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              'Sempre no ${mercado?.nome ?? 'mercado removido'}',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppColors.text, fontSize: 12.5),
+            ),
+          ),
+          if (recorrente) ...[
+            const SizedBox(width: 8),
+            const Icon(Icons.push_pin, size: 12, color: AppColors.green),
+            const SizedBox(width: 3),
+            const Text('recorrente',
+                style: TextStyle(color: AppColors.green, fontSize: 11)),
+          ],
+        ],
       ),
     );
   }

@@ -28,6 +28,7 @@ class Produto {
     this.unidade,
     this.observacoes,
     this.fixado = false,
+    this.mercadoFixo,
     this.ultimoPreco,
     this.ultimoMercadoId,
     this.vezesComprado = 0,
@@ -43,8 +44,13 @@ class Produto {
   final String? unidade;
   final String? observacoes;
 
-  /// Fixado = não sai da lista ao "Finalizar compra" (só por exclusão manual).
+  /// Fixado = "recorrente": não sai da lista ao "Finalizar compra" (só por
+  /// exclusão manual). No modelo atual, recorrente sempre tem [mercadoFixo].
   final bool fixado;
+
+  /// Se definido, o item é "de um mercado só" (dedicado): não se compara preço
+  /// entre mercados — ele vive no mercado [mercadoFixo]. Null = item comparável.
+  final String? mercadoFixo;
 
   final double? ultimoPreco;
   final String? ultimoMercadoId;
@@ -52,6 +58,9 @@ class Produto {
 
   /// mercadoId -> preço naquele mercado.
   final Map<String, PrecoMercado> precos;
+
+  /// Item "de um mercado só" — sem comparação de preço.
+  bool get dedicado => mercadoFixo != null;
 
   /// "Pilão · 500g" — só o que existir.
   String get detalhe {
@@ -62,18 +71,21 @@ class Produto {
     return partes.join(' · ');
   }
 
+  /// Preços ordenados do menor pro maior. **Vazio** quando o item é dedicado
+  /// (mercado fixo) — aí não há o que comparar e o preço "some" da UI/cálculos.
   List<MapEntry<String, PrecoMercado>> get precosOrdenados {
+    if (dedicado) return const [];
     final l = precos.entries.toList();
     l.sort((a, b) => a.value.valor.compareTo(b.value.valor));
     return l;
   }
 
   double? get menorPreco =>
-      precos.isEmpty ? null : precosOrdenados.first.value.valor;
+      precosOrdenados.isEmpty ? null : precosOrdenados.first.value.valor;
   String? get mercadoMaisBarato =>
-      precos.isEmpty ? null : precosOrdenados.first.key;
+      precosOrdenados.isEmpty ? null : precosOrdenados.first.key;
   double? get segundoMenorPreco =>
-      precos.length >= 2 ? precosOrdenados[1].value.valor : null;
+      precosOrdenados.length >= 2 ? precosOrdenados[1].value.valor : null;
 
   /// Economia do menor para o 2º menor preço (0 se houver menos de 2 mercados).
   double get economia {
@@ -85,10 +97,9 @@ class Produto {
 
   /// Data da atualização de preço mais recente (para exibir dia/mês no card).
   DateTime? get ultimaAtualizacao {
-    if (precos.isEmpty) return null;
-    return precos.values
-        .map((e) => e.data)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    final ord = precosOrdenados;
+    if (ord.isEmpty) return null;
+    return ord.map((e) => e.value.data).reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
   factory Produto.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -113,6 +124,7 @@ class Produto {
       unidade: d['unidade'] as String?,
       observacoes: d['observacoes'] as String?,
       fixado: (d['fixado'] as bool?) ?? false,
+      mercadoFixo: d['mercadoFixo'] as String?,
       ultimoPreco: (d['ultimoPreco'] as num?)?.toDouble(),
       ultimoMercadoId: d['ultimoMercadoId'] as String?,
       vezesComprado: (d['vezesComprado'] as num?)?.toInt() ?? 0,

@@ -28,6 +28,7 @@ class ProdutosRepository {
     String? unidade,
     String? observacoes,
     bool fixado = false,
+    String? mercadoFixo,
   }) async {
     final doc = await _refs.produtos.add({
       'nome': nome.trim(),
@@ -38,6 +39,7 @@ class ProdutosRepository {
       'unidade': unidade,
       'observacoes': observacoes,
       'fixado': fixado,
+      'mercadoFixo': mercadoFixo,
       'vezesComprado': 0,
       'createdAt': Timestamp.now(),
       'updatedAt': Timestamp.now(),
@@ -55,6 +57,7 @@ class ProdutosRepository {
     String? unidade,
     String? observacoes,
     bool fixado = false,
+    String? mercadoFixo,
   }) {
     return _refs.produtos.doc(id).set({
       'nome': nome.trim(),
@@ -65,6 +68,7 @@ class ProdutosRepository {
       'unidade': unidade,
       'observacoes': observacoes,
       'fixado': fixado,
+      'mercadoFixo': mercadoFixo,
       'updatedAt': Timestamp.now(),
     }, SetOptions(merge: true));
   }
@@ -98,21 +102,25 @@ class ProdutosRepository {
         .update({'precos.$mercadoId': FieldValue.delete()});
   }
 
-  /// Fixa/desfixa o produto (salva na hora).
-  Future<void> setFixado(String id, bool fixado) => _refs.produtos.doc(id).set(
-        {'fixado': fixado, 'updatedAt': Timestamp.now()},
-        SetOptions(merge: true),
-      );
-
-  /// Ao excluir um mercado, tira o preço dele de todos os produtos.
+  /// Ao excluir um mercado, tira o preço dele de todos os produtos e desfaz
+  /// qualquer "mercado fixo" (dedicado/recorrente) que apontava pra ele.
   Future<void> removerMercadoDeTodos(String mercadoId) async {
     final snap = await _refs.produtos.get();
     final batch = _refs.db.batch();
     var alterou = false;
     for (final doc in snap.docs) {
-      final precos = doc.data()['precos'] as Map<String, dynamic>?;
+      final data = doc.data();
+      final updates = <String, dynamic>{};
+      final precos = data['precos'] as Map<String, dynamic>?;
       if (precos != null && precos.containsKey(mercadoId)) {
-        batch.update(doc.reference, {'precos.$mercadoId': FieldValue.delete()});
+        updates['precos.$mercadoId'] = FieldValue.delete();
+      }
+      if (data['mercadoFixo'] == mercadoId) {
+        updates['mercadoFixo'] = FieldValue.delete();
+        updates['fixado'] = false; // recorrente exige um mercado
+      }
+      if (updates.isNotEmpty) {
+        batch.update(doc.reference, updates);
         alterou = true;
       }
     }
@@ -139,7 +147,10 @@ class ProdutosRepository {
       final ultimoMerc = data['ultimoMercadoId'] as String?;
       final ultimoOrfao =
           ultimoMerc != null && !mercadosValidos.contains(ultimoMerc);
-      if (orfaos.isEmpty && !ultimoOrfao) continue;
+      final mercadoFixo = data['mercadoFixo'] as String?;
+      final fixoOrfao =
+          mercadoFixo != null && !mercadosValidos.contains(mercadoFixo);
+      if (orfaos.isEmpty && !ultimoOrfao && !fixoOrfao) continue;
 
       final updates = <String, dynamic>{};
       for (final id in orfaos) {
@@ -148,6 +159,10 @@ class ProdutosRepository {
       if (ultimoOrfao) {
         updates['ultimoMercadoId'] = FieldValue.delete();
         updates['ultimoPreco'] = FieldValue.delete();
+      }
+      if (fixoOrfao) {
+        updates['mercadoFixo'] = FieldValue.delete();
+        updates['fixado'] = false; // recorrente exige um mercado
       }
       batch.update(doc.reference, updates);
       tocados++;

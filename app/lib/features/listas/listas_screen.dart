@@ -16,6 +16,10 @@ import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
 
+/// Mercado "efetivo" de um item na lista: o mercado fixo (dedicado/recorrente)
+/// se houver; senão o mais barato (comportamento comparável). Null = sem mercado.
+String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
+
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
 class ListasScreen extends ConsumerStatefulWidget {
   const ListasScreen({super.key});
@@ -87,7 +91,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final selec = escolha == 'todos' ? null : escolha;
     final incluidos = itens.where((it) {
       if (selec == null) return true;
-      return produtosPorId[it.produtoId]?.mercadoMaisBarato == selec;
+      return _mercadoEfetivo(produtosPorId[it.produtoId]) == selec;
     }).toList();
     if (incluidos.isEmpty) return;
     final texto = incluidos
@@ -125,7 +129,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
     bool visivel(ItemLista it) {
       if (filtro == null) return true;
-      return produtosPorId[it.produtoId]?.mercadoMaisBarato == filtro;
+      return _mercadoEfetivo(produtosPorId[it.produtoId]) == filtro;
     }
 
     final itensVisiveis = itens.where(visivel).toList();
@@ -501,9 +505,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     Map<String, Mercado> mercadosPorId,
     Lista atual,
   ) {
+    final dedicado = p?.dedicado ?? false;
     final menor =
         p?.precosOrdenados.isNotEmpty == true ? p!.precosOrdenados.first : null;
-    final cor = menor != null ? mercadosPorId[menor.key]?.cor : null;
+    final mercadoEfId = p?.mercadoFixo ?? menor?.key;
+    final cor = mercadoEfId != null ? mercadosPorId[mercadoEfId]?.cor : null;
     final velho = menor?.value.desatualizado ?? false;
 
     return Dismissible(
@@ -582,16 +588,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 6),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
-              Text(
-                menor == null ? '—' : reais(menor.value.valor),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: menor == null ? FontWeight.w400 : FontWeight.w600,
-                  color: menor == null
-                      ? AppColors.dim2
-                      : (it.comprado ? AppColors.dim : AppColors.text),
+              if (!dedicado)
+                Text(
+                  menor == null ? '—' : reais(menor.value.valor),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        menor == null ? FontWeight.w400 : FontWeight.w600,
+                    color: menor == null
+                        ? AppColors.dim2
+                        : (it.comprado ? AppColors.dim : AppColors.text),
+                  ),
                 ),
-              ),
               if (cor != null) ...[
                 const SizedBox(width: 8),
                 Container(
@@ -686,7 +694,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           Text(
             mercado == null
                 ? 'Nada aqui.'
-                : 'Nenhum item é mais barato em $mercado.',
+                : 'Nenhum item em $mercado ainda.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: AppColors.dim, fontSize: 13),
           ),
@@ -756,7 +764,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               grupos[filtroMercadoId] = removiveis;
             } else {
               for (final it in removiveis) {
-                final mid = produtosPorId[it.produtoId]?.mercadoMaisBarato;
+                final mid = _mercadoEfetivo(produtosPorId[it.produtoId]);
                 grupos.putIfAbsent(mid, () => []).add(it);
               }
             }
