@@ -97,7 +97,26 @@ precisar de conta Google.
 
 ---
 
-## 3. Diversos rondando  — `[FUTURO]` / `[ADIADO]`
+## 3. Lembretes programáveis pelo usuário (notificações simples)  — `[FUTURO]`
+*(2026-07-30 — ideia do usuário.)*
+
+**Ideia:** o usuário programa lembretes simples, **recorrentes por dia da semana**, pra
+não perder promoções/rotinas de compra. Ex.:
+- "Terça = dia de promoção de frutas e verduras no **[Mercado X]**."
+- "Quarta = dia da carne no **Açougue**."
+
+**Conexão com o app:** casa direto com **"mercado dedicado / recorrente"** (seção 1) — a
+ideia é lembrar de comprar algo **dedicado a um mercado**, e talvez puxar/relembrar os
+**itens recorrentes** daquele mercado no dia.
+
+**Esboço (a definir):** notificação **local** (sem servidor), agendada por **dia da semana
++ hora**; texto livre + opcional um mercado. Flutter: `flutter_local_notifications`; no
+Android 13+ pede permissão `POST_NOTIFICATIONS`; cuidar de fuso e reagendar no boot. Sem
+push/servidor no MVP. Provável tela/aba "Lembretes" (lista de regras semanais com on/off).
+
+---
+
+## 4. Diversos rondando  — `[FUTURO]` / `[ADIADO]`
 - **Inglês (i18n):** lançar em PT; inglês depois, como atualização. `[FUTURO]`
 - **Monetização:** grátis e **sem anúncios** no lançamento (decisão do usuário). AdMob ou
   premium = reabrir só bem depois. `[ADIADO]`

@@ -353,17 +353,20 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           _label('Preço por mercado'),
           ...widget.mercados.map(_linhaPreco),
           const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: () => setState(() => _abrirMercadoFixo = true),
-            icon: const Icon(Icons.push_pin_outlined,
-                size: 18, color: AppColors.green),
-            label: const Text('Comprar sempre num mercado só',
-                style: TextStyle(color: AppColors.green)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.line),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => setState(() => _abrirMercadoFixo = true),
+              icon: const Icon(Icons.storefront_outlined,
+                  size: 18, color: AppColors.green),
+              label: const Text('Comprar sempre num mercado só',
+                  style: TextStyle(color: AppColors.green, fontSize: 13.5)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.line),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+              ),
             ),
           ),
         ],
