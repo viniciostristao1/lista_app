@@ -68,7 +68,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   Future<void> _removerDaLista(ItemLista it, Produto? p, String listaId) async {
     await ref.read(listasRepoProvider).removerItem(listaId, it.id);
-    if (p != null && p.precos.isEmpty) {
+    // Some do catálogo só o lembrete solto (sem preço e sem mercado dedicado);
+    // item "de um mercado só" é uma entrada deliberada — não apagar.
+    if (p != null && p.precos.isEmpty && !p.dedicado) {
       await ref.read(produtosRepoProvider).excluirProduto(p.id);
     }
   }
