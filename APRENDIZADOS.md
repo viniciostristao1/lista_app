@@ -180,6 +180,13 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   melhoria visível/release novo entra 1 linha ali (topo = recente). Três arquivos, papéis
   distintos: `APRENDIZADOS` (técnico) · `ATUALIZACOES` (changelog usuário) · `IDEIAS` (futuro).
 
+### 2026-07-30 — Desenho fechado: "mercado dedicado a um item"
+- Fechado o design das perguntas 1+2 (ver `IDEIAS.md § 1`, agora `[FUTURO]` desenho FECHADO).
+  **3 tipos:** comparável (padrão) · num mercado só (carne, sai ao finalizar) · recorrente
+  num mercado (pão, fica). Comparador = padrão; preço só no modo comparar; recorrente sempre
+  tem mercado. UX = botão "📌 Comprar sempre num mercado só" (qual mercado + ☐ recorrente),
+  some a grade de preço. **Ainda NÃO implementado** — mexe na aba Itens (novos screenshots + AAB).
+
 ---
 
 ## Aprendizados (gotchas — não repetir)

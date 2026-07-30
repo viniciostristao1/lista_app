@@ -13,35 +13,57 @@ esquecer. Evita re-discutir do zero e serve de fila pós-lançamento.
 
 ---
 
-## 1. Mercado dedicado a um item (perguntas 1 + 2)  — `[EM DISCUSSÃO]`
-*(2026-07-29 — formato ainda NÃO travado; vamos lapidar depois.)*
+## 1. Mercado dedicado a um item (perguntas 1 + 2)  — `[FUTURO]` · **desenho FECHADO 2026-07-30**
+*(pronto pra implementar quando o usuário der o go; sem código ainda.)*
 
-**Dor:** hoje o chip de mercado na aba Listas significa "onde está mais barato"
-(derivado do comparador). Item sem preço não tem "mais barato" → cai só em "Todos".
-Faltam dois casos:
-- **(Q1) Perecível de mercado único** — quero fixar um produto a um mercado, **sem
-  preço**, e que ele viva na sublista desse mercado (não só em "Todos").
-- **(Q2) Item novo direcionado** — ao adicionar na lista, poder mandar direto pra um
-  mercado específico, sem preço (o padrão hoje é cair em "Todos" sem preço — o que
-  também é um **lembrete** válido e deve continuar existindo).
+**Dor:** hoje todo item da lista é comparável (preço por mercado + economia). Faltam
+dois casos que a pessoa quer, **sem preço**:
+- **Num mercado só** (ex.: carne — não compra todo dia, mas prefere o açougue de confiança).
+- **Recorrente** (ex.: pão — come todo dia; deve **ficar sempre na lista**).
 
-**Direção esboçada (a confirmar):**
-- Cada item de lista tem um **"mercado efetivo"** resolvido em camadas de prioridade:
-  1) escolha explícita ao adicionar → 2) "mercado fixo" do produto → 3) mais barato
-  (atual) → 4) nenhum (só em "Todos").
-- **"Todos" = superconjunto**; chips são recortes. Item direcionado ao X aparece em
-  **Todos + X**. Nada some de "Todos".
-- **Q1** = campo "Mercado fixo (opcional)" no produto (aba Itens); ao marcar, os campos
-  de preço recolhem. Eixo diferente do `fixado` atual ("não sai ao finalizar") — os dois
-  podem coexistir. Cuidar da **nomenclatura** ("Fixar na lista" vs "Mercado fixo").
-- **Q2** = chips de destino **dentro do painel de adicionar** (padrão = filtro ativo),
-  **sem** criar um segundo ícone/FAB. Preço segue opcional.
-- **Decisão em aberto:** ao direcionar na lista um item vindo do catálogo, o produto no
-  catálogo (a) não muda / (b) pergunta "sempre nesse mercado?" e promove pra mercado
-  fixo. Voto atual: começar em **(a)**; (b) como refinamento.
+**Modelo final — 3 tipos:**
 
-**Próximo passo:** retomar o design, fechar o formato, então implementar como um pacote
-só e mover pra `[FEITO]`.
+| Tipo | Mercado | Preço | Sai ao finalizar? | Exemplo |
+|---|---|---|---|---|
+| **Comparável** (padrão) | nenhum | sim | sim | leite (compara) |
+| **Num mercado só** | X | não | **sim** | carne (açougue) |
+| **Recorrente num mercado** | X | não | **não (fica)** | pão (padaria) |
+
+**Regras:**
+- **Comparador é o padrão** — item nasce comparável; **não** há escolha de "modo".
+- **Preço só existe no modo comparar** (mercado definido ⇒ nada a comparar ⇒ preço some).
+- **Recorrente SEMPRE tem mercado** (não existe "recorrente onde der").
+- Item com mercado aparece em **Todos + o chip daquele mercado** ("Todos" = superconjunto).
+- "Num mercado só" e "recorrente" são **dois controles separados** (o recorrente é o
+  antigo `fixado` = "não sai ao finalizar", agora exigindo mercado).
+
+**UX — editor da aba Itens:** comparador é o normal (grade de preço por mercado). Uma
+**ação** opcional — botão **"📌 Comprar sempre num mercado só"** — abre:
+- **Em qual mercado?** [A] [B] [C]
+- **☐ Compra recorrente** (não sai ao finalizar) → distingue **pão** (marcado) de **carne** (não).
+
+Ao ativar: **a grade de preço some** (anotar em Observações se quiser). **"Voltar a
+comparar"** desfaz. Rótulo com texto (não ícone solto) — o app tem usuário leigo.
+
+**UX — aba Listas:** adicionar com o filtro de um mercado ativo **pode** já direcionar o
+item pra aquele mercado (atalho do "num mercado só"). *(detalhe fino, confirmar na impl.)*
+
+**Pergunta 1 (economia vs preço na lista):** **DECIDIDO manter como está** — economia no
+topo (foco) + preços individuais por item (a pessoa vê se um preço mudou e corrige nos Itens).
+
+**Descartado (com motivo):**
+- Modo "escolher comparar vs fixo" — comparador é padrão, sem escolha de modo imposta.
+- "Fixar onde der" (aparece em todos os chips) — a decisão "recorrente ⇒ mercado" já mata
+  o buraco de visibilidade que motivava isso.
+- "Fixado comparável com soma/subtrai por preferência" — é só um comparável comum + nada
+  novo; e "pagar mais caro de propósito" sujaria a métrica de economia.
+- Recorrente-que-ainda-compara **não** é expressável (re-adiciona a cada compra pela busca).
+
+**Impl. (esboço, quando for):** produto ganha `mercadoFixo?` (id) ; `fixado` (já existe)
+vira "recorrente" e passa a **exigir** `mercadoFixo`. Grade de preço no editor colapsa
+quando `mercadoFixo` setado. Filtro da aba Listas: item com `mercadoFixo` entra no chip
+dele; recorrente não sai ao finalizar. ⚠️ Mexe na aba Itens → novos **screenshots** +
+**AAB** novo pra loja.
 
 ---
 
