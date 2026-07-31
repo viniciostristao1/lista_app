@@ -211,16 +211,12 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 13),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: sel
-                      ? AppColors.green.withValues(alpha: 0.14)
-                      : AppColors.surface,
+                  color: sel ? AppColors.green : AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: sel ? AppColors.green : AppColors.line),
                 ),
                 child: Text(_mesesAbrev[i],
                     style: TextStyle(
-                      color: sel ? AppColors.green : AppColors.dim,
+                      color: sel ? AppColors.onGreen : AppColors.dim,
                       fontSize: 12.5,
                       fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
                     )),
@@ -257,9 +253,8 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: sel ? AppColors.green.withValues(alpha: 0.14) : AppColors.surface,
+            color: sel ? AppColors.green : AppColors.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: sel ? AppColors.green : AppColors.line),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -274,7 +269,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               ],
               Text(label,
                   style: TextStyle(
-                    color: sel ? AppColors.green : AppColors.dim,
+                    color: sel ? AppColors.onGreen : AppColors.dim,
                     fontSize: 12,
                     fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
                   )),

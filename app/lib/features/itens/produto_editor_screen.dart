@@ -355,14 +355,14 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: FilledButton.icon(
               onPressed: () => setState(() => _abrirMercadoFixo = true),
               icon: const Icon(Icons.storefront_outlined,
                   size: 18, color: AppColors.green),
               label: const Text('Comprar sempre num mercado só',
                   style: TextStyle(color: AppColors.green, fontSize: 13.5)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.line),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.surface2,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 13),
@@ -425,10 +425,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color:
-              sel ? AppColors.green.withValues(alpha: 0.14) : AppColors.surface,
+          color: sel ? AppColors.green : AppColors.surface,
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(color: sel ? AppColors.green : AppColors.line),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -441,7 +439,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             const SizedBox(width: 8),
             Text(m.nome,
                 style: TextStyle(
-                    color: sel ? AppColors.green : AppColors.dim,
+                    color: sel ? AppColors.onGreen : AppColors.dim,
                     fontSize: 13,
                     fontWeight: sel ? FontWeight.w600 : FontWeight.w500)),
           ],
@@ -540,17 +538,13 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: selecionado
-              ? AppColors.green.withValues(alpha: 0.14)
-              : AppColors.surface,
+          color: selecionado ? AppColors.green : AppColors.surface,
           borderRadius: BorderRadius.circular(11),
-          border:
-              Border.all(color: selecionado ? AppColors.green : AppColors.line),
         ),
         child: Text(texto,
             style: TextStyle(
                 fontSize: 13,
-                color: selecionado ? AppColors.green : AppColors.dim)),
+                color: selecionado ? AppColors.onGreen : AppColors.dim)),
       ),
     );
   }
