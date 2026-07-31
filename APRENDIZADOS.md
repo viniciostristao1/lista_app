@@ -200,6 +200,19 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 — Ícone novo + atalhos + 3 layouts (`v0.15.0-teste19`)
+- **Ícone redesenhado** (carrinho + 2 "V" saindo da cesta; mais alto/fino, minimalista). SVG-fonte
+  **não** existia no repo → recriado do zero em `SVG → rsvg-convert → view → flutter_launcher_icons`;
+  os SVGs ficaram no scratchpad (não versionados — se refazer, recriar). Regenerou mipmaps+fg/full+loja+web.
+- **#3** atalho de editar item na aba Listas (🏷️ antes da qtd → `mostrarEditorProduto`). **#4** busca
+  = 🛒 "Pesquise ou adicione aqui".
+- **#2 três layouts** (só acento+contornos, todos escuros): **A verde** (`main`), **B índigo**
+  (branch `layout-indigo`), **C âmbar** (branch `layout-ambar`). Build via `gh workflow run
+  build-apk.yml --ref <branch>` (workflow_dispatch). **Seletor ao vivo foi descartado**: cores são
+  `const` de compilação (AppColors) → runtime exigiria de-const do app todo (arriscado). Por isso 3
+  builds; dados na nuvem tornam a troca de APK sem perda. **Pendência: usuário escolhe → fundir o
+  app_colors do branch no `main`, apagar branches `layout-*`, rebuildar o AAB de lançamento.**
+
 ---
 
 ## Aprendizados (gotchas — não repetir)
