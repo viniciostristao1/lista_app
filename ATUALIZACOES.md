@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-07-31 · `v0.19.0-teste23`** — Lista da aba Listas mais **enxuta** (menos espaço entre itens e entre a categoria e o 1º item) · **ícone**: pé do carrinho em **C** com as rodas nas pontas.
 - **2026-07-31 · `v0.18.0-teste22`** — Flat de verdade nos **itens da lista** (sem caixinha — fundo do app + linha fina; cadastro na aba Itens mantém as caixinhas) · **ícone** com grade horizontal, alça mais vertical e o **pé** (base) do carrinho.
 - **2026-07-31 · `v0.17.0-teste21`** — **Estilo Flat** (escolha do usuário): botões **preenchidos** (âmbar cheio), **sem bordas** de card, chips selecionados **sólidos** — mais minimalista · **ícone** um pouco maior e com as **grades dentro do carrinho**.
 - **2026-07-31 · `v0.16.0-teste20`** — **Acento âmbar** vira o padrão · **ícone novo**: carrinho preto sobre âmbar (sem V) · **símbolo antes do título** em cada aba (Listas/Itens/Pedidos). *(Estilo dos botões = o atual; escolha de estilo A/B/C em andamento.)*

@@ -200,6 +200,10 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 (cont.) — Lista enxuta + pé do ícone em C (`v0.19.0-teste23`)
+- Espaçamento da lista apertado: item `vertical 13→8`; categoria→1º item `bottom 6→2` (top de
+  seção subsequente 6→14 pra separar seções). Ícone: pé vira **arco em C** (`Q`) com as rodas nas pontas.
+
 ### 2026-07-31 (cont.) — Flat nos itens da lista + ícone refinado (`v0.18.0-teste22`)
 - Feedback: o Flat da `teste21` deixou os **itens da lista** ainda com caixinha (surface). Fix:
   `_itemRow` perde o card → `padding` no fundo do app + `Border(bottom)` fino (`lineStrong`); o
