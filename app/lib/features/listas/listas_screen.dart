@@ -289,6 +289,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   Widget _campoBusca() {
     return TextField(
       controller: _buscaCtrl,
+      textCapitalization: TextCapitalization.sentences,
       onChanged: (v) => setState(() => _busca = v),
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
@@ -487,7 +488,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           .toList();
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
-        padding: EdgeInsets.fromLTRB(2, primeiro ? 4 : 14, 2, 2),
+        padding: EdgeInsets.fromLTRB(2, primeiro ? 2 : 9, 2, 1),
         child: Text(cat.label.toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
@@ -534,7 +535,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/categoria.dart';
 import '../models/produto.dart';
+import '../util/format.dart';
 import 'firestore_refs.dart';
 
 class ProdutosRepository {
@@ -31,7 +32,7 @@ class ProdutosRepository {
     String? mercadoFixo,
   }) async {
     final doc = await _refs.produtos.add({
-      'nome': nome.trim(),
+      'nome': capitalizar(nome),
       'nomeLower': nome.trim().toLowerCase(),
       'categoria': categoria.name,
       'marca': marca,
@@ -60,7 +61,7 @@ class ProdutosRepository {
     String? mercadoFixo,
   }) {
     return _refs.produtos.doc(id).set({
-      'nome': nome.trim(),
+      'nome': capitalizar(nome),
       'nomeLower': nome.trim().toLowerCase(),
       'categoria': categoria.name,
       'marca': marca,
@@ -186,7 +187,7 @@ class ProdutosRepository {
         .get();
 
     final data = <String, dynamic>{
-      'nome': nome.trim(),
+      'nome': capitalizar(nome),
       'nomeLower': nomeLower,
       'categoria': categoria.name,
       'ultimoPreco': ?preco,

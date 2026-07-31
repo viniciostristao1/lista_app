@@ -233,6 +233,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           TextField(
             controller: _nome,
             autofocus: !_editando,
+            textCapitalization: TextCapitalization.sentences,
             style: const TextStyle(color: AppColors.text, fontSize: 15),
             decoration: _dec('Ex: Café Pilão'),
           ),

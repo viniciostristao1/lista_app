@@ -22,6 +22,13 @@ String haDias(int dias) {
   return 'há $dias dias';
 }
 
+/// Primeira letra maiúscula, resto intacto: "arroz" -> "Arroz" (útil p/ voz).
+String capitalizar(String s) {
+  final t = s.trim();
+  if (t.isEmpty) return t;
+  return t[0].toUpperCase() + t.substring(1);
+}
+
 /// Valor -> texto editável no padrão BR: 18.5 -> "18,50".
 String valorEditavel(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
 
