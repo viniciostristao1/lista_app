@@ -12,8 +12,9 @@ abstract final class AppColors {
   static const dim = Color(0xFF8B93A1); // texto secundário
   static const dim2 = Color(0xFF5F6674); // texto terciário / ícones apagados
 
-  static const green = Color(0xFF33D17F); // economia / sucesso / destaque
-  static const onGreen = Color(0xFF08130C); // texto sobre verde
+  // === ACENTO (varia por layout: A=verde · B=índigo · C=âmbar) ===
+  static const green = Color(0xFF2FB672); // A — verde calibrado (menos neon)
+  static const onGreen = Color(0xFF07130C); // texto sobre o acento
   static const blue = Color(0xFF4C8DFF); // ações
   static const amber = Color(0xFFF2B84B);
   static const danger = Color(0xFFFF7A7A);

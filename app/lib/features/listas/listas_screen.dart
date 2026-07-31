@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/features/itens/produto_editor_screen.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
@@ -188,8 +189,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 else if (itensVisiveis.isEmpty)
                   _filtroVazio(mercadosPorId[filtro]?.nome)
                 else
-                  ..._itensAgrupados(
-                      itensVisiveis, produtosPorId, mercadosPorId, atual!),
+                  ..._itensAgrupados(itensVisiveis, produtosPorId,
+                      mercadosPorId, mercados, atual!),
               ],
             ),
           ),
@@ -291,9 +292,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       onChanged: (v) => setState(() => _busca = v),
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
-        hintText: 'Buscar item cadastrado ou Novo',
+        hintText: 'Pesquise ou adicione aqui',
         hintStyle: const TextStyle(color: AppColors.dim2, fontSize: 14),
-        prefixIcon: const Icon(Icons.search, color: AppColors.dim, size: 20),
+        prefixIcon:
+            const Icon(Icons.shopping_cart_outlined, color: AppColors.dim, size: 20),
         suffixIcon: _busca.isEmpty
             ? null
             : IconButton(
@@ -473,6 +475,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     List<ItemLista> itens,
     Map<String, Produto> produtosPorId,
     Map<String, Mercado> mercadosPorId,
+    List<Mercado> mercados,
     Lista atual,
   ) {
     final widgets = <Widget>[];
@@ -494,8 +497,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       ));
       primeiro = false;
       for (final it in grupo) {
-        widgets
-            .add(_itemRow(it, produtosPorId[it.produtoId], mercadosPorId, atual));
+        widgets.add(_itemRow(
+            it, produtosPorId[it.produtoId], mercadosPorId, mercados, atual));
       }
     }
     return widgets;
@@ -505,6 +508,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     ItemLista it,
     Produto? p,
     Map<String, Mercado> mercadosPorId,
+    List<Mercado> mercados,
     Lista atual,
   ) {
     final dedicado = p?.dedicado ?? false;
@@ -587,7 +591,19 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
+              // atalho: abre o editor do item (preços/mercado) sem ir à aba Itens
+              if (p != null)
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                  tooltip: 'Editar preços/mercado',
+                  icon: const Icon(Icons.sell_outlined,
+                      size: 18, color: AppColors.dim),
+                  onPressed: () => mostrarEditorProduto(context, p, mercados),
+                ),
+              const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
               if (!dedicado)
