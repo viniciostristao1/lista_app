@@ -12,13 +12,13 @@ Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
   **TESTADA pelo usuário ✅.** É o **fallback seguro** (última boa conhecida), guardada
   (release + tag + APK/AAB). Se A der problema, lança-se B.
   - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.13.0-teste16
-- **A — família `v0.15.0-teste19`** (commit `6385297` + branches de layout) — inclui a feature
-  **"mercado dedicado"**, **ícone novo** e atalhos. **LAYOUT EM ESCOLHA pelo usuário** entre
-  3 acentos: **A verde** (`main`), **B índigo** (branch `layout-indigo`), **C âmbar** (branch
-  `layout-ambar`). É o **ALVO de lançamento**, **a verificar**. **O AAB de lançamento sai do
-  layout escolhido** (rebuild após a decisão; hoje só há APKs de teste no release).
-  - APKs (3): https://github.com/viniciostristao1/lista_app/releases/tag/v0.15.0-teste19
-  - *(supera a `v0.14.1-teste18`.)*
+- **A — `v0.16.0-teste20`** (commit `07d5050`) → asset `lista-app-v0.16.0.aab` — feature
+  **"mercado dedicado"** + **acento âmbar** (escolha do usuário) + **ícone novo** (carrinho
+  preto/âmbar) + símbolos nos títulos. É o **ALVO de lançamento**, **a verificar**.
+  - APK+AAB: https://github.com/viniciostristao1/lista_app/releases/tag/v0.16.0-teste20
+  - ⏳ **Pendente antes de fechar A:** o usuário está escolhendo o **estilo dos botões**
+    (Atual/A/B/C — página de preview). Ao escolher, aplicar o estilo e **rebuildar o AAB**.
+  - *(supera `v0.15.0-teste19`; acento definido = âmbar.)*
 
 **Oficial de lançamento pretendida = A** (assim que o usuário testar e aprovar). Enquanto
 A não é validada, o pronto-e-testado é **B** — e é o que se sobe se precisar publicar já.

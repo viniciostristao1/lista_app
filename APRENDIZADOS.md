@@ -200,6 +200,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 (cont.) — Âmbar definido + ícone carrinho + títulos (`v0.16.0-teste20`)
+- Usuário escolheu **âmbar** entre A/B/C → virou o acento padrão no `main`; branches `layout-*`
+  apagados. **Ícone refeito**: carrinho da busca (Material), **preto sobre âmbar, SEM V** (SVGs no
+  scratchpad, não versionados); fundo adaptativo do Android → âmbar (`pubspec adaptive_icon_background`).
+- **Símbolo antes do título** em cada aba (checklist/tag/gráfico, cor do acento).
+- **Estilo (botões/bordas/cartões) ≠ cor:** usuário quer "cara diferente" com **botões preenchidos**.
+  Como estilo mexe em muitos componentes, entreguei uma **página-preview** (Artifact) com a MESMA tela
+  em 4 estilos (Atual + A sólido / B cartão / C flat) pra ele escolher a direção → depois implemento
+  o escolhido de verdade. **PENDENTE: escolha do estilo → aplicar + rebuildar AAB.**
+
 ### 2026-07-31 — Ícone novo + atalhos + 3 layouts (`v0.15.0-teste19`)
 - **Ícone redesenhado** (carrinho + 2 "V" saindo da cesta; mais alto/fino, minimalista). SVG-fonte
   **não** existia no repo → recriado do zero em `SVG → rsvg-convert → view → flutter_launcher_icons`;
