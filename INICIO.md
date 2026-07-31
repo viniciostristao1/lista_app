@@ -28,11 +28,11 @@ Meta: publicar na **Play Store**.
 - **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.16.0-teste20`** (commit `07d5050`) — feature "mercado dedicado" + **acento âmbar**
-  (definido) + **ícone novo** (carrinho preto/âmbar, sem V) + símbolos nos títulos + atalhos
-  (editar item na lista, busca-carrinho). ⏳ **PENDENTE:** usuário escolhendo o **estilo dos
-  botões** (Atual/A-sólido/B-cartão/C-flat, via página de preview) → ao decidir, aplicar o
-  estilo e **rebuildar o AAB**. Detalhe em `LANCAMENTO.md`. ⚠️ NÃO subir o `playstore-pacote-1`.
+  **A = `v0.17.0-teste21`** (commit `0e0c75e`) — feature "mercado dedicado" + **âmbar** + **ícone
+  novo** (carrinho c/ grades, sem V) + símbolos nos títulos + atalhos + **estilo Flat** (definido:
+  botões preenchidos, sem bordas de card, chips sólidos). **Cor e estilo travados** → falta só a
+  verificação do usuário pra fechar o AAB de lançamento. Detalhe em `LANCAMENTO.md`. ⚠️ NÃO subir
+  o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**
 - Conta de desenvolvedor Google Play **criada + paga (US$25) + documentos enviados**

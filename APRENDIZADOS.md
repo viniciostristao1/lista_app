@@ -200,6 +200,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 (cont.) — Estilo Flat aplicado + ícone c/ grades (`v0.17.0-teste21`)
+- Usuário escolheu o estilo **Flat** (da página-preview). Implementado de forma central e barata:
+  **`AppColors.line` → transparente** (some o contorno de TODOS os cards de uma vez; separação =
+  contraste bg/surface); `lineStrong` (8%) só p/ arestas estruturais (stepper/inputs). **Botões
+  preenchidos** (Finalizar + "num mercado só" viram cheios) e **chips selecionados sólidos** (âmbar)
+  em Listas/Itens/Pedidos. Lição: com cores centralizadas em `AppColors`, dá pra virar a "cara"
+  (flat) mexendo em ~7 pontos, sem tocar nos 21 `Border.all`.
+- **Ícone**: carrinho **maior** (scale 1.16 full / 1.0 fg) + **grades verticais** dentro da cesta.
+- **Cor (âmbar) e estilo (Flat) travados** → A = `v0.17.0-teste21` é o candidato de lançamento.
+
 ### 2026-07-31 (cont.) — Âmbar definido + ícone carrinho + títulos (`v0.16.0-teste20`)
 - Usuário escolheu **âmbar** entre A/B/C → virou o acento padrão no `main`; branches `layout-*`
   apagados. **Ícone refeito**: carrinho da busca (Material), **preto sobre âmbar, SEM V** (SVGs no

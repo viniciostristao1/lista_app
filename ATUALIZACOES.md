@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-07-31 · `v0.17.0-teste21`** — **Estilo Flat** (escolha do usuário): botões **preenchidos** (âmbar cheio), **sem bordas** de card, chips selecionados **sólidos** — mais minimalista · **ícone** um pouco maior e com as **grades dentro do carrinho**.
 - **2026-07-31 · `v0.16.0-teste20`** — **Acento âmbar** vira o padrão · **ícone novo**: carrinho preto sobre âmbar (sem V) · **símbolo antes do título** em cada aba (Listas/Itens/Pedidos). *(Estilo dos botões = o atual; escolha de estilo A/B/C em andamento.)*
 - **2026-07-31 · `v0.15.0-teste19`** — **Ícone novo** (carrinho mais alto/fino, 2 "V" saindo da cesta) · **atalho de editar item** (🏷️ antes da quantidade na aba Listas → abre preços/mercado) · **busca virou 🛒** ("Pesquise ou adicione aqui") · **3 layouts pra escolher** (A verde / B índigo / C âmbar — instalar um por vez, dados na nuvem não se perdem).
 - **2026-07-30 · `v0.14.1-teste18`** — Novo: item **"de um mercado só"** (aba Itens → abrir o item → **"Comprar sempre num mercado só"**): escolhe o mercado, o preço some, e o item passa a viver naquele mercado (ex.: carne no açougue). Com opção **recorrente** (não sai ao finalizar — ex.: pão na padaria). *(botão do "num mercado só" ajustado p/ não estourar o contorno.)*
