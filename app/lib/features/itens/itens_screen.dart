@@ -49,7 +49,11 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Itens'),
+        title: Row(mainAxisSize: MainAxisSize.min, children: const [
+          Icon(Icons.sell_rounded, size: 20, color: AppColors.green),
+          SizedBox(width: 9),
+          Text('Itens'),
+        ]),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(

@@ -126,7 +126,11 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pedidos'),
+        title: Row(mainAxisSize: MainAxisSize.min, children: const [
+          Icon(Icons.bar_chart_rounded, size: 21, color: AppColors.green),
+          SizedBox(width: 9),
+          Text('Pedidos'),
+        ]),
         actions: [_dropdownAno(anos)],
       ),
       body: Column(

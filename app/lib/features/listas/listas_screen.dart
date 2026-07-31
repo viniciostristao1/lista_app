@@ -156,7 +156,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minha lista'),
+        title: Row(mainAxisSize: MainAxisSize.min, children: const [
+          Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
+          SizedBox(width: 9),
+          Text('Minha lista'),
+        ]),
         actions: [
           IconButton(
             tooltip: 'Copiar lista',
