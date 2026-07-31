@@ -524,26 +524,19 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: AppColors.danger.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(14),
-        ),
+        color: AppColors.danger.withValues(alpha: 0.16),
         child: const Icon(Icons.delete_outline, color: AppColors.danger),
       ),
       onDismissed: (_) => _removerDaLista(it, p, atual.id),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
         onTap: () => ref
             .read(listasRepoProvider)
             .setComprado(atual.id, it.id, !it.comprado),
+        // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.line),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 13),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
           child: Row(
             children: [
