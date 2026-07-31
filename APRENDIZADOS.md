@@ -200,6 +200,14 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 (cont.) — Flat nos itens da lista + ícone refinado (`v0.18.0-teste22`)
+- Feedback: o Flat da `teste21` deixou os **itens da lista** ainda com caixinha (surface). Fix:
+  `_itemRow` perde o card → `padding` no fundo do app + `Border(bottom)` fino (`lineStrong`); o
+  background do Dismissible virou faixa lisa. **Caixinhas do cadastro (aba Itens) mantidas de propósito**
+  (usuário gosta). Lição: "flat" no exemplo = itens sobre o bg com divisória, não card borderless.
+- **Ícone** refinado: + **grade horizontal** (grade 3×2), **alça mais vertical**, e o **pé/base**
+  (barra onde os carrinhos encaixam) com as rodas embaixo.
+
 ### 2026-07-31 (cont.) — Estilo Flat aplicado + ícone c/ grades (`v0.17.0-teste21`)
 - Usuário escolheu o estilo **Flat** (da página-preview). Implementado de forma central e barata:
   **`AppColors.line` → transparente** (some o contorno de TODOS os cards de uma vez; separação =

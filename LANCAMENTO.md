@@ -12,12 +12,12 @@ Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
   **TESTADA pelo usuário ✅.** É o **fallback seguro** (última boa conhecida), guardada
   (release + tag + APK/AAB). Se A der problema, lança-se B.
   - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.13.0-teste16
-- **A — `v0.17.0-teste21`** (commit `0e0c75e`) → asset `lista-app-v0.17.0.aab` — feature
-  **"mercado dedicado"** + **âmbar** + **ícone novo** (carrinho c/ grades) + títulos c/ símbolo
-  + **estilo Flat** (definido: botões preenchidos, sem bordas, chips sólidos). É o **ALVO de
-  lançamento**, **a verificar pelo usuário** — cor **e** estilo já decididos.
-  - APK+AAB: https://github.com/viniciostristao1/lista_app/releases/tag/v0.17.0-teste21
-  - *(supera `v0.16.0-teste20`.)*
+- **A — `v0.18.0-teste22`** (commit `dec8b80`) → asset `lista-app-v0.18.0.aab` — feature
+  **"mercado dedicado"** + **âmbar** + **ícone** (carrinho c/ grade completa + pé) + títulos c/
+  símbolo + **estilo Flat** (itens da lista sem caixinha; botões preenchidos; chips sólidos).
+  É o **ALVO de lançamento**, **a verificar pelo usuário** — cor **e** estilo decididos.
+  - APK+AAB: https://github.com/viniciostristao1/lista_app/releases/tag/v0.18.0-teste22
+  - *(supera `v0.17.0-teste21`.)*
 
 **Oficial de lançamento pretendida = A** (assim que o usuário testar e aprovar). Enquanto
 A não é validada, o pronto-e-testado é **B** — e é o que se sobe se precisar publicar já.
