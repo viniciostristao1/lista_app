@@ -100,6 +100,15 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       return;
     }
     final dedicado = _mercadoFixo != null;
+    // Abriu "num mercado só" mas não escolheu um mercado → alerta e não salva.
+    if (_abrirMercadoFixo && !dedicado) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Escolha um mercado — ou toque em "Voltar a comparar preços".')),
+      );
+      return;
+    }
     if (_recorrente && !dedicado) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Escolha em qual mercado esse item recorrente fica.')),
@@ -382,13 +391,55 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
         const Text('Sem comparação de preço — anote em Observações se quiser.',
             style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
         const SizedBox(height: 12),
-        const Text('Selecionar mercado',
-            style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [for (final m in widget.mercados) _chipMercado(m)],
+        // Caixa de alerta: fica realçada enquanto nenhum mercado é escolhido.
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            color: _mercadoFixo == null
+                ? AppColors.danger.withValues(alpha: 0.08)
+                : null,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: _mercadoFixo == null
+                    ? AppColors.danger
+                    : AppColors.lineStrong),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _mercadoFixo == null
+                        ? Icons.error_outline
+                        : Icons.check_circle_outline,
+                    size: 15,
+                    color: _mercadoFixo == null
+                        ? AppColors.danger
+                        : AppColors.green,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _mercadoFixo == null
+                        ? 'Selecionar mercado (obrigatório)'
+                        : 'Mercado selecionado',
+                    style: TextStyle(
+                        color: _mercadoFixo == null
+                            ? AppColors.danger
+                            : AppColors.dim,
+                        fontSize: 12.5),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [for (final m in widget.mercados) _chipMercado(m)],
+              ),
+            ],
+          ),
         ),
         CheckboxListTile(
           value: _recorrente,

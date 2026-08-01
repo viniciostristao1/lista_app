@@ -68,13 +68,45 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  Future<void> _removerDaLista(ItemLista it, Produto? p, String listaId) async {
-    await ref.read(listasRepoProvider).removerItem(listaId, it.id);
-    // Some do catálogo só o lembrete solto (sem preço e sem mercado dedicado);
-    // item "de um mercado só" é uma entrada deliberada — não apagar.
-    if (p != null && p.precos.isEmpty && !p.dedicado) {
-      await ref.read(produtosRepoProvider).excluirProduto(p.id);
-    }
+  Future<void> _removerComDesfazer(
+      ItemLista it, Produto? p, String listaId) async {
+    final listaRepo = ref.read(listasRepoProvider);
+    final produtoRepo = ref.read(produtosRepoProvider);
+    // Some do catálogo só o lembrete solto (sem preço e sem mercado dedicado).
+    final apagaProduto = p != null && p.precos.isEmpty && !p.dedicado;
+    final nome = p?.nome ?? it.nome;
+    final categoria = p?.categoria ?? it.categoria;
+
+    await listaRepo.removerItem(listaId, it.id);
+    if (apagaProduto) await produtoRepo.excluirProduto(p.id);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(
+        content: Text('"$nome" removido'),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'Desfazer',
+          textColor: AppColors.green,
+          onPressed: () async {
+            var produtoId = it.produtoId;
+            // se o produto foi apagado (lembrete solto), recria pra religar
+            if (apagaProduto) {
+              produtoId =
+                  await produtoRepo.criarProduto(nome: nome, categoria: categoria);
+            }
+            await listaRepo.adicionarItem(listaId,
+                produtoId: produtoId,
+                nome: nome,
+                categoria: categoria,
+                quantidade: it.quantidade,
+                preco: it.preco,
+                mercadoId: it.mercadoId);
+          },
+        ),
+      ));
   }
 
   /// Exportar = copiar a lista (• antes de cada item) do mercado escolhido.
@@ -245,7 +277,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               children: [
-                _barraFiltro(mercados, filtro),
+                _barraFiltro(mercados, filtro, itens, produtosPorId),
                 const SizedBox(height: 12),
                 _cardEconomia(economia, percent, estimadoVis, itensVisiveis.length),
                 const SizedBox(height: 12),
@@ -276,7 +308,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   // ---------- barra de filtro por mercado ----------
 
-  Widget _barraFiltro(List<Mercado> mercados, String? filtro) {
+  Widget _barraFiltro(List<Mercado> mercados, String? filtro,
+      List<ItemLista> itens, Map<String, Produto> produtosPorId) {
     if (mercados.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
@@ -289,6 +322,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
       );
     }
+    // quantos itens caem em cada mercado (pelo mercado efetivo) + total.
+    final contagem = <String?, int>{};
+    for (final it in itens) {
+      final m = _mercadoEfetivo(produtosPorId[it.produtoId]);
+      contagem[m] = (contagem[m] ?? 0) + 1;
+    }
     return SizedBox(
       height: 38,
       child: ListView(
@@ -296,6 +335,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         children: [
           _chipFiltro(
             label: 'Todos',
+            count: itens.length,
             selecionado: filtro == null,
             onTap: () => setState(() => _filtroMercado = null),
           ),
@@ -303,6 +343,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             _chipFiltro(
               label: m.nome,
               cor: m.cor,
+              count: contagem[m.id] ?? 0,
               selecionado: filtro == m.id,
               onTap: () => setState(() => _filtroMercado = m.id),
             ),
@@ -313,6 +354,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   Widget _chipFiltro({
     required String label,
+    required int count,
     Color? cor,
     required bool selecionado,
     required VoidCallback onTap,
@@ -344,6 +386,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                     color: selecionado ? AppColors.onGreen : AppColors.dim,
                     fontSize: 12.5,
                     fontWeight: selecionado ? FontWeight.w600 : FontWeight.w500,
+                  )),
+              const SizedBox(width: 5),
+              // contagem discreta: (2), (0)…
+              Text('($count)',
+                  style: TextStyle(
+                    color: selecionado
+                        ? AppColors.onGreen.withValues(alpha: 0.7)
+                        : AppColors.dim2,
+                    fontSize: 11,
                   )),
             ],
           ),
@@ -556,7 +607,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           .toList();
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
-        padding: EdgeInsets.fromLTRB(2, primeiro ? 2 : 9, 2, 1),
+        padding: EdgeInsets.fromLTRB(2, primeiro ? 1 : 4, 2, 1),
         child: Text(cat.label.toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
@@ -596,7 +647,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         color: AppColors.danger.withValues(alpha: 0.16),
         child: const Icon(Icons.delete_outline, color: AppColors.danger),
       ),
-      onDismissed: (_) => _removerDaLista(it, p, atual.id),
+      onDismissed: (_) => _removerComDesfazer(it, p, atual.id),
       child: InkWell(
         onTap: () => ref
             .read(listasRepoProvider)
