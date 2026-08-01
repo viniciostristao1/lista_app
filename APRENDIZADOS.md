@@ -200,6 +200,14 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 (cont.) — Aba Itens compacta + ícone maior (`v0.23.0-teste27`)
+- **Aba Itens**: pílula de preço de 2 linhas → **1 linha** (`● Mercado  R$ x,xx`); **mais barato
+  preenchido âmbar** (era só borda verde), badge "MENOR" removido. Card com padding/espaços menores.
+- **Imagens** que o usuário subiu movidas p/ `design/` (`icone_carrinho_ref.png` = flat 2D fonte do
+  ícone; `_3d.png` = mockup). **`git mv`** (estavam na raiz).
+- Ícone maior (full 1.15→1.24, fg 1.0→1.08). Listas ainda mais enxuta (item vert 2→1; checkbox 22→20;
+  stepper 26→24; editar minH 28→24).
+
 ### 2026-08-01 (cont.) — Colunas alinhadas + ícone maior (`v0.22.0-teste26`)
 - **Alinhamento da lista**: item dedicado (sem preço) reservava 0 → colapsava a linha. Fix: no
   lugar do preço, `SizedBox(width:56)` (≈"R$ x,xx"); bolinha do mercado virou slot fixo 9×9. Preços
