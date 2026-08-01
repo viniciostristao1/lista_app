@@ -200,6 +200,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-07-31 (cont.) — Maiúscula + lista + rodas do ícone (`v0.20.0-teste24`)
+- **Maiúscula inicial** no nome: `capitalizar()` em `format.dart` aplicado no repo (`nome`, mantendo
+  `nomeLower`); + `textCapitalization.sentences` na busca e no campo Nome. Cobre entrada por **voz**
+  (o forçar-no-código é o confiável; textCapitalization só ajuda o teclado). A lista exibe `p.nome`
+  então basta capitalizar no produto.
+- Lista **mais enxuta**: item vertical 8→6; categoria top subseq 14→9, bottom 2→1.
+- **Ícone**: arco em C reprovado. Rodas refeitas com **eixo/frame abaixo da cesta** (trapézio
+  convergente `M430 672 L470 726 H650 L708 672` + 2 rodas abaixo) — estilo carrinho da busca.
+
 ### 2026-07-31 (cont.) — Lista enxuta + pé do ícone em C (`v0.19.0-teste23`)
 - Espaçamento da lista apertado: item `vertical 13→8`; categoria→1º item `bottom 6→2` (top de
   seção subsequente 6→14 pra separar seções). Ícone: pé vira **arco em C** (`Q`) com as rodas nas pontas.
