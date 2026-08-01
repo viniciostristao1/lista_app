@@ -200,6 +200,16 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 (cont.) — Finalizar-só-marcados + ordem + refinos (`v0.27.0-teste31`)
+- **#6 Finalizar** processa só `comprado==true` (não-fixado); não marcados ficam. `removiveis`
+  ganhou `it.comprado &&`. Botão de finalizar só aparece com ≥1 marcado.
+- **#5 Ordem**: itens da lista eram doc-id do Firestore (aleatório) → agora **alfabético dentro
+  da categoria** (`..sort` por nome). `watchItens` segue sem orderBy no repo.
+- **#1/#2**: item dedicado **não reserva** o espaço de preço (const width 56→0; nome ganha o
+  espaço). Comentário no código diz como reverter (44=1-díg, 56=2-díg).
+- **#3** título "Itens | Comparador". **#7** categoria→item bottom 1→0. **#8** desfazer: tirado
+  `SnackBarBehavior.floating` (auto-fechava mal em alguns casos), mantido 3s.
+
 ### 2026-08-01 (cont.) — Contagem/desfazer/alerta + categorias (`v0.26.0-teste30`)
 - **Chips** de mercado mostram contagem discreta `(n)` (Todos=total; mercado=itens por mercado efetivo).
 - **Desfazer** no swipe: `_removerComDesfazer` guarda os campos do item + se o produto era lembrete
