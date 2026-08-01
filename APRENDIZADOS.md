@@ -200,6 +200,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 (cont.) — Colunas alinhadas + ícone maior (`v0.22.0-teste26`)
+- **Alinhamento da lista**: item dedicado (sem preço) reservava 0 → colapsava a linha. Fix: no
+  lugar do preço, `SizedBox(width:56)` (≈"R$ x,xx"); bolinha do mercado virou slot fixo 9×9. Preços
+  seguem largura natural (usuário aceita variação por casas decimais). Editar/qtd/preço/bolinha alinham.
+- **Ícone** um tico maior (full scale 1.02→1.15, fg 0.9→1.0). Itens ainda mais colados (vert 4→2).
+
 ### 2026-08-01 — Ícone do usuário + fonte ajustável + refinos (`v0.21.0-teste25`)
 - **Ícone**: usuário subiu o desenho que quer (2 PNGs na raiz do repo: `1785543967712.png` =
   flat, `1785544256190.png` = 3D). **Recriado em vetor** (SVG no scratchpad) fiel ao desenho:
