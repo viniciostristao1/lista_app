@@ -182,15 +182,15 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
         : 0.0;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(13),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(13),
           onTap: () => mostrarEditorProduto(context, p, mercados),
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 11),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.line),
@@ -260,10 +260,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                         style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
                   )
                 else ...[
-                  const SizedBox(height: 11),
+                  const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       for (var i = 0; i < ordenados.length; i++)
                         _pilulaPreco(
@@ -275,7 +275,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   ),
                   if (economia > 0)
                     Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(top: 7),
                       child: Row(
                         children: [
                           const Icon(Icons.savings_outlined,
@@ -303,7 +303,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
   /// Item "de um mercado só": em vez das pílulas de preço, mostra onde comprar.
   Widget _badgeDedicado(Mercado? mercado, bool recorrente) {
     return Padding(
-      padding: const EdgeInsets.only(top: 11),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
           const Icon(Icons.storefront, size: 15, color: AppColors.green),
@@ -334,61 +334,38 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     );
   }
 
+  /// Pílula de preço numa linha: ● Mercado  R$ x,xx. O mais barato fica
+  /// preenchido âmbar (como uma seleção); sem badge "MENOR".
   Widget _pilulaPreco({
     required Mercado? mercado,
     required PrecoMercado preco,
     required bool menor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: menor ? AppColors.green.withValues(alpha: 0.5) : AppColors.line,
-        ),
+        color: menor ? AppColors.green : AppColors.bg,
+        borderRadius: BorderRadius.circular(9),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                    color: mercado?.cor ?? AppColors.dim2,
-                    shape: BoxShape.circle),
-              ),
-              Text(mercado?.nome ?? '—',
-                  style: const TextStyle(color: AppColors.dim, fontSize: 11)),
-              if (menor) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.green.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: const Text('MENOR',
-                      style: TextStyle(
-                          color: AppColors.green,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: .5)),
-                ),
-              ],
-            ],
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 6),
+            decoration: BoxDecoration(
+                color: mercado?.cor ?? AppColors.dim2, shape: BoxShape.circle),
           ),
-          const SizedBox(height: 3),
+          Text(mercado?.nome ?? '—',
+              style: TextStyle(
+                  color: menor ? AppColors.onGreen : AppColors.dim,
+                  fontSize: 11.5)),
+          const SizedBox(width: 8),
           Text(reais(preco.valor),
               style: TextStyle(
-                  color: menor ? AppColors.green : AppColors.text,
-                  fontSize: 14,
+                  color: menor ? AppColors.onGreen : AppColors.text,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700)),
         ],
       ),

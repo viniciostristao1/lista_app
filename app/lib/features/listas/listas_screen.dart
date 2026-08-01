@@ -603,7 +603,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
@@ -652,7 +652,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                      const BoxConstraints(minWidth: 28, minHeight: 24),
                   tooltip: 'Editar preços/mercado',
                   icon: const Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
@@ -731,8 +731,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 26,
-        height: 26,
+        width: 24,
+        height: 24,
         decoration: BoxDecoration(
           color: AppColors.bg,
           borderRadius: BorderRadius.circular(8),
@@ -747,8 +747,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   Widget _checkbox(bool marcado) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      width: 22,
-      height: 22,
+      width: 20,
+      height: 20,
       decoration: BoxDecoration(
         color: marcado ? AppColors.green : Colors.transparent,
         borderRadius: BorderRadius.circular(7),
