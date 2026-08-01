@@ -13,6 +13,7 @@ import 'package:lista_app/services/auth_service.dart';
 import 'package:lista_app/services/listas_repository.dart';
 import 'package:lista_app/services/mercados_repository.dart';
 import 'package:lista_app/services/pedidos_repository.dart';
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
@@ -108,6 +109,65 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
   }
 
+  void _mostrarConfigFonte() {
+    final atual = ref.read(fontScaleProvider);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 2),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Tamanho da fonte',
+                    style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Vale para o app inteiro.',
+                    style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+              ),
+            ),
+            _opcaoFonte('Menor', 0.9, atual),
+            _opcaoFonte('Normal', 1.0, atual),
+            _opcaoFonte('Maior', 1.2, atual),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _opcaoFonte(String label, double v, double atual) {
+    final sel = (atual - v).abs() < 0.001;
+    return ListTile(
+      onTap: () {
+        ref.read(fontScaleProvider.notifier).definir(v);
+        Navigator.pop(context);
+      },
+      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
+          color: sel ? AppColors.green : AppColors.dim2),
+      title: Text(label,
+          style: TextStyle(
+              color: sel ? AppColors.green : AppColors.text,
+              fontSize: 15 * v,
+              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ativas = ref.watch(listasAtivasProvider).asData?.value ?? const [];
@@ -163,6 +223,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ]),
         actions: [
           IconButton(
+            tooltip: 'Tamanho da fonte',
+            icon: const Icon(Icons.settings_outlined, color: AppColors.dim),
+            onPressed: _mostrarConfigFonte,
+          ),
+          IconButton(
             tooltip: 'Copiar lista',
             icon: const Icon(Icons.ios_share, color: AppColors.dim),
             onPressed: () => _exportar(itens, produtosPorId, mercados),
@@ -198,7 +263,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               ],
             ),
           ),
-          if (_busca.isEmpty && removiveis.isNotEmpty)
+          // Some com o teclado aberto (ex.: buscando) — não flutua sobre ele.
+          if (MediaQuery.of(context).viewInsets.bottom == 0 &&
+              _busca.isEmpty &&
+              removiveis.isNotEmpty)
             _botaoFinalizar(atual!, removiveis, produtosPorId, filtro,
                 mercadosPorId[filtro]?.nome),
         ],
@@ -535,7 +603,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
@@ -547,28 +615,16 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        if (p?.fixado == true) ...[
-                          const Icon(Icons.push_pin,
-                              size: 12, color: AppColors.green),
-                          const SizedBox(width: 5),
-                        ],
-                        Flexible(
-                          child: Text(
-                            p?.nome ?? it.nome,
-                            style: TextStyle(
-                              fontSize: 14.5,
-                              color:
-                                  it.comprado ? AppColors.dim : AppColors.text,
-                              decoration: it.comprado
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              decorationColor: AppColors.dim2,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      p?.nome ?? it.nome,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        color: it.comprado ? AppColors.dim : AppColors.text,
+                        decoration: it.comprado
+                            ? TextDecoration.lineThrough
+                            : null,
+                        decorationColor: AppColors.dim2,
+                      ),
                     ),
                     if (velho)
                       const Padding(
@@ -585,13 +641,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   ],
                 ),
               ),
+              // #5: pino de "recorrente" depois da descrição, antes do editar
+              if (p?.fixado == true) ...[
+                const Icon(Icons.push_pin, size: 13, color: AppColors.green),
+                const SizedBox(width: 4),
+              ],
               // atalho: abre o editor do item (preços/mercado) sem ir à aba Itens
               if (p != null)
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
                   tooltip: 'Editar preços/mercado',
                   icon: const Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),

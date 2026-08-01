@@ -6,6 +6,7 @@ import 'features/auth/login_screen.dart';
 import 'features/home/home_shell.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'services/prefs.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
 
@@ -17,15 +18,22 @@ Future<void> main() async {
   runApp(const ProviderScope(child: ListaApp()));
 }
 
-class ListaApp extends StatelessWidget {
+class ListaApp extends ConsumerWidget {
   const ListaApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final escala = ref.watch(fontScaleProvider);
     return MaterialApp(
       title: 'Lista',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      // aplica o tamanho de fonte escolhido pelo usuário no app inteiro
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        minScaleFactor: escala,
+        maxScaleFactor: escala,
+        child: child!,
+      ),
       home: const _AuthGate(),
     );
   }
