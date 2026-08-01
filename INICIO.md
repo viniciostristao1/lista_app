@@ -28,12 +28,12 @@ Meta: publicar na **Play Store**.
 - **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.23.0-teste27`** (commit `34e90e5`) — feature "mercado dedicado" + **âmbar** + **ícone
+  **A = `v0.24.0-teste28`** (commit `aaf7306`) — feature "mercado dedicado" + **âmbar** + **ícone
   do desenho do usuário** (cesta gridada/chassi-S/rodas-anel, âmbar degradê, maior) + símbolos nos
   títulos + atalhos + **estilo Flat** (Listas enxuta/alinhada; **Itens compacta**: pílula 1-linha
   `● Mercado R$x`, mais-barato preenchido) + nome com **maiúscula** + **⚙️ ajuste de fonte**
-  (`services/prefs.dart` + `shared_preferences` + `textScaler`). Imagens-ref do ícone em `design/`.
-  **Cor e estilo travados** → falta a verificação do usuário. Detalhe em `LANCAMENTO.md`.
+  (`services/prefs.dart`; fatores 0.93/1.035/1.22 = ~13,5/15/17,7; padrão=1.035). Imagens-ref em
+  `design/`. **Cor e estilo travados** → falta a verificação do usuário. Detalhe em `LANCAMENTO.md`.
   ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**

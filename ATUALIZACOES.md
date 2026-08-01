@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-01 · `v0.24.0-teste28`** — Fontes recalibradas: **Menor ~13,5 · Normal ~15 (novo padrão) · Maior ~17,7** · lista da aba Listas **ainda mais enxuta** · **ícone** um pouco maior.
 - **2026-08-01 · `v0.23.0-teste27`** — Aba **Itens** mais compacta: preço **do lado** do mercado (1 linha), o **mais barato preenchido âmbar** (sem "MENOR") · **ícone** um pouco maior · lista da aba Listas **ainda mais enxuta**.
 - **2026-08-01 · `v0.22.0-teste26`** — Lista **alinhada** (item "de um mercado só" reserva o espaço do preço → editar/quantidade/preço/bolinha alinham entre os itens) · **ícone** um pouco maior · itens **ainda mais colados**.
 - **2026-08-01 · `v0.21.0-teste25`** — **Ícone** recriado a partir do seu desenho (cesta gridada, chassi em S, rodas em anel) em **âmbar degradê** · **⚙️ tamanho de fonte** (Menor/Normal/Maior, vale pro app todo) na aba Listas · botão **Finalizar some com o teclado** aberto · **pino de recorrente** movido (depois da descrição, antes do editar) · itens **ainda mais colados** (sem mexer na fonte).

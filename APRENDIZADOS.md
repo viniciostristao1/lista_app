@@ -200,6 +200,11 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 (cont.) — Fontes recalibradas + ícone maior (`v0.24.0-teste28`)
+- Fontes: fatores **0.93/1.035/1.22** (≈13,5/15/17,7 sobre o texto-base 14,5); **padrão=1.035**
+  (Normal ~15). Lista ainda mais enxuta (item vert 1→0; stepper 24→22; editar 24→22; checkbox mantido
+  20 p/ não sacrificar o toque). Ícone maior (full 1.24→1.31; fg 1.08→1.14).
+
 ### 2026-08-01 (cont.) — Aba Itens compacta + ícone maior (`v0.23.0-teste27`)
 - **Aba Itens**: pílula de preço de 2 linhas → **1 linha** (`● Mercado  R$ x,xx`); **mais barato
   preenchido âmbar** (era só borda verde), badge "MENOR" removido. Card com padding/espaços menores.
