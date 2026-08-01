@@ -86,7 +86,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       ..showSnackBar(SnackBar(
         content: Text('"$nome" removido'),
         duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Desfazer',
           textColor: AppColors.green,
@@ -228,8 +227,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
 
     final itensVisiveis = itens.where(visivel).toList();
+    // Finalizar processa só os itens MARCADOS (comprados); os não marcados
+    // continuam na lista (não deu pra comprar). Recorrente (fixado) nunca sai.
     final removiveis = itensVisiveis
-        .where((it) => produtosPorId[it.produtoId]?.fixado != true)
+        .where((it) =>
+            it.comprado && produtosPorId[it.produtoId]?.fixado != true)
         .toList();
 
     var economia = 0.0, baseSegundo = 0.0, estimadoVis = 0.0;
@@ -600,14 +602,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   ) {
     final widgets = <Widget>[];
     var primeiro = true;
+    String nomeDe(ItemLista e) =>
+        (produtosPorId[e.produtoId]?.nome ?? e.nome).toLowerCase();
     for (final cat in Categoria.values) {
       final grupo = itens
           .where((e) =>
               (produtosPorId[e.produtoId]?.categoria ?? e.categoria) == cat)
-          .toList();
+          .toList()
+        // #5: ordem alfabética dentro da categoria
+        ..sort((a, b) => nomeDe(a).compareTo(nomeDe(b)));
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
-        padding: EdgeInsets.fromLTRB(2, primeiro ? 1 : 4, 2, 1),
+        padding: EdgeInsets.fromLTRB(2, primeiro ? 1 : 4, 2, 0),
         child: Text(cat.label.toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
@@ -712,10 +718,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
-              // Preço à direita. Item "de um mercado só" (sem preço) reserva o
-              // espaço em branco de "R$ x,xx" pra não desalinhar a coluna.
+              // Item "de um mercado só" NÃO reserva espaço de preço → o nome
+              // ganha essa largura. (Pra alinhar de novo como "R$ x,xx",
+              // trocar o 0 abaixo por ~44; como "R$ xx,xx", por ~56.)
               if (dedicado)
-                const SizedBox(width: 56)
+                const SizedBox(width: 0)
               else
                 Text(
                   menor == null ? '—' : reais(menor.value.valor),

@@ -52,7 +52,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
         title: Row(mainAxisSize: MainAxisSize.min, children: const [
           Icon(Icons.sell_rounded, size: 20, color: AppColors.green),
           SizedBox(width: 9),
-          Text('Itens'),
+          Flexible(child: Text('Itens | Comparador', overflow: TextOverflow.ellipsis)),
         ]),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
