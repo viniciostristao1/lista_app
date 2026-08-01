@@ -603,7 +603,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
@@ -652,7 +652,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints:
-                      const BoxConstraints(minWidth: 30, minHeight: 30),
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
                   tooltip: 'Editar preços/mercado',
                   icon: const Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
@@ -661,7 +661,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
-              if (!dedicado)
+              // Preço à direita. Item "de um mercado só" (sem preço) reserva o
+              // espaço em branco de "R$ x,xx" pra não desalinhar a coluna.
+              if (dedicado)
+                const SizedBox(width: 56)
+              else
                 Text(
                   menor == null ? '—' : reais(menor.value.valor),
                   style: TextStyle(
@@ -673,14 +677,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                         : (it.comprado ? AppColors.dim : AppColors.text),
                   ),
                 ),
-              if (cor != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(color: cor, shape: BoxShape.circle),
-                ),
-              ],
+              const SizedBox(width: 8),
+              // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
+              SizedBox(
+                width: 9,
+                height: 9,
+                child: cor == null
+                    ? null
+                    : DecoratedBox(
+                        decoration: BoxDecoration(
+                            color: cor, shape: BoxShape.circle)),
+              ),
             ],
           ),
         ),
