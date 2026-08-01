@@ -382,7 +382,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
         const Text('Sem comparação de preço — anote em Observações se quiser.',
             style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
         const SizedBox(height: 12),
-        const Text('Em qual mercado?',
+        const Text('Selecionar mercado',
             style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
         const SizedBox(height: 8),
         Wrap(
@@ -402,17 +402,24 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           title: const Text('Compra recorrente (não sai ao finalizar)',
               style: TextStyle(color: AppColors.text, fontSize: 13.5)),
         ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
+        const SizedBox(height: 4),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
             onPressed: () => setState(() {
               _abrirMercadoFixo = false;
               _mercadoFixo = null;
               _recorrente = false;
             }),
-            icon: const Icon(Icons.arrow_back, size: 16, color: AppColors.dim),
+            icon: const Icon(Icons.arrow_back, size: 18, color: AppColors.green),
             label: const Text('Voltar a comparar preços',
-                style: TextStyle(color: AppColors.dim)),
+                style: TextStyle(color: AppColors.green, fontSize: 13.5)),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.surface2,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
           ),
         ),
       ],
