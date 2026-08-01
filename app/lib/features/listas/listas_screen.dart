@@ -141,9 +141,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                     style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
               ),
             ),
-            _opcaoFonte('Menor', 0.9, atual),
-            _opcaoFonte('Normal', 1.0, atual),
-            _opcaoFonte('Maior', 1.2, atual),
+            _opcaoFonte('Menor', 0.93, atual),
+            _opcaoFonte('Normal', 1.035, atual),
+            _opcaoFonte('Maior', 1.22, atual),
             const SizedBox(height: 10),
           ],
         ),
@@ -603,7 +603,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             .setComprado(atual.id, it.id, !it.comprado),
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
@@ -652,7 +652,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 24),
+                      const BoxConstraints(minWidth: 28, minHeight: 22),
                   tooltip: 'Editar preços/mercado',
                   icon: const Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
@@ -731,8 +731,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        width: 24,
-        height: 24,
+        width: 22,
+        height: 22,
         decoration: BoxDecoration(
           color: AppColors.bg,
           borderRadius: BorderRadius.circular(8),
