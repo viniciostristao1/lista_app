@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-01 · `v0.26.0-teste30`** — Chips de mercado mostram a **contagem** de itens (ex.: `Extra (2)`, `(0)` vazio) · excluir no **swipe** agora tem **"Desfazer"** (3s) · **categorias mais enxutas** · editor: **alerta** quando "num mercado só" está sem mercado escolhido (e não deixa salvar).
 - **2026-08-01 · `v0.25.0-teste29`** — Editor de item: "Em qual mercado?" → **"Selecionar mercado"**; botão **"Voltar a comparar preços"** ganhou caixinha no mesmo estilo do "Comprar sempre num mercado só".
 - **2026-08-01 · `v0.24.0-teste28`** — Fontes recalibradas: **Menor ~13,5 · Normal ~15 (novo padrão) · Maior ~17,7** · lista da aba Listas **ainda mais enxuta** · **ícone** um pouco maior.
 - **2026-08-01 · `v0.23.0-teste27`** — Aba **Itens** mais compacta: preço **do lado** do mercado (1 linha), o **mais barato preenchido âmbar** (sem "MENOR") · **ícone** um pouco maior · lista da aba Listas **ainda mais enxuta**.

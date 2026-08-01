@@ -200,6 +200,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 (cont.) — Contagem/desfazer/alerta + categorias (`v0.26.0-teste30`)
+- **Chips** de mercado mostram contagem discreta `(n)` (Todos=total; mercado=itens por mercado efetivo).
+- **Desfazer** no swipe: `_removerComDesfazer` guarda os campos do item + se o produto era lembrete
+  solto (apaga); SnackBar 3s com ação que recria (produto, se preciso) e re-adiciona o item.
+- **Categorias** aba Listas: top subseq 9→4, 1ª 2→1 (bottom 1; item vert 0). **Números reportados ao
+  usuário** pra ele pedir ajuste fino.
+- **Editor**: caixa de **alerta** (borda/tint `danger`) na seleção de mercado enquanto nenhum escolhido;
+  `_salvar` bloqueia se `_abrirMercadoFixo && mercadoFixo==null` (evita salvar "num mercado só" vazio).
+
 ### 2026-08-01 (cont.) — Fontes recalibradas + ícone maior (`v0.24.0-teste28`)
 - Fontes: fatores **0.93/1.035/1.22** (≈13,5/15/17,7 sobre o texto-base 14,5); **padrão=1.035**
   (Normal ~15). Lista ainda mais enxuta (item vert 1→0; stepper 24→22; editar 24→22; checkbox mantido
