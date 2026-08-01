@@ -28,11 +28,12 @@ Meta: publicar na **Play Store**.
 - **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.20.0-teste24`** (commit `be388d9`) — feature "mercado dedicado" + **âmbar** + **ícone**
-  (carrinho c/ grade + rodas c/ eixo, sem V) + símbolos nos títulos + atalhos + **estilo Flat**
-  (itens sem caixinha e enxutos; botões preenchidos; chips sólidos) + nome do item com **maiúscula**.
-  **Cor e estilo travados** → falta só a verificação do usuário pra fechar o AAB. Detalhe em
-  `LANCAMENTO.md`. ⚠️ NÃO subir o `playstore-pacote-1` antigo.
+  **A = `v0.21.0-teste25`** (commit `84db68e`) — feature "mercado dedicado" + **âmbar** + **ícone
+  do desenho do usuário** (cesta gridada/chassi-S/rodas-anel, âmbar degradê) + símbolos nos títulos
+  + atalhos + **estilo Flat** (itens sem caixinha e enxutos) + nome com **maiúscula** + **⚙️ ajuste
+  de fonte** (Menor/Normal/Maior, via `services/prefs.dart` + `shared_preferences`, aplicado com
+  `textScaler` no `main.dart`). **Cor e estilo travados** → falta a verificação do usuário pra fechar
+  o AAB. Detalhe em `LANCAMENTO.md`. ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**
 - Conta de desenvolvedor Google Play **criada + paga (US$25) + documentos enviados**

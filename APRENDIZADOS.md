@@ -200,6 +200,18 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-01 — Ícone do usuário + fonte ajustável + refinos (`v0.21.0-teste25`)
+- **Ícone**: usuário subiu o desenho que quer (2 PNGs na raiz do repo: `1785543967712.png` =
+  flat, `1785544256190.png` = 3D). **Recriado em vetor** (SVG no scratchpad) fiel ao desenho:
+  cesta gridada (4v+1h), **chassi em "S"** + barra, **rodas em anel** (stroke), alça curva. Fundo
+  **âmbar degradê** (`#EEB24E→#DB9528`); adaptativo passou a usar **imagem** de fundo
+  (`adaptive_icon_background: assets/icon/icon_bg.png`) pra manter o degradê.
+- **#4 fonte ajustável**: `shared_preferences` add; `services/prefs.dart` (NotifierProvider<double>,
+  Riverpod 3) persiste 0.9/1.0/1.2; `main.dart` aplica com `MediaQuery.withClampedTextScaling`
+  (min=max=escala) → app inteiro. Engrenagem na aba Listas (antes do copiar) abre sheet.
+- **#1** Finalizar some com teclado (`viewInsets.bottom==0`). **#5** pino recorrente movido p/ depois
+  da descrição. **#3** item vertical 6→4.
+
 ### 2026-07-31 (cont.) — Maiúscula + lista + rodas do ícone (`v0.20.0-teste24`)
 - **Maiúscula inicial** no nome: `capitalizar()` em `format.dart` aplicado no repo (`nome`, mantendo
   `nomeLower`); + `textCapitalization.sentences` na busca e no campo Nome. Cobre entrada por **voz**
