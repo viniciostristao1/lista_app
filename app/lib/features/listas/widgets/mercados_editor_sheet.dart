@@ -20,11 +20,12 @@ Future<void> mostrarEditorMercados(BuildContext context, List<Mercado> atuais) {
 }
 
 class _Slot {
-  _Slot({this.id, required String nome, required this.cor})
+  _Slot({this.id, required String nome, required this.cor, this.preferencia = false})
       : nomeCtrl = TextEditingController(text: nome);
   final String? id;
   final TextEditingController nomeCtrl;
   Color cor;
+  bool preferencia;
 }
 
 class _EditorMercados extends ConsumerStatefulWidget {
@@ -44,9 +45,21 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
   void initState() {
     super.initState();
     _slots = widget.atuais
-        .map((m) => _Slot(id: m.id, nome: m.nome, cor: m.cor))
+        .map((m) => _Slot(
+            id: m.id, nome: m.nome, cor: m.cor, preferencia: m.preferencia))
         .toList();
     _idsIniciais = widget.atuais.map((m) => m.id).toSet();
+  }
+
+  // Só um mercado pode ser preferência: marca este e desmarca os outros.
+  void _togglePreferencia(int i) {
+    setState(() {
+      final novo = !_slots[i].preferencia;
+      for (final s in _slots) {
+        s.preferencia = false;
+      }
+      _slots[i].preferencia = novo;
+    });
   }
 
   @override
@@ -87,9 +100,10 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
         final nome = s.nomeCtrl.text.trim();
         if (nome.isEmpty) continue;
         if (s.id == null) {
-          await repo.criar(nome: nome, cor: s.cor);
+          await repo.criar(nome: nome, cor: s.cor, preferencia: s.preferencia);
         } else {
-          await repo.atualizar(s.id!, nome: nome, cor: s.cor);
+          await repo.atualizar(s.id!,
+              nome: nome, cor: s.cor, preferencia: s.preferencia);
         }
       }
       if (mounted) Navigator.pop(context);
@@ -121,7 +135,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
           const Text('Meus mercados',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text('Até 3 favoritos. Toque numa cor para trocar.',
+          const Text('Até 3 favoritos. Toque numa cor pra trocar. Marque ⭐ um '
+              'como preferência (itens sem preço vão pra ele).',
               style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 14),
           for (var i = 0; i < _slots.length; i++) _linha(i),
@@ -217,6 +232,29 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                   ),
                 ),
             ],
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _togglePreferencia(i),
+            child: Row(
+              children: [
+                Icon(slot.preferencia ? Icons.star : Icons.star_border,
+                    size: 18,
+                    color:
+                        slot.preferencia ? AppColors.green : AppColors.dim2),
+                const SizedBox(width: 6),
+                Text(
+                  slot.preferencia
+                      ? 'Preferência (itens sem preço vêm pra cá)'
+                      : 'Definir como preferência',
+                  style: TextStyle(
+                      color:
+                          slot.preferencia ? AppColors.green : AppColors.dim,
+                      fontSize: 12),
+                ),
+              ],
+            ),
           ),
         ],
       ),

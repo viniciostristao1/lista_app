@@ -251,6 +251,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: _marca,
+            textCapitalization: TextCapitalization.sentences,
             style: const TextStyle(color: AppColors.text, fontSize: 15),
             decoration: _dec('Ex: Pilão'),
           ),

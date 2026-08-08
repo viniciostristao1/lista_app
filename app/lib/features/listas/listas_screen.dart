@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,10 +20,6 @@ import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
 
-/// Mercado "efetivo" de um item na lista: o mercado fixo (dedicado/recorrente)
-/// se houver; senão o mais barato (comportamento comparável). Null = sem mercado.
-String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
-
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
 class ListasScreen extends ConsumerStatefulWidget {
   const ListasScreen({super.key});
@@ -34,6 +32,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   final _buscaCtrl = TextEditingController();
   String _busca = '';
   String? _filtroMercado; // null = "Todos"
+  String? _preferidoId; // mercado marcado como preferência (itens sem preço)
+
+  /// Mercado "efetivo" do item: mercado fixo → mais barato → preferência.
+  String? _mercadoEfetivo(Produto? p) =>
+      p?.mercadoFixo ?? p?.mercadoMaisBarato ?? _preferidoId;
 
   @override
   void dispose() {
@@ -81,31 +84,38 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     if (apagaProduto) await produtoRepo.excluirProduto(p.id);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(
-        content: Text('"$nome" removido'),
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'Desfazer',
-          textColor: AppColors.green,
-          onPressed: () async {
-            var produtoId = it.produtoId;
-            // se o produto foi apagado (lembrete solto), recria pra religar
-            if (apagaProduto) {
-              produtoId =
-                  await produtoRepo.criarProduto(nome: nome, categoria: categoria);
-            }
-            await listaRepo.adicionarItem(listaId,
-                produtoId: produtoId,
-                nome: nome,
-                categoria: categoria,
-                quantidade: it.quantidade,
-                preco: it.preco,
-                mercadoId: it.mercadoId);
-          },
-        ),
-      ));
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    final ctrl = messenger.showSnackBar(SnackBar(
+      content: Text('"$nome" removido'),
+      duration: const Duration(seconds: 30), // fallback; fechamos manualmente
+      action: SnackBarAction(
+        label: 'Desfazer',
+        textColor: AppColors.green,
+        onPressed: () async {
+          var produtoId = it.produtoId;
+          // se o produto foi apagado (lembrete solto), recria pra religar
+          if (apagaProduto) {
+            produtoId =
+                await produtoRepo.criarProduto(nome: nome, categoria: categoria);
+          }
+          await listaRepo.adicionarItem(listaId,
+              produtoId: produtoId,
+              nome: nome,
+              categoria: categoria,
+              quantidade: it.quantidade,
+              preco: it.preco,
+              mercadoId: it.mercadoId);
+        },
+      ),
+    ));
+    // Fecha em ~3s de forma confiável: o timer interno do SnackBar não dispara
+    // quando as animações do sistema estão desativadas (bug conhecido do Flutter).
+    Timer(const Duration(seconds: 3), () {
+      try {
+        ctrl.close();
+      } catch (_) {}
+    });
   }
 
   /// Exportar = copiar a lista (• antes de cada item) do mercado escolhido.
@@ -206,6 +216,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final produtos = ref.watch(produtosProvider).asData?.value ?? const [];
     final produtosPorId = {for (final p in produtos) p.id: p};
     final mercados = ref.watch(mercadosProvider).asData?.value ?? const [];
+    _preferidoId = null;
+    for (final m in mercados) {
+      if (m.preferencia) {
+        _preferidoId = m.id;
+        break;
+      }
+    }
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
     final itens = atual == null
@@ -535,7 +552,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   Widget _cardEconomia(
       double economia, double percent, double estimado, int qtd) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -640,7 +657,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final dedicado = p?.dedicado ?? false;
     final menor =
         p?.precosOrdenados.isNotEmpty == true ? p!.precosOrdenados.first : null;
-    final mercadoEfId = p?.mercadoFixo ?? menor?.key;
+    final mercadoEfId = p?.mercadoFixo ?? menor?.key ?? _preferidoId;
     final cor = mercadoEfId != null ? mercadosPorId[mercadoEfId]?.cor : null;
     final velho = menor?.value.desatualizado ?? false;
 
