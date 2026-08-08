@@ -9,6 +9,9 @@ on:
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,24 +50,22 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Build APK (release, por arquitetura)
+      - name: Build APK arm64 (release)
         working-directory: app
-        run: flutter build apk --release --split-per-abi
-
-      - name: Publica os APKs como artefato
-        uses: actions/upload-artifact@v4
-        with:
-          name: lista-app-apks
-          path: app/build/app/outputs/flutter-apk/*-release.apk
-          if-no-files-found: error
+        run: flutter build apk --release --target-platform android-arm64
 
       - name: Build AAB (release, para a Play Store)
         working-directory: app
         run: flutter build appbundle --release
 
-      - name: Publica o AAB como artefato
-        uses: actions/upload-artifact@v4
+      # Publica no release rolling "ci-latest" (assets de release NÃO contam na
+      # cota de artefatos do Actions). Baixamos daqui e cortamos o release nomeado.
+      - name: Publica APK+AAB no release ci-latest
+        uses: softprops/action-gh-release@v2
         with:
-          name: lista-app-aab
-          path: app/build/app/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
+          tag_name: ci-latest
+          name: CI build (rolling — APK arm64 + AAB do último push)
+          prerelease: true
+          files: |
+            app/build/app/outputs/flutter-apk/app-release.apk
+            app/build/app/outputs/bundle/release/app-release.aab
