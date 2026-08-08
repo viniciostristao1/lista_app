@@ -200,6 +200,18 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-08 — Logo do usuário + mercado preferência + refinos (`v0.28.0-teste32`)
+- **#1 Ícone** do logo enviado (`design/logo_v2.png`). Sem imagemagick/PIL no sistema → **venv
+  isolado** no scratchpad c/ Pillow; script `extrai_icone.py`: flood-fill dos cantos pretos→âmbar,
+  extração do carrinho por **alfa-luminância** (anti-alias), bbox só dos pixels opacos, fg centrado
+  a 66%, bg degradê. Ficou fiel e nítido.
+- **#2 Mercado preferência**: `Mercado.preferencia` (bool) + repo criar/atualizar; editor de mercados
+  ganhou ⭐ **exclusivo** (`_togglePreferencia`). `_mercadoEfetivo` virou **método** lendo `_preferidoId`
+  (setado no build): `mercadoFixo ?? maisBarato ?? preferido`. Itens sem preço caem no preferido.
+- **#3** caixa Economia padding vert 14→9. **#4** desfazer: **Timer manual 3s** + `ctrl.close()`
+  (timer interno do SnackBar não dispara c/ animações do sistema off — bug Flutter). **#5** marca
+  capitaliza no repo + textCapitalization.
+
 ### 2026-08-01 (cont.) — Finalizar-só-marcados + ordem + refinos (`v0.27.0-teste31`)
 - **#6 Finalizar** processa só `comprado==true` (não-fixado); não marcados ficam. `removiveis`
   ganhou `it.comprado &&`. Botão de finalizar só aparece com ≥1 marcado.
