@@ -50,9 +50,12 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Build APK arm64 (release)
+      # split-per-abi mantém o versionCode do arm64 (base+2000) igual ao que o
+      # usuário já tem instalado — instala por cima. Single-arch baixaria o
+      # versionCode (downgrade) e o Android recusa ("pacote inválido").
+      - name: Build APK (release, por ABI)
         working-directory: app
-        run: flutter build apk --release --target-platform android-arm64
+        run: flutter build apk --release --split-per-abi
 
       - name: Build AAB (release, para a Play Store)
         working-directory: app
@@ -67,5 +70,5 @@ jobs:
           name: CI build (rolling — APK arm64 + AAB do último push)
           prerelease: true
           files: |
-            app/build/app/outputs/flutter-apk/app-release.apk
+            app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             app/build/app/outputs/bundle/release/app-release.aab
