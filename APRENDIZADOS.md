@@ -211,6 +211,12 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 - **#3** caixa Economia padding vert 14→9. **#4** desfazer: **Timer manual 3s** + `ctrl.close()`
   (timer interno do SnackBar não dispara c/ animações do sistema off — bug Flutter). **#5** marca
   capitaliza no repo + textCapitalization.
+- **⚠️ COTA DE ARTEFATO DO ACTIONS ESTOUROU (2026-08-08):** ~54 builds = 2 GB > limite grátis 500 MB;
+  upload de artefato passou a falhar (`Artifact storage quota has been hit`), e **apagar não libera na
+  hora** (GitHub recalcula a cada 6-12h). **Fix:** o `build-apk.yml` agora builda só **arm64** + AAB e
+  publica no **release rolling `ci-latest`** (`softprops/action-gh-release`, `permissions: contents:write`)
+  — **assets de release NÃO contam na cota**. **Novo fluxo p/ cortar release:** `gh release download
+  ci-latest` → `gh release create vX ...`. NÃO voltar a `upload-artifact`.
 
 ### 2026-08-01 (cont.) — Finalizar-só-marcados + ordem + refinos (`v0.27.0-teste31`)
 - **#6 Finalizar** processa só `comprado==true` (não-fixado); não marcados ficam. `removiveis`

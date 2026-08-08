@@ -151,8 +151,10 @@ vazio (não importa p/ signInWithProvider; atualizar só se migrar p/ google_sig
   (base64), porque os arquivos são gitignored.
 - ⚠️ Push de workflow exigiu escopo **`workflow`** no token gh (adicionado via
   `gh auth refresh -s workflow`, device flow).
-- **Cortar um APK de teste:** build roda no push em `app/**` → baixar artefato →
-  `gh release create <tag> lista-app.apk`. Release atual: `v0.1.0-teste1`.
+- **Cortar um APK de teste (fluxo desde 2026-08-08):** push em `app/**` → o CI builda arm64 + AAB
+  e publica no **release rolling `ci-latest`** (artefato do Actions foi abandonado: a cota estourou;
+  ver `APRENDIZADOS`). Baixar: `gh release download ci-latest` → `gh release create <tag>
+  lista-app-vX-arm64.apk lista-app-vX.aab`.
 - **Login em runtime:** `signInWithProvider` (browser). Ainda **sem SHA-1** — trocar
   pelo google_sign_in nativo + SHA-1 ao preparar o release assinado pro Play Store.
 - APK debug é grande (~149 MB, todas as ABIs). Release final será bem menor.
