@@ -217,6 +217,13 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   publica no **release rolling `ci-latest`** (`softprops/action-gh-release`, `permissions: contents:write`)
   — **assets de release NÃO contam na cota**. **Novo fluxo p/ cortar release:** `gh release download
   ci-latest` → `gh release create vX ...`. NÃO voltar a `upload-artifact`.
+- **⚠️ "Pacote inválido" no v0.28.0 (2026-08-08):** ao migrar o build troquei `--split-per-abi` por
+  `--target-platform android-arm64` p/ economizar. Isso **zerou o offset de versionCode**: o
+  `--split-per-abi` soma **+2000** no arm64 (arm64 = 2·1000 + base), mas o single-arch usa o **base**
+  → o APK novo tinha versionCode MENOR que o instalado (todos os releases v0.13→v0.27 eram split=2001)
+  → **downgrade**, Android recusa ("pacote parece inválido"). Assinatura estava OK (v2). **Regra:
+  MANTER `--split-per-abi` e publicar `app-arm64-v8a-release.apk`** (versionCode estável 2001).
+  Diagnóstico: `grep -a "APK Sig Block 42"` (assinatura v2) e conferir versionCode.
 
 ### 2026-08-01 (cont.) — Finalizar-só-marcados + ordem + refinos (`v0.27.0-teste31`)
 - **#6 Finalizar** processa só `comprado==true` (não-fixado); não marcados ficam. `removiveis`
