@@ -65,6 +65,33 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
+  // Enter no teclado: adiciona o item digitado. Se já existe no catálogo, puxa
+  // esse; senão, cadastra e adiciona. (Item sem preço vai pro preferido/Todos.)
+  Future<void> _submeterBusca(
+      List<Produto> produtos, Set<String> idsNaLista) async {
+    final nome = _buscaCtrl.text.trim();
+    if (nome.isEmpty) return;
+    final q = nome.toLowerCase();
+    Produto? exato;
+    for (final p in produtos) {
+      if (p.nomeLower == q) {
+        exato = p;
+        break;
+      }
+    }
+    if (exato != null) {
+      if (idsNaLista.contains(exato.id)) {
+        _jaNaLista();
+        _buscaCtrl.clear();
+        setState(() => _busca = '');
+      } else {
+        await _adicionarProduto(exato);
+      }
+    } else {
+      await _cadastrarEAdicionar(nome);
+    }
+  }
+
   void _jaNaLista() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Esse item já está na lista 🙂')),
@@ -300,7 +327,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 const SizedBox(height: 12),
                 _cardEconomia(economia, percent, estimadoVis, itensVisiveis.length),
                 const SizedBox(height: 12),
-                _campoBusca(),
+                _campoBusca(produtos, idsNaLista),
                 const SizedBox(height: 8),
                 if (_busca.isNotEmpty)
                   ..._resultadosBusca(produtos, idsNaLista)
@@ -424,11 +451,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   // ---------- busca / adicionar ----------
 
-  Widget _campoBusca() {
+  Widget _campoBusca(List<Produto> produtos, Set<String> idsNaLista) {
     return TextField(
       controller: _buscaCtrl,
       textCapitalization: TextCapitalization.sentences,
+      textInputAction: TextInputAction.done,
       onChanged: (v) => setState(() => _busca = v),
+      onSubmitted: (_) => _submeterBusca(produtos, idsNaLista),
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
         hintText: 'Pesquise ou adicione aqui',

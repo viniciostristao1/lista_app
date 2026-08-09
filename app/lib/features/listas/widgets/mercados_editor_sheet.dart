@@ -135,8 +135,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
           const Text('Meus mercados',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text('Até 3 favoritos. Toque numa cor pra trocar. Marque ⭐ um '
-              'como preferência (itens sem preço vão pra ele).',
+          const Text('Você pode ter até 3 mercados. Toque numa cor pra trocar. '
+              'Marque ⭐ um deles como preferência — itens sem preço vão pra ele.',
               style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 14),
           for (var i = 0; i < _slots.length; i++) _linha(i),
