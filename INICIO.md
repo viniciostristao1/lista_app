@@ -28,7 +28,7 @@ Meta: publicar na **Play Store**.
 - **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.28.1-teste33`** (commit `3c31c22`) — feature "mercado dedicado" + **âmbar** + **ícone
+  **A = `v0.29.0-teste34`** (commit `76d246d`) — feature "mercado dedicado" + **âmbar** + **ícone
   do desenho do usuário** (cesta gridada/chassi-S/rodas-anel, âmbar degradê, maior) + símbolos nos
   títulos + atalhos + **estilo Flat** (Listas enxuta/alinhada; **Itens compacta**: pílula 1-linha
   `● Mercado R$x`, mais-barato preenchido) + nome com **maiúscula** + **⚙️ ajuste de fonte**
