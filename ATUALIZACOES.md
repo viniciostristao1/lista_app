@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-09 · `v0.31.0-teste36`** — O **⭐ mercado principal** agora aparece em destaque (com estrela) **logo ao lado de "Todos"** na barra de filtro — acesso rápido.
 - **2026-08-09 · `v0.30.0-teste35`** — **Ícone novo** (carrinho + lupa com "$") · até **8 mercados** (era 3) · ao cadastrar item novo, chips **"Comprar no [Mercado]"** pra já adicionar num mercado · novo filtro **"Sem mercado"** (itens soltos, pra rever/ajustar). *(⭐ preferido agora = mercado principal que vem primeiro ao adicionar; itens sem mercado vão pro "Sem mercado".)*
 - **2026-08-09 · `v0.29.0-teste34`** — Na busca, dar **Enter** no teclado **adiciona o item** (puxa do catálogo ou cadastra) · no editor de mercados, texto passou de "Até 3 favoritos" pra **"Até 3 mercados"** (evita confundir com a ⭐ preferência).
 - **2026-08-08 · `v0.28.1-teste33`** — **Ícone novo** (do seu logo, alta qualidade) · **⭐ Mercado preferência** (em Editar mercados): itens sem preço vão pro mercado escolhido, além de "Todos" · caixa **"Economia…"** mais estreita · **desfazer** do swipe agora fecha em 3s · **marca** do item começa com maiúscula. *(v0.28.0 saiu com APK single-arch = "pacote inválido"; corrigido no 0.28.1 com o arm64 split de sempre.)*

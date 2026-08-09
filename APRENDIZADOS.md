@@ -200,6 +200,11 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-09 (cont.) — ⭐ principal fixo ao lado de "Todos" (`v0.31.0-teste36`)
+- Repropósito do ⭐ (perdeu o roteamento): o mercado com `preferencia` vira chip em destaque
+  (com estrela) logo após "Todos". Ordem da barra: Todos > ⭐principal > Sem mercado > demais
+  (`mercados.where(preferencia)` / `where(!preferencia)`). `_chipFiltro` ganhou `estrela`.
+
 ### 2026-08-09 (cont.) — Lupa + 8 mercados + Sem mercado (`v0.30.0-teste35`)
 - **#1 Ícone**: logo v3 (carrinho + lupa com "$") extraído p/ vetor/PNG (`design/logo_v3_lupa.png`).
 - **#2** `_maxMercados` 3→8; `mercadoCores` = 8 hues distintos (sem o âmbar do acento).
