@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/features/itens/calculadora_screen.dart';
+import 'package:lista_app/features/itens/ordenar_categorias_sheet.dart';
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
 import 'package:lista_app/features/listas/widgets/mercados_editor_sheet.dart';
 import 'package:lista_app/models/mercado.dart';
@@ -87,9 +88,11 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
       ),
       body: Column(
         children: [
-          Padding(
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _boxEditar(
                   icon: Icons.storefront_outlined,
@@ -101,6 +104,12 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   icon: Icons.calculate_outlined,
                   label: 'Calculadora',
                   onTap: () => mostrarCalculadora(context),
+                ),
+                const SizedBox(width: 8),
+                _boxEditar(
+                  icon: Icons.swap_vert,
+                  label: 'Ordenar categorias',
+                  onTap: () => mostrarOrdenarCategorias(context),
                 ),
               ],
             ),

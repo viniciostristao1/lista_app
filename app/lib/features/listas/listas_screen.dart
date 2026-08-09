@@ -261,6 +261,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final produtos = ref.watch(produtosProvider).asData?.value ?? const [];
     final produtosPorId = {for (final p in produtos) p.id: p};
     final mercados = ref.watch(mercadosProvider).asData?.value ?? const [];
+    final ordemCategorias = ref.watch(categoriaOrdemProvider);
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
     final itens = atual == null
@@ -350,7 +351,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   _filtroVazio(mercadosPorId[filtro]?.nome)
                 else
                   ..._itensAgrupados(itensVisiveis, produtosPorId,
-                      mercadosPorId, mercados, atual!),
+                      mercadosPorId, mercados, ordemCategorias, atual!),
               ],
             ),
           ),
@@ -747,13 +748,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     Map<String, Produto> produtosPorId,
     Map<String, Mercado> mercadosPorId,
     List<Mercado> mercados,
+    List<Categoria> ordemCategorias,
     Lista atual,
   ) {
     final widgets = <Widget>[];
     var primeiro = true;
     String nomeDe(ItemLista e) =>
         (produtosPorId[e.produtoId]?.nome ?? e.nome).toLowerCase();
-    for (final cat in Categoria.values) {
+    for (final cat in ordemCategorias) {
       final grupo = itens
           .where((e) =>
               (produtosPorId[e.produtoId]?.categoria ?? e.categoria) == cat)

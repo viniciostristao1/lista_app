@@ -20,12 +20,18 @@ Future<void> mostrarEditorMercados(BuildContext context, List<Mercado> atuais) {
 }
 
 class _Slot {
-  _Slot({this.id, required String nome, required this.cor, this.preferencia = false})
+  _Slot(
+      {this.id,
+      required String nome,
+      required this.cor,
+      this.preferencia = false,
+      this.novo = false})
       : nomeCtrl = TextEditingController(text: nome);
   final String? id;
   final TextEditingController nomeCtrl;
   Color cor;
   bool preferencia;
+  bool novo; // recém-adicionado → autofoca o campo
 }
 
 class _EditorMercados extends ConsumerStatefulWidget {
@@ -75,7 +81,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
     if (_slots.length >= _maxMercados) return;
     setState(() {
       final cor = AppColors.mercadoCores[_slots.length % AppColors.mercadoCores.length];
-      _slots.add(_Slot(nome: '', cor: cor));
+      _slots.add(_Slot(nome: '', cor: cor, novo: true));
     });
   }
 
@@ -117,54 +123,72 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
-      padding: EdgeInsets.only(left: 18, right: 18, top: 10, bottom: bottom + 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: AppColors.dim2,
-                borderRadius: BorderRadius.circular(3),
+      // empurra a folha pra cima do teclado
+      padding: EdgeInsets.only(bottom: bottom),
+      child: Container(
+        // limita a altura; a lista rola, o botão Salvar fica fixo embaixo
+        constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85),
+        padding: const EdgeInsets.fromLTRB(18, 10, 18, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: AppColors.dim2,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 14),
-          const Text('Meus mercados',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
-          const Text('Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor '
-              'pra trocar. Marque ⭐ o principal — fica ao lado de "Todos" e vem '
-              'primeiro ao adicionar.',
-              style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-          const SizedBox(height: 14),
-          for (var i = 0; i < _slots.length; i++) _linha(i),
-          if (_slots.length < _maxMercados)
-            TextButton.icon(
-              onPressed: _adicionar,
-              icon: const Icon(Icons.add, size: 18, color: AppColors.green),
-              label: const Text('Adicionar mercado',
-                  style: TextStyle(color: AppColors.green)),
-            ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _salvando ? null : _salvar,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.green,
-                foregroundColor: AppColors.onGreen,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+            const SizedBox(height: 14),
+            const Text('Meus mercados',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            const Text(
+                'Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor '
+                'pra trocar. Marque ⭐ o principal — fica ao lado de "Todos" e vem '
+                'primeiro ao adicionar.',
+                style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            const SizedBox(height: 14),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var i = 0; i < _slots.length; i++) _linha(i),
+                    if (_slots.length < _maxMercados)
+                      TextButton.icon(
+                        onPressed: _adicionar,
+                        icon: const Icon(Icons.add,
+                            size: 18, color: AppColors.green),
+                        label: const Text('Adicionar mercado',
+                            style: TextStyle(color: AppColors.green)),
+                      ),
+                  ],
+                ),
               ),
-              child: Text(_salvando ? 'Salvando…' : 'Salvar mercados'),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _salvando ? null : _salvar,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.green,
+                  foregroundColor: AppColors.onGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(_salvando ? 'Salvando…' : 'Salvar mercados'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -195,6 +219,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
               Expanded(
                 child: TextField(
                   controller: slot.nomeCtrl,
+                  autofocus: slot.novo,
+                  textCapitalization: TextCapitalization.sentences,
                   style: const TextStyle(color: AppColors.text, fontSize: 15),
                   decoration: const InputDecoration(
                     isDense: true,

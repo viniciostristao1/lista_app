@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/mercado.dart';
+import '../util/format.dart';
 import 'firestore_refs.dart';
 
 class MercadosRepository {
@@ -22,7 +23,7 @@ class MercadosRepository {
   Future<void> criar(
       {required String nome, required Color cor, bool preferencia = false}) {
     return _refs.mercados.add({
-      'nome': nome.trim(),
+      'nome': capitalizar(nome),
       'cor': cor.toARGB32(),
       'preferencia': preferencia,
       'createdAt': Timestamp.now(),
@@ -32,7 +33,7 @@ class MercadosRepository {
   Future<void> atualizar(String id,
       {required String nome, required Color cor, bool preferencia = false}) {
     return _refs.mercados.doc(id).update({
-      'nome': nome.trim(),
+      'nome': capitalizar(nome),
       'cor': cor.toARGB32(),
       'preferencia': preferencia,
     });

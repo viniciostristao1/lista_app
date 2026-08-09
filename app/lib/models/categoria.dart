@@ -16,6 +16,7 @@ enum Categoria {
   higiene('Higiene', Icons.soap_outlined),
   pet('Pet', Icons.pets),
   bebe('Bebê', Icons.child_friendly),
+  utilidades('Utilidades', Icons.handyman_outlined),
   outros('Outros', Icons.category_outlined);
 
   const Categoria(this.label, this.icone);
