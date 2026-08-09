@@ -22,12 +22,16 @@ abstract final class AppColors {
   static const amber = Color(0xFFF2B84B);
   static const danger = Color(0xFFFF7A7A);
 
-  /// Cores que o usuário pode escolher para pintar cada mercado.
+  /// Cores que o usuário pode escolher para pintar cada mercado (distintas
+  /// entre si; não usam o âmbar do acento pra não confundir).
   static const mercadoCores = <Color>[
-    green,
-    blue,
-    amber,
+    Color(0xFF4C8DFF), // azul
+    Color(0xFF33D17F), // verde
     Color(0xFFE86EC0), // rosa
     Color(0xFFA978FF), // roxo
+    Color(0xFF2FC4C4), // teal
+    Color(0xFFFF7A5C), // coral
+    Color(0xFFF2C14E), // amarelo
+    Color(0xFF7C8CFF), // índigo claro
   ];
 }

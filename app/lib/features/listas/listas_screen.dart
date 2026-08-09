@@ -32,11 +32,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   final _buscaCtrl = TextEditingController();
   String _busca = '';
   String? _filtroMercado; // null = "Todos"
-  String? _preferidoId; // mercado marcado como preferência (itens sem preço)
+  bool _filtroSemMercado = false; // filtro "Sem mercado" (itens soltos)
 
-  /// Mercado "efetivo" do item: mercado fixo → mais barato → preferência.
-  String? _mercadoEfetivo(Produto? p) =>
-      p?.mercadoFixo ?? p?.mercadoMaisBarato ?? _preferidoId;
+  /// Mercado "efetivo" do item: mercado fixo → mais barato. Null = solto
+  /// (sem mercado) → cai no filtro "Sem mercado".
+  String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
 
   @override
   void dispose() {
@@ -64,6 +64,24 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     _buscaCtrl.clear();
     setState(() => _busca = '');
   }
+
+  // Cadastra um item NOVO já dedicado a um mercado (sem preço) e adiciona.
+  Future<void> _cadastrarEmMercado(String nome, String mercadoId) async {
+    final id = await ref.read(produtosRepoProvider).criarProduto(
+        nome: nome, categoria: Categoria.outros, mercadoFixo: mercadoId);
+    final listaRepo = ref.read(listasRepoProvider);
+    final atual = await listaRepo.obterOuCriarAtiva();
+    await listaRepo.adicionarItem(atual.id,
+        produtoId: id, nome: nome, categoria: Categoria.outros);
+    _buscaCtrl.clear();
+    setState(() => _busca = '');
+  }
+
+  // Mercados com o ⭐ preferido primeiro.
+  List<Mercado> _mercadosOrdenados(List<Mercado> mercados) => [
+        ...mercados.where((m) => m.preferencia),
+        ...mercados.where((m) => !m.preferencia),
+      ];
 
   // Enter no teclado: adiciona o item digitado. Se já existe no catálogo, puxa
   // esse; senão, cadastra e adiciona. (Item sem preço vai pro preferido/Todos.)
@@ -243,13 +261,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final produtos = ref.watch(produtosProvider).asData?.value ?? const [];
     final produtosPorId = {for (final p in produtos) p.id: p};
     final mercados = ref.watch(mercadosProvider).asData?.value ?? const [];
-    _preferidoId = null;
-    for (final m in mercados) {
-      if (m.preferencia) {
-        _preferidoId = m.id;
-        break;
-      }
-    }
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
     final itens = atual == null
@@ -266,8 +277,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             : null;
 
     bool visivel(ItemLista it) {
+      final ef = _mercadoEfetivo(produtosPorId[it.produtoId]);
+      if (_filtroSemMercado) return ef == null;
       if (filtro == null) return true;
-      return _mercadoEfetivo(produtosPorId[it.produtoId]) == filtro;
+      return ef == filtro;
     }
 
     final itensVisiveis = itens.where(visivel).toList();
@@ -330,7 +343,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 _campoBusca(produtos, idsNaLista),
                 const SizedBox(height: 8),
                 if (_busca.isNotEmpty)
-                  ..._resultadosBusca(produtos, idsNaLista)
+                  ..._resultadosBusca(produtos, idsNaLista, mercados)
                 else if (itens.isEmpty)
                   _vazio()
                 else if (itensVisiveis.isEmpty)
@@ -382,16 +395,32 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           _chipFiltro(
             label: 'Todos',
             count: itens.length,
-            selecionado: filtro == null,
-            onTap: () => setState(() => _filtroMercado = null),
+            selecionado: filtro == null && !_filtroSemMercado,
+            onTap: () => setState(() {
+              _filtroMercado = null;
+              _filtroSemMercado = false;
+            }),
+          ),
+          // itens soltos (sem mercado) — pra rever e ajustar
+          _chipFiltro(
+            label: 'Sem mercado',
+            count: contagem[null] ?? 0,
+            selecionado: _filtroSemMercado,
+            onTap: () => setState(() {
+              _filtroSemMercado = true;
+              _filtroMercado = null;
+            }),
           ),
           for (final m in mercados)
             _chipFiltro(
               label: m.nome,
               cor: m.cor,
               count: contagem[m.id] ?? 0,
-              selecionado: filtro == m.id,
-              onTap: () => setState(() => _filtroMercado = m.id),
+              selecionado: !_filtroSemMercado && filtro == m.id,
+              onTap: () => setState(() {
+                _filtroMercado = m.id;
+                _filtroSemMercado = false;
+              }),
             ),
         ],
       ),
@@ -493,7 +522,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  List<Widget> _resultadosBusca(List<Produto> produtos, Set<String> idsNaLista) {
+  List<Widget> _resultadosBusca(
+      List<Produto> produtos, Set<String> idsNaLista, List<Mercado> mercados) {
     final q = _busca.trim().toLowerCase();
     final matches =
         produtos.where((p) => p.nomeLower.contains(q)).take(12).toList();
@@ -501,7 +531,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
     return [
       for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id)),
-      if (q.isNotEmpty && !exato)
+      // Item novo (não existe ainda): cadastrar solto OU já num mercado.
+      if (q.isNotEmpty && !exato) ...[
         Padding(
           padding: const EdgeInsets.only(top: 2),
           child: TextButton.icon(
@@ -511,6 +542,27 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 style: const TextStyle(color: AppColors.green)),
           ),
         ),
+        if (mercados.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 2, 4, 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Ou já num mercado:',
+                    style: TextStyle(color: AppColors.dim, fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final m in _mercadosOrdenados(mercados))
+                      _chipCadastrarMercado(m),
+                  ],
+                ),
+              ],
+            ),
+          ),
+      ],
       if (matches.isEmpty && (q.isEmpty || exato))
         const Padding(
           padding: EdgeInsets.only(top: 20),
@@ -520,6 +572,36 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
         ),
     ];
+  }
+
+  Widget _chipCadastrarMercado(Mercado m) {
+    return GestureDetector(
+      onTap: () => _cadastrarEmMercado(_buscaCtrl.text.trim(), m.id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(color: m.cor, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 7),
+            Text(m.nome,
+                style: const TextStyle(color: AppColors.text, fontSize: 12.5)),
+            if (m.preferencia) ...[
+              const SizedBox(width: 5),
+              const Icon(Icons.star, size: 12, color: AppColors.green),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _linhaBusca(Produto p, bool naLista) {
@@ -686,7 +768,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final dedicado = p?.dedicado ?? false;
     final menor =
         p?.precosOrdenados.isNotEmpty == true ? p!.precosOrdenados.first : null;
-    final mercadoEfId = p?.mercadoFixo ?? menor?.key ?? _preferidoId;
+    final mercadoEfId = p?.mercadoFixo ?? menor?.key;
     final cor = mercadoEfId != null ? mercadosPorId[mercadoEfId]?.cor : null;
     final velho = menor?.value.desatualizado ?? false;
 

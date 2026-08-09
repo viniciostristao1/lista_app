@@ -37,6 +37,7 @@ class _EditorMercados extends ConsumerStatefulWidget {
 }
 
 class _EditorMercadosState extends ConsumerState<_EditorMercados> {
+  static const _maxMercados = 8;
   late List<_Slot> _slots;
   late Set<String> _idsIniciais;
   bool _salvando = false;
@@ -71,7 +72,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
   }
 
   void _adicionar() {
-    if (_slots.length >= 3) return;
+    if (_slots.length >= _maxMercados) return;
     setState(() {
       final cor = AppColors.mercadoCores[_slots.length % AppColors.mercadoCores.length];
       _slots.add(_Slot(nome: '', cor: cor));
@@ -135,12 +136,12 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
           const Text('Meus mercados',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text('Você pode ter até 3 mercados. Toque numa cor pra trocar. '
-              'Marque ⭐ um deles como preferência — itens sem preço vão pra ele.',
+          const Text('Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor '
+              'pra trocar. Marque ⭐ o seu principal (vem primeiro ao adicionar).',
               style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 14),
           for (var i = 0; i < _slots.length; i++) _linha(i),
-          if (_slots.length < 3)
+          if (_slots.length < _maxMercados)
             TextButton.icon(
               onPressed: _adicionar,
               icon: const Icon(Icons.add, size: 18, color: AppColors.green),
