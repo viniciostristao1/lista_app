@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-09 · `v0.32.0-teste37`** — **Editar mercados** corrigido (o Salvar não some mais com muitos mercados; ao adicionar, o cursor já vai pro campo com maiúscula e o teclado não cobre) · nova categoria **Utilidades** · botão **"Ordenar categorias"** (na aba Itens) pra você arrastar e deixar as categorias na ordem do seu mercado.
 - **2026-08-09 · `v0.31.0-teste36`** — O **⭐ mercado principal** agora aparece em destaque (com estrela) **logo ao lado de "Todos"** na barra de filtro — acesso rápido.
 - **2026-08-09 · `v0.30.0-teste35`** — **Ícone novo** (carrinho + lupa com "$") · até **8 mercados** (era 3) · ao cadastrar item novo, chips **"Comprar no [Mercado]"** pra já adicionar num mercado · novo filtro **"Sem mercado"** (itens soltos, pra rever/ajustar). *(⭐ preferido agora = mercado principal que vem primeiro ao adicionar; itens sem mercado vão pro "Sem mercado".)*
 - **2026-08-09 · `v0.29.0-teste34`** — Na busca, dar **Enter** no teclado **adiciona o item** (puxa do catálogo ou cadastra) · no editor de mercados, texto passou de "Até 3 favoritos" pra **"Até 3 mercados"** (evita confundir com a ⭐ preferência).

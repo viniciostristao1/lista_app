@@ -200,6 +200,15 @@ qualquer sessão futura (ou pessoa) entender o caminho.
   contorno) → **rebuild A = `v0.14.1-teste18`** (commit `89131a5`). Ideia do usuário de
   **lembretes programáveis** (notificação local por dia da semana) salva no `IDEIAS.md § 3`.
 
+### 2026-08-09 (cont.) — Editor mercados fix + ordenar categorias (`v0.32.0-teste37`)
+- **Bug "Salvar sumiu" (5+ mercados):** o sheet era `Column(min)` sem scroll → estourava e o botão
+  saía da tela. Fix: `ConstrainedBox(maxHeight 0.85h)` + `Flexible(SingleChildScrollView)` p/ os slots +
+  **Salvar fixo** embaixo; `padding.bottom = viewInsets` (teclado). Campo novo: `autofocus`(via `_Slot.novo`)
+  + `textCapitalization`. Nome do mercado capitaliza no repo.
+- **Ordenar categorias:** `Categoria.utilidades` add. `categoriaOrdemProvider` (prefs, Notifier<List<Categoria>>;
+  novas categorias entram no fim). Folha `ReorderableListView.builder` (`onReorderItem`, drag handle). Aplicado
+  em `_itensAgrupados` (itera a ordem custom, não `Categoria.values`). Botão na aba Itens (linha de tools rolável).
+
 ### 2026-08-09 (cont.) — ⭐ principal fixo ao lado de "Todos" (`v0.31.0-teste36`)
 - Repropósito do ⭐ (perdeu o roteamento): o mercado com `preferencia` vira chip em destaque
   (com estrela) logo após "Todos". Ordem da barra: Todos > ⭐principal > Sem mercado > demais
