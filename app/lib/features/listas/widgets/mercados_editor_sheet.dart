@@ -137,7 +137,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           const Text('Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor '
-              'pra trocar. Marque ⭐ o seu principal (vem primeiro ao adicionar).',
+              'pra trocar. Marque ⭐ o principal — fica ao lado de "Todos" e vem '
+              'primeiro ao adicionar.',
               style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 14),
           for (var i = 0; i < _slots.length; i++) _linha(i),

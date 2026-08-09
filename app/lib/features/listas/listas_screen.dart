@@ -401,6 +401,19 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               _filtroSemMercado = false;
             }),
           ),
+          // ⭐ mercado principal — em destaque, logo ao lado de "Todos"
+          for (final m in mercados.where((m) => m.preferencia))
+            _chipFiltro(
+              label: m.nome,
+              cor: m.cor,
+              estrela: true,
+              count: contagem[m.id] ?? 0,
+              selecionado: !_filtroSemMercado && filtro == m.id,
+              onTap: () => setState(() {
+                _filtroMercado = m.id;
+                _filtroSemMercado = false;
+              }),
+            ),
           // itens soltos (sem mercado) — pra rever e ajustar
           _chipFiltro(
             label: 'Sem mercado',
@@ -411,7 +424,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               _filtroMercado = null;
             }),
           ),
-          for (final m in mercados)
+          for (final m in mercados.where((m) => !m.preferencia))
             _chipFiltro(
               label: m.nome,
               cor: m.cor,
@@ -431,6 +444,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     required String label,
     required int count,
     Color? cor,
+    bool estrela = false,
     required bool selecionado,
     required VoidCallback onTap,
   }) {
@@ -448,6 +462,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (estrela) ...[
+                Icon(Icons.star,
+                    size: 12,
+                    color:
+                        selecionado ? AppColors.onGreen : AppColors.green),
+                const SizedBox(width: 5),
+              ],
               if (cor != null) ...[
                 Container(
                   width: 9,
