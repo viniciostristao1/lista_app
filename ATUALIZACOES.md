@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-10 · `v0.33.0-teste38`** — Na aba Itens, os botões viraram **"Mercados"**, **"Calculadora"** e **"Categorias"** (nomes curtos → cabem os 3 sem rolar pro lado) · na aba Listas, a **categoria ficou mais colada** no 1º item (menos espaço vazio).
 - **2026-08-09 · `v0.32.0-teste37`** — **Editar mercados** corrigido (o Salvar não some mais com muitos mercados; ao adicionar, o cursor já vai pro campo com maiúscula e o teclado não cobre) · nova categoria **Utilidades** · botão **"Ordenar categorias"** (na aba Itens) pra você arrastar e deixar as categorias na ordem do seu mercado.
 - **2026-08-09 · `v0.31.0-teste36`** — O **⭐ mercado principal** agora aparece em destaque (com estrela) **logo ao lado de "Todos"** na barra de filtro — acesso rápido.
 - **2026-08-09 · `v0.30.0-teste35`** — **Ícone novo** (carrinho + lupa com "$") · até **8 mercados** (era 3) · ao cadastrar item novo, chips **"Comprar no [Mercado]"** pra já adicionar num mercado · novo filtro **"Sem mercado"** (itens soltos, pra rever/ajustar). *(⭐ preferido agora = mercado principal que vem primeiro ao adicionar; itens sem mercado vão pro "Sem mercado".)*

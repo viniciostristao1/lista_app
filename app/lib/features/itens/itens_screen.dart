@@ -96,7 +96,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
               children: [
                 _boxEditar(
                   icon: Icons.storefront_outlined,
-                  label: 'Editar mercados',
+                  label: 'Mercados',
                   onTap: () => mostrarEditorMercados(context, mercados),
                 ),
                 const SizedBox(width: 8),
@@ -108,7 +108,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 const SizedBox(width: 8),
                 _boxEditar(
                   icon: Icons.swap_vert,
-                  label: 'Ordenar categorias',
+                  label: 'Categorias',
                   onTap: () => mostrarOrdenarCategorias(context),
                 ),
               ],

@@ -764,11 +764,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ..sort((a, b) => nomeDe(a).compareTo(nomeDe(b)));
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
-        padding: EdgeInsets.fromLTRB(2, primeiro ? 1 : 4, 2, 0),
+        padding: EdgeInsets.fromLTRB(2, primeiro ? 0 : 3, 2, 0),
         child: Text(cat.label.toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
                 fontSize: 11,
+                height: 1.0,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.1)),
       ));

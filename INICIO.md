@@ -15,7 +15,37 @@ Meta: publicar na **Play Store**.
 > (topo = mais recente). Planos futuros → [`IDEIAS.md`](IDEIAS.md). Os três arquivos têm
 > papéis distintos: técnico (`APRENDIZADOS`) · changelog do usuário (`ATUALIZACOES`) · futuro (`IDEIAS`).
 
-## ⭐ ESTADO ATUAL (2026-07-28) — ler primeiro pós-/clear
+## 🔁 Fluxo de mudança (harness)
+
+Receita fixa pra transformar um pedido do usuário em release. **Seguir sempre** — evita
+retrabalho e mantém o link fixo do APK funcionando.
+
+1. **Código** — editar em `app/lib/…`. Regra do repo: **não editar estratégia/arquivo já
+   aprovado**; derivar. Preferências locais (fonte, ordem de categoria) → `services/prefs.dart`
+   (SharedPreferences). Modelos → `models/`. Telas → `features/<feature>/`.
+2. **Conferir** — `cd app && /root/flutter/bin/flutter analyze lib/` (rodar como root avisa,
+   mas funciona). **Uma vez, sem empilhar** — a VPS é fraca e compartilhada. **Não** compilar
+   Android localmente (só analyze).
+3. **Publicar** — `git commit` + `git push`. Push que mexe em `app/**` dispara o **CI**
+   (`.github/workflows/build-apk.yml`) → compila APK arm64 + AAB na nuvem → publica no release
+   rolling **`ci-latest`**. Acompanhar: `gh run watch <id> --exit-status`.
+4. **Cortar release** — com o CI verde: `scripts/release.sh <versao> "<nota 1 linha>"`
+   (ex.: `scripts/release.sh v0.33.0-teste38 "rótulos curtos + categoria colada"`). O script
+   baixa de `ci-latest`, valida o APK (zip+assinatura v2) e cria o release com o APK de **nome
+   fixo** `lista-app.apk` → o link `/releases/latest/download/lista-app.apk` passa a servir essa versão.
+5. **Documentar** — 1 linha (resumo + data) no topo de [`ATUALIZACOES.md`](ATUALIZACOES.md);
+   atualizar a **versão A** no `README.md` e no ESTADO ATUAL aqui; se houver gotcha técnico,
+   anexar em [`APRENDIZADOS.md`](APRENDIZADOS.md).
+6. **Entregar** — mandar pro usuário o **link fixo** (não um link "versão X"). O changelog vive
+   no `ATUALIZACOES.md`/`README.md` que ele atualiza no navegador.
+
+**Convenção de versão:** `vMAJOR.MINOR.PATCH-testeN` (N = contador de teste sequencial).
+Toda mudança visível ganha um `MINOR` novo. `B` (fallback testado) **nunca** é sobrescrita.
+
+**Cota de artefato (Actions) NÃO se usa** — foi abandonada (estourou 500 MB); tudo vai por
+release (assets não contam cota). Ver `APRENDIZADOS.md`.
+
+## ⭐ ESTADO ATUAL (2026-08-10) — ler primeiro pós-/clear
 
 **O app está COMPLETO e funcional** (em Português). Fase atual = **LANÇAMENTO na Play Store**.
 
@@ -24,16 +54,18 @@ Meta: publicar na **Play Store**.
   fixar, filtro/exportar), **Itens** (catálogo + comparador de preço por mercado +
   frescor/data + calculadora), **Pedidos** (histórico separado por mercado + filtro
   ano/mês + resumo do mês + desfazer/excluir pedido).
-- **Login Google NATIVO** (google_sign_in) funcionando. Firebase `lista-app-e08e2`.
-- **Ícone/logo:** carrinho com 2 "V" (azul), gerado via SVG→rsvg→flutter_launcher_icons.
-- Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões (2026-07-30):**
+- **Login Google NATIVO** (`google_sign_in`, desde `v0.9.1`) funcionando. Firebase `lista-app-e08e2`.
+  *(o fluxo antigo por browser `signInWithProvider` está descrito lá embaixo como HISTÓRICO.)*
+- **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
+- Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.32.0-teste37`** (commit `f514bf1`) — feature "mercado dedicado" + **âmbar** + **ícone
-  do desenho do usuário** (cesta gridada/chassi-S/rodas-anel, âmbar degradê, maior) + símbolos nos
-  títulos + atalhos + **estilo Flat** (Listas enxuta/alinhada; **Itens compacta**: pílula 1-linha
-  `● Mercado R$x`, mais-barato preenchido) + nome com **maiúscula** + **⚙️ ajuste de fonte**
-  (`services/prefs.dart`; fatores 0.93/1.035/1.22 = ~13,5/15/17,7; padrão=1.035). Imagens-ref em
-  `design/`. **Cor e estilo travados** → falta a verificação do usuário. Detalhe em `LANCAMENTO.md`.
+  **A = `v0.33.0-teste38`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
+  até **8 mercados** com **⭐ principal** ao lado de "Todos" + filtro **"Sem mercado"** + categoria
+  **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ ajuste de fonte**). Histórico linha-a-linha
+  em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+- **Link fixo do APK (sempre a última):**
+  `https://github.com/viniciostristao1/lista_app/releases/latest/download/lista-app.apk`
+  — o usuário guarda esse link; cada release novo já responde nele (ver `README.md` + fluxo abaixo).
   ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**
@@ -65,7 +97,7 @@ GitHub para a versão da Play Store NÃO perde nada (loga e tudo volta).
 Três abas:
 - **📋 Listas** — cria listas, adiciona itens (autocomplete do histórico), marca como
   comprado, total ao vivo. No topo: **legenda dos mercados** (cor→nome); tocar abre o
-  editor **"Meus mercados"** (nome + cor, até 3 favoritos).
+  editor **"Meus mercados"** (nome + cor, até **8 mercados**, com **⭐ principal**).
 - **🏷️ Itens** — catálogo pessoal: cada produto com o **preço em cada mercado**
   (comparador entre mercados) + evolução do preço no tempo.
 - **📊 Pedidos** — histórico de compras finalizadas + **resumo do mês** (gasto,
@@ -88,7 +120,7 @@ Três abas:
 ## Firestore (modelo)
 Tudo aninhado sob o usuário (regra de segurança: `users/{uid}` só pro dono):
 - `users/{uid}` — perfil
-- `users/{uid}/mercados/{id}` — favoritos (máx 3): `nome, cor`
+- `users/{uid}/mercados/{id}` — mercados (máx 8): `nome, cor, preferencia`
 - `users/{uid}/produtos/{id}` — catálogo pessoal (vira sugestão): `nome, nomeLower,
   categoria, ultimoPreco, ultimoMercadoId, vezesComprado`
 - `users/{uid}/listas/{id}` — `nome, status(ativa|finalizada), createdAt,
@@ -151,10 +183,10 @@ vazio (não importa p/ signInWithProvider; atualizar só se migrar p/ google_sig
   (base64), porque os arquivos são gitignored.
 - ⚠️ Push de workflow exigiu escopo **`workflow`** no token gh (adicionado via
   `gh auth refresh -s workflow`, device flow).
-- **Cortar um APK de teste (fluxo desde 2026-08-08):** push em `app/**` → o CI builda arm64 + AAB
-  e publica no **release rolling `ci-latest`** (artefato do Actions foi abandonado: a cota estourou;
-  ver `APRENDIZADOS`). Baixar: `gh release download ci-latest` → `gh release create <tag>
-  lista-app-vX-arm64.apk lista-app-vX.aab`.
+- **Cortar um APK de teste:** ver a receita completa em **"🔁 Fluxo de mudança (harness)"** no
+  topo deste arquivo. Resumo: push em `app/**` → CI builda arm64 + AAB → publica no **release
+  rolling `ci-latest`** (artefato do Actions foi abandonado: a cota estourou; ver `APRENDIZADOS`)
+  → `scripts/release.sh <tag> "<nota>"` cria o release com o APK de nome fixo `lista-app.apk`.
 - **Login em runtime:** `signInWithProvider` (browser). Ainda **sem SHA-1** — trocar
   pelo google_sign_in nativo + SHA-1 ao preparar o release assinado pro Play Store.
 - APK debug é grande (~149 MB, todas as ABIs). Release final será bem menor.
