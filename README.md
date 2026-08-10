@@ -14,6 +14,11 @@ histórico de pedidos e login Google. Feito em Flutter, dados na nuvem (Firebase
 > Guarde esse link nos favoritos. Toda vez que eu publicar uma melhoria, **o mesmo link**
 > já baixa a versão nova — não precisa copiar link novo. Instala por cima do que já tem;
 > seus dados ficam na nuvem (login), não se perde nada.
+>
+> ℹ️ O repositório é **privado**, então o download pede que você esteja **logado no GitHub**
+> (a mesma conta de sempre) — igual aos links que você já clicava. Se o link acima der
+> "Not Found", é só abrir a **página de releases** e clicar no APK do topo:
+> https://github.com/viniciostristao1/lista_app/releases/latest
 
 **Versão atual (A):** `v0.33.0-teste38` — *rótulos curtos na aba Itens + categoria mais colada no item.*
 **Fallback testado (B):** `v0.13.0-teste16`.

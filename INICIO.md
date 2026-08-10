@@ -66,6 +66,9 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Link fixo do APK (sempre a última):**
   `https://github.com/viniciostristao1/lista_app/releases/latest/download/lista-app.apk`
   — o usuário guarda esse link; cada release novo já responde nele (ver `README.md` + fluxo abaixo).
+  ⚠️ **Repo é PRIVADO** → o download só funciona **logado no GitHub** (curl anônimo dá 404; não é
+  bug). Plano B: página `…/releases/latest`. Se um dia quiser download sem login/compartilhável,
+  aí sim avaliar tornar o repo público (decisão do usuário — não há segredo no repo, só nos secrets).
   ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
 **Lançamento — onde paramos:**
