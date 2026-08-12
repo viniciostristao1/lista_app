@@ -33,5 +33,9 @@ abstract final class AppColors {
     Color(0xFFFF7A5C), // coral
     Color(0xFFF2C14E), // amarelo
     Color(0xFF7C8CFF), // índigo claro
+    Color(0xFFD8C6A0), // bege
+    Color(0xFFE23B3B), // vermelho forte
+    Color(0xFF9A6A45), // marrom
+    Color(0xFF2E7D46), // verde escuro
   ];
 }

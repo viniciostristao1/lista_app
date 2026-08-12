@@ -91,6 +91,8 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
 
   Widget _blocoProduto(
       String titulo, TextEditingController preco, TextEditingController qtd) {
+    final p = _num(preco), q = _num(qtd);
+    final porUnidade = (p != null && q != null && q > 0) ? p / q : null;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -108,19 +110,75 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _campo(preco, 'Preço', prefix: 'R\$  '),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
-                child: _campo(qtd, 'Quantidade (g/ml/un)'),
+                child: _campo(qtd, 'Quantidade'),
+              ),
+              const SizedBox(width: 10),
+              // 3ª coluna: preço por unidade (preço ÷ quantidade), só leitura.
+              Expanded(
+                child: _resultadoUnidade(porUnidade),
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          const Text('Quantidade em g, ml ou unidades.',
+              style: TextStyle(color: AppColors.dim2, fontSize: 10.5)),
         ],
       ),
     );
+  }
+
+  /// Coluna "Por unidade": resultado (preço ÷ quantidade). Não é campo editável;
+  /// tem a mesma altura dos inputs pra alinhar com Preço e Quantidade.
+  Widget _resultadoUnidade(double? porUnidade) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Por unidade',
+            style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.green.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: AppColors.green.withValues(alpha: 0.25)),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              porUnidade == null ? '—' : _fmtUnidade(porUnidade),
+              style: TextStyle(
+                color: porUnidade == null ? AppColors.dim2 : AppColors.green,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Formata o preço por unidade. Pode ser bem pequeno (R$/g, R$/ml) → usa mais
+  /// casas quando < 1, sem zeros à toa (mín. 2 casas).
+  String _fmtUnidade(double v) {
+    if (v >= 1) return reais(v);
+    var s = v.toStringAsFixed(4);
+    s = s.replaceAll(RegExp(r'0+$'), '');
+    final parts = s.split('.');
+    if (parts.length == 2 && parts[1].length < 2) {
+      s = '${parts[0]}.${parts[1].padRight(2, '0')}';
+    }
+    return 'R\$ ${s.replaceAll('.', ',')}';
   }
 
   Widget _campo(TextEditingController c, String label, {String? prefix}) {

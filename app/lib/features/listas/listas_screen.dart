@@ -34,6 +34,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   String? _filtroMercado; // null = "Todos"
   bool _filtroSemMercado = false; // filtro "Sem mercado" (itens soltos)
 
+  /// Itens cujo preço está revelado (usuário tocou no "$"). Por padrão o preço
+  /// fica escondido atrás do ícone, deixando a coluna alinhada.
+  final Set<String> _precoVisivel = {};
+
   /// Mercado "efetivo" do item: mercado fixo → mais barato. Null = solto
   /// (sem mercado) → cai no filtro "Sem mercado".
   String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
@@ -870,23 +874,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
-              // Item "de um mercado só" NÃO reserva espaço de preço → o nome
-              // ganha essa largura. (Pra alinhar de novo como "R$ x,xx",
-              // trocar o 0 abaixo por ~44; como "R$ xx,xx", por ~56.)
-              if (dedicado)
-                const SizedBox(width: 0)
-              else
-                Text(
-                  menor == null ? '—' : reais(menor.value.valor),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight:
-                        menor == null ? FontWeight.w400 : FontWeight.w600,
-                    color: menor == null
-                        ? AppColors.dim2
-                        : (it.comprado ? AppColors.dim : AppColors.text),
-                  ),
-                ),
+              // Slot de preço: por padrão um "$" discreto (coluna alinhada);
+              // tocar revela o valor. Item de um mercado só (dedicado) não tem
+              // comparação de preço → mostra o nome do mercado escolhido.
+              _slotPreco(it, p, dedicado, menor, mercadoEfId, mercadosPorId),
               const SizedBox(width: 8),
               // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
               SizedBox(
@@ -902,6 +893,72 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // Slot de preço alinhado: por padrão um "$" discreto que, ao toque, revela o
+  // valor. Item "de um mercado só" (dedicado) não tem preço a comparar → mostra
+  // o nome do mercado escolhido, indicando que foi fixado num mercado.
+  Widget _slotPreco(
+    ItemLista it,
+    Produto? p,
+    bool dedicado,
+    MapEntry<String, PrecoMercado>? menor,
+    String? mercadoEfId,
+    Map<String, Mercado> mercadosPorId,
+  ) {
+    if (dedicado) {
+      final nome = mercadosPorId[mercadoEfId]?.nome;
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 104),
+        child: Text(
+          nome ?? '—',
+          textAlign: TextAlign.right,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            color: it.comprado ? AppColors.dim2 : AppColors.dim,
+          ),
+        ),
+      );
+    }
+    // Sem preço cadastrado: "$" apagado (nada a revelar).
+    if (menor == null) {
+      return _botaoDollar(
+        cor: AppColors.dim2,
+        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Esse item ainda não tem preço.')),
+        ),
+      );
+    }
+    // Com preço: revelado mostra o valor (toca p/ esconder); escondido, só o "$".
+    if (_precoVisivel.contains(it.id)) {
+      return GestureDetector(
+        onTap: () => setState(() => _precoVisivel.remove(it.id)),
+        child: Text(
+          reais(menor.value.valor),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: it.comprado ? AppColors.dim : AppColors.text,
+          ),
+        ),
+      );
+    }
+    return _botaoDollar(
+      cor: it.comprado ? AppColors.dim2 : AppColors.dim,
+      onTap: () => setState(() => _precoVisivel.add(it.id)),
+    );
+  }
+
+  Widget _botaoDollar({required Color cor, required VoidCallback onTap}) {
+    return IconButton(
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 22),
+      tooltip: 'Ver preço',
+      icon: Icon(Icons.attach_money, size: 18, color: cor),
+      onPressed: onTap,
     );
   }
 

@@ -88,28 +88,34 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
       ),
       body: Column(
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          // 3 botões dividindo a largura toda → bordas alinhadas com o campo
+          // "Buscar item" e com os cards dos itens (todos margem 16).
+          Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                _boxEditar(
-                  icon: Icons.storefront_outlined,
-                  label: 'Mercados',
-                  onTap: () => mostrarEditorMercados(context, mercados),
+                Expanded(
+                  child: _boxEditar(
+                    icon: Icons.storefront_outlined,
+                    label: 'Mercados',
+                    onTap: () => mostrarEditorMercados(context, mercados),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                _boxEditar(
-                  icon: Icons.calculate_outlined,
-                  label: 'Calculadora',
-                  onTap: () => mostrarCalculadora(context),
+                Expanded(
+                  child: _boxEditar(
+                    icon: Icons.calculate_outlined,
+                    label: 'Calculadora',
+                    onTap: () => mostrarCalculadora(context),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                _boxEditar(
-                  icon: Icons.swap_vert,
-                  label: 'Categorias',
-                  onTap: () => mostrarOrdenarCategorias(context),
+                Expanded(
+                  child: _boxEditar(
+                    icon: Icons.swap_vert,
+                    label: 'Categorias',
+                    onTap: () => mostrarOrdenarCategorias(context),
+                  ),
                 ),
               ],
             ),
@@ -149,7 +155,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(11),
@@ -157,11 +163,16 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16, color: AppColors.green),
             const SizedBox(width: 6),
-            Text(label,
-                style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            Flexible(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            ),
           ],
         ),
       ),

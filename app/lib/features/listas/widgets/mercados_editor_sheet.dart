@@ -238,13 +238,14 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
             ],
           ),
           const SizedBox(height: 6),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               for (final cor in AppColors.mercadoCores)
                 GestureDetector(
                   onTap: () => setState(() => slot.cor = cor),
                   child: Container(
-                    margin: const EdgeInsets.only(right: 8),
                     width: 22,
                     height: 22,
                     decoration: BoxDecoration(

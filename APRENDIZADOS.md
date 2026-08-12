@@ -14,6 +14,25 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 
 ## Diário
 
+### 2026-08-12 — 4 cores novas + preço "$" na lista + "Por unidade" + botões alinhados
+- **Paleta de mercados 8→12** (`app_colors.dart`): bege, vermelho forte, marrom, verde
+  escuro. **Gotcha:** o seletor de cores em `mercados_editor_sheet.dart` era um `Row`
+  reto (cabia 8, estouraria com 12) → trocado por **`Wrap`** (quebra em 2 linhas).
+  Ao acrescentar cor no futuro, conferir esse `Wrap`.
+- **Aba Listas — preço vira "$" alinhado** (`listas_screen.dart`): novo `_slotPreco` +
+  estado `Set<String> _precoVisivel`. Por padrão mostra `Icons.attach_money` (coluna
+  alinhada); toca → revela o valor; toca de novo → esconde. Item **dedicado** (mercado
+  fixo, sem comparação) mostra o **nome do mercado** no lugar do "$". Elimina a
+  desalinhamento entre item com preço e item sem.
+- **Calculadora — 3ª coluna "Por unidade"** (`calculadora_screen.dart`): read-only,
+  `preço ÷ quantidade`, à direita de Quantidade. `_fmtUnidade` usa 2 casas p/ ≥1 e até 4
+  casas (sem zeros à toa) p/ valores pequenos (R$/g, R$/ml). Label de Quantidade encurtado
+  ("(g/ml/un)" virou nota abaixo) pra caber 3 colunas.
+- **Aba Itens — botões alinhados com "Buscar item"**: `SingleChildScrollView` horizontal
+  → `Row` com 3 `Expanded` (dividem a largura toda, bordas na margem 16). `_boxEditar`
+  com padding menor (12→8), conteúdo centralizado e label `Flexible`+ellipsis (não estoura).
+- `flutter analyze lib/` limpo.
+
 ### 2026-07-23/24 — Setup + Fase 1
 - Estrutura do projeto, repositório privado no GitHub, Flutter 3.44.7 na VPS.
 - Firebase conectado (Android): `firebase_options.dart` + `google-services.json` +
