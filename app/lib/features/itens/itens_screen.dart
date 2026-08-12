@@ -8,6 +8,7 @@ import 'package:lista_app/features/listas/widgets/mercados_editor_sheet.dart';
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/models/produto.dart';
 import 'package:lista_app/services/mercados_repository.dart';
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
@@ -44,16 +45,17 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     final produtosAsync = ref.watch(produtosProvider);
     final mercados = ref.watch(mercadosProvider).asData?.value ?? [];
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.sell_rounded, size: 20, color: AppColors.green),
-          SizedBox(width: 9),
-          Flexible(child: Text('Itens | Comparador', overflow: TextOverflow.ellipsis)),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.sell_rounded, size: 20, color: AppColors.green),
+          const SizedBox(width: 9),
+          Flexible(child: Text(t.itensComparador, overflow: TextOverflow.ellipsis)),
         ]),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
@@ -63,7 +65,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
               onChanged: (v) => setState(() => _busca = v.trim().toLowerCase()),
               style: const TextStyle(color: AppColors.text, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Buscar item…',
+                hintText: t.buscarItem,
                 hintStyle: const TextStyle(color: AppColors.dim2),
                 prefixIcon:
                     const Icon(Icons.search, color: AppColors.dim, size: 20),
@@ -97,7 +99,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 Expanded(
                   child: _boxEditar(
                     icon: Icons.storefront_outlined,
-                    label: 'Mercados',
+                    label: t.mercados,
                     onTap: () => mostrarEditorMercados(context, mercados),
                   ),
                 ),
@@ -105,7 +107,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 Expanded(
                   child: _boxEditar(
                     icon: Icons.calculate_outlined,
-                    label: 'Calculadora',
+                    label: t.calculadora,
                     onTap: () => mostrarCalculadora(context),
                   ),
                 ),
@@ -113,7 +115,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 Expanded(
                   child: _boxEditar(
                     icon: Icons.swap_vert,
-                    label: 'Categorias',
+                    label: t.categorias,
                     onTap: () => mostrarOrdenarCategorias(context),
                   ),
                 ),
@@ -124,9 +126,9 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
             child: produtosAsync.when(
               loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.green)),
-              error: (_, _) => const Center(
-                  child: Text('Erro ao carregar.',
-                      style: TextStyle(color: AppColors.dim))),
+              error: (_, _) => Center(
+                  child: Text(t.erroAoCarregar,
+                      style: const TextStyle(color: AppColors.dim))),
               data: (todos) {
                 _talvezLimparOrfaos(mercados, todos);
                 final lista = _busca.isEmpty
@@ -184,6 +186,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
     List<Mercado> mercados,
     Map<String, Mercado> mercadosPorId,
   ) {
+    final t = ref.watch(stringsProvider);
     // Ignora preços de mercados que não existem mais (órfãos): o backstop os
     // apaga do banco, mas aqui o "—" some na hora, antes disso completar.
     final ordenados = p.precosOrdenados
@@ -260,7 +263,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                                     fontWeight: FontWeight.w600)),
                             const SizedBox(width: 6),
                           ],
-                          Text(p.categoria.label.toUpperCase(),
+                          Text(t.categoria_(p.categoria).toUpperCase(),
                               style: const TextStyle(
                                   color: AppColors.dim2,
                                   fontSize: 10,
@@ -274,10 +277,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 if (p.dedicado)
                   _badgeDedicado(mercadosPorId[p.mercadoFixo], p.fixado)
                 else if (ordenados.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: Text('Sem preço cadastrado — toque para adicionar.',
-                        style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(t.semPrecoToqueAdicionar,
+                        style: const TextStyle(color: AppColors.dim2, fontSize: 12.5)),
                   )
                 else ...[
                   const SizedBox(height: 8),
@@ -302,7 +305,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                               size: 15, color: AppColors.green),
                           const SizedBox(width: 6),
                           Text(
-                            'economiza ${reais(economia)} vs ${mercadosPorId[ordenados[1].key]?.nome ?? '2º mais barato'}',
+                            t.economizaVs(reais(economia), mercadosPorId[ordenados[1].key]?.nome ?? t.segundoMaisBarato),
                             style: const TextStyle(
                                 color: AppColors.green,
                                 fontSize: 12.5,
@@ -322,6 +325,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
 
   /// Item "de um mercado só": em vez das pílulas de preço, mostra onde comprar.
   Widget _badgeDedicado(Mercado? mercado, bool recorrente) {
+    final t = ref.watch(stringsProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
@@ -337,7 +341,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              'Sempre no ${mercado?.nome ?? 'mercado removido'}',
+              t.sempreNo(mercado?.nome ?? t.mercadoRemovido),
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: AppColors.text, fontSize: 12.5),
             ),
@@ -346,8 +350,8 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
             const SizedBox(width: 8),
             const Icon(Icons.push_pin, size: 12, color: AppColors.green),
             const SizedBox(width: 3),
-            const Text('recorrente',
-                style: TextStyle(color: AppColors.green, fontSize: 11)),
+            Text(t.recorrente,
+                style: const TextStyle(color: AppColors.green, fontSize: 11)),
           ],
         ],
       ),
@@ -393,6 +397,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
   }
 
   Widget _vazio() {
+    final t = ref.watch(stringsProvider);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -401,16 +406,16 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
           children: [
             const Icon(Icons.sell_outlined, size: 52, color: AppColors.dim2),
             const SizedBox(height: 16),
-            const Text('Catálogo vazio',
-                style: TextStyle(
+            Text(t.catalogoVazio,
+                style: const TextStyle(
                     color: AppColors.text,
                     fontSize: 17,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            const Text(
-              'Toque em "+" para cadastrar um produto\ne comparar o preço entre seus mercados.',
+            Text(
+              t.catalogoVazioDica,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.dim, height: 1.5),
+              style: const TextStyle(color: AppColors.dim, height: 1.5),
             ),
           ],
         ),

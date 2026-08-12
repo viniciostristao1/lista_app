@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/services/mercados_repository.dart';
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 
@@ -121,6 +122,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
       // empurra a folha pra cima do teclado
@@ -145,14 +147,11 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text('Meus mercados',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+            Text(t.meusMercados,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            const Text(
-                'Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor '
-                'pra trocar. Marque ⭐ o principal — fica ao lado de "Todos" e vem '
-                'primeiro ao adicionar.',
-                style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            Text(t.mercadosDescricao,
+                style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
             const SizedBox(height: 14),
             Flexible(
               child: SingleChildScrollView(
@@ -165,8 +164,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                         onPressed: _adicionar,
                         icon: const Icon(Icons.add,
                             size: 18, color: AppColors.green),
-                        label: const Text('Adicionar mercado',
-                            style: TextStyle(color: AppColors.green)),
+                        label: Text(t.adicionarMercado,
+                            style: const TextStyle(color: AppColors.green)),
                       ),
                   ],
                 ),
@@ -184,7 +183,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                child: Text(_salvando ? 'Salvando…' : 'Salvar mercados'),
+                child: Text(_salvando ? t.salvando : t.salvarMercados),
               ),
             ),
           ],
@@ -194,6 +193,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
   }
 
   Widget _linha(int i) {
+    final t = ref.watch(stringsProvider);
     final slot = _slots[i];
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -222,11 +222,11 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                   autofocus: slot.novo,
                   textCapitalization: TextCapitalization.sentences,
                   style: const TextStyle(color: AppColors.text, fontSize: 15),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
-                    hintText: 'Nome do mercado',
-                    hintStyle: TextStyle(color: AppColors.dim2),
+                    hintText: t.nomeDoMercado,
+                    hintStyle: const TextStyle(color: AppColors.dim2),
                   ),
                 ),
               ),
@@ -275,8 +275,8 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                 const SizedBox(width: 6),
                 Text(
                   slot.preferencia
-                      ? 'Preferência (itens sem preço vêm pra cá)'
-                      : 'Definir como preferência',
+                      ? t.preferenciaItensVemPraCa
+                      : t.definirComoPreferencia,
                   style: TextStyle(
                       color:
                           slot.preferencia ? AppColors.green : AppColors.dim,

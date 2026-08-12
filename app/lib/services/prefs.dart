@@ -1,6 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/strings.dart';
 import '../models/categoria.dart';
 
 /// Escala de fonte do app, escolhida pelo usuário e guardada no aparelho.
@@ -72,3 +74,36 @@ class CategoriaOrdemNotifier extends Notifier<List<Categoria>> {
 final categoriaOrdemProvider =
     NotifierProvider<CategoriaOrdemNotifier, List<Categoria>>(
         CategoriaOrdemNotifier.new);
+
+/// Idioma do app: `true` = inglês, `false` = português. Guardado no aparelho.
+/// Padrão na 1ª vez: segue o idioma do aparelho (pt → português; senão inglês).
+class IdiomaNotifier extends Notifier<bool> {
+  static const _key = 'idiomaEn';
+
+  @override
+  bool build() {
+    _restaurar();
+    final loc =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    return loc != 'pt';
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    final v = p.getBool(_key);
+    if (v != null) state = v;
+  }
+
+  Future<void> definir(bool en) async {
+    state = en;
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_key, en);
+  }
+}
+
+final idiomaEnProvider =
+    NotifierProvider<IdiomaNotifier, bool>(IdiomaNotifier.new);
+
+/// Textos do app no idioma atual. Assista este provider e use `t.xxx`.
+final stringsProvider =
+    Provider<AppStrings>((ref) => AppStrings(ref.watch(idiomaEnProvider)));

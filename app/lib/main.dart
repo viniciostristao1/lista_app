@@ -54,18 +54,19 @@ class _AuthGate extends ConsumerWidget {
   }
 }
 
-class _Splash extends StatelessWidget {
+class _Splash extends ConsumerWidget {
   const _Splash({this.erro = false});
 
   final bool erro;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(stringsProvider);
     return Scaffold(
       body: Center(
         child: erro
-            ? const Text('Falha ao carregar. Reabra o app.',
-                style: TextStyle(color: AppColors.dim))
+            ? Text(t.falhaAoCarregar,
+                style: const TextStyle(color: AppColors.dim))
             : const CircularProgressIndicator(color: AppColors.green),
       ),
     );

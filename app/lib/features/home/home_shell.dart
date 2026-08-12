@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lista_app/features/itens/itens_screen.dart';
 import 'package:lista_app/features/listas/listas_screen.dart';
 import 'package:lista_app/features/pedidos/pedidos_screen.dart';
+import 'package:lista_app/services/prefs.dart';
 
 /// Casca principal do app: as 3 abas (Listas, Itens, Pedidos).
 class HomeShell extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     return Scaffold(
       body: IndexedStack(
         index: _index,
@@ -30,21 +32,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist_rounded),
-            label: 'Listas',
+            icon: const Icon(Icons.checklist_outlined),
+            selectedIcon: const Icon(Icons.checklist_rounded),
+            label: t.abaListas,
           ),
           NavigationDestination(
-            icon: Icon(Icons.sell_outlined),
-            selectedIcon: Icon(Icons.sell_rounded),
-            label: 'Itens',
+            icon: const Icon(Icons.sell_outlined),
+            selectedIcon: const Icon(Icons.sell_rounded),
+            label: t.abaItens,
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart_rounded),
-            label: 'Pedidos',
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart_rounded),
+            label: t.abaPedidos,
           ),
         ],
       ),

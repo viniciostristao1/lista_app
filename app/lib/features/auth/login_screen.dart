@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/prefs.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/logo_lista.dart';
 
@@ -25,11 +26,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } on GoogleSignInException catch (e) {
       if (!mounted) return;
       if (e.code == GoogleSignInExceptionCode.canceled) return; // cancelou
-      _mostrarErro('google/${e.code.name}', e.description ?? '(sem detalhe)');
+      _mostrarErro('google/${e.code.name}',
+          e.description ?? ref.read(stringsProvider).semDetalhe);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       if (e.code == 'canceled' || e.code == 'web-context-canceled') return;
-      _mostrarErro('firebase_auth/${e.code}', e.message ?? '(sem detalhe)');
+      _mostrarErro('firebase_auth/${e.code}',
+          e.message ?? ref.read(stringsProvider).semDetalhe);
     } catch (e) {
       if (!mounted) return;
       _mostrarErro('erro', e.toString());
@@ -39,11 +42,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _mostrarErro(String codigo, String detalhe) {
+    final t = ref.read(stringsProvider);
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Não consegui entrar'),
+        title: Text(t.naoConsegiuEntrar),
         content: SingleChildScrollView(
           child: SelectableText(
             '$codigo\n\n$detalhe',
@@ -53,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            child: Text(t.fechar),
           ),
         ],
       ),
@@ -62,6 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -77,10 +82,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       .headlineMedium
                       ?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
-              const Text(
-                'Suas compras de mercado, organizadas\ne comparadas — sem bloco de notas.',
+              Text(
+                t.loginTagline,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.dim, height: 1.4),
+                style: const TextStyle(color: AppColors.dim, height: 1.4),
               ),
               const Spacer(flex: 4),
               SizedBox(
@@ -105,13 +110,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               strokeWidth: 2, color: AppColors.onGreen),
                         )
                       : const Icon(Icons.login_rounded, size: 20),
-                  label: Text(_loading ? 'Entrando…' : 'Entrar com Google'),
+                  label: Text(_loading ? t.entrando : t.entrarComGoogle),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Seus dados ficam só com você.',
-                style: TextStyle(color: AppColors.dim2, fontSize: 12),
+              Text(
+                t.dadosSoComVoce,
+                style: const TextStyle(color: AppColors.dim2, fontSize: 12),
               ),
               const Spacer(flex: 1),
             ],

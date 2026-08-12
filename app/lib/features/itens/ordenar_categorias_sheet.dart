@@ -38,6 +38,7 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     return Container(
       constraints:
           BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.82),
@@ -57,13 +58,11 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
             ),
           ),
           const SizedBox(height: 14),
-          const Text('Ordenar categorias',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+          Text(t.ordenarCategorias,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text(
-              'Arraste pra deixar na ordem do seu mercado — o que você pega '
-              'primeiro fica em cima. Vale pra lista toda.',
-              style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+          Text(t.ordenarCategoriasDica,
+              style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 12),
           Flexible(
             child: ReorderableListView.builder(
@@ -90,7 +89,7 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
                         Icon(c.icone, size: 20, color: AppColors.dim),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(c.label,
+                          child: Text(t.categoria_(c),
                               style: const TextStyle(
                                   color: AppColors.text, fontSize: 15)),
                         ),
@@ -129,7 +128,7 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
                 shape:
                     RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text(_salvando ? 'Salvando…' : 'Salvar ordem'),
+              child: Text(_salvando ? t.salvando : t.salvarOrdem),
             ),
           ),
         ],

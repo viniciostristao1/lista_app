@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
 
@@ -14,14 +16,14 @@ Future<void> mostrarCalculadora(BuildContext context) {
   );
 }
 
-class CalculadoraScreen extends StatefulWidget {
+class CalculadoraScreen extends ConsumerStatefulWidget {
   const CalculadoraScreen({super.key});
 
   @override
-  State<CalculadoraScreen> createState() => _CalculadoraScreenState();
+  ConsumerState<CalculadoraScreen> createState() => _CalculadoraScreenState();
 }
 
-class _CalculadoraScreenState extends State<CalculadoraScreen> {
+class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
   final _precoA = TextEditingController();
   final _qtdA = TextEditingController();
   final _precoB = TextEditingController();
@@ -40,6 +42,7 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     final pA = _num(_precoA), qA = _num(_qtdA);
     final pB = _num(_precoB), qB = _num(_qtdB);
 
@@ -62,27 +65,26 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Calculadora de preço')),
+      appBar: AppBar(title: Text(t.calculadoraPreco)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 40),
         children: [
-          const Text(
-            'Compare dois produtos com quantidades (peso/volume) diferentes. '
-            'A calculadora diz qual sai mais barato pela mesma quantidade.',
-            style: TextStyle(color: AppColors.dim, fontSize: 13, height: 1.4),
+          Text(
+            t.calculadoraIntro,
+            style: const TextStyle(color: AppColors.dim, fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 18),
-          _blocoProduto('Produto A', _precoA, _qtdA),
+          _blocoProduto(t.produtoA, _precoA, _qtdA),
           const SizedBox(height: 14),
-          _blocoProduto('Produto B', _precoB, _qtdB),
+          _blocoProduto(t.produtoB, _precoB, _qtdB),
           const SizedBox(height: 20),
           if (resultado != null)
             resultado
           else
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text('Preencha preço e quantidade dos dois.',
-                  style: TextStyle(color: AppColors.dim2, fontSize: 13)),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(t.preenchaOsDois,
+                  style: const TextStyle(color: AppColors.dim2, fontSize: 13)),
             ),
         ],
       ),
@@ -91,6 +93,7 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
 
   Widget _blocoProduto(
       String titulo, TextEditingController preco, TextEditingController qtd) {
+    final t = ref.watch(stringsProvider);
     final p = _num(preco), q = _num(qtd);
     final porUnidade = (p != null && q != null && q > 0) ? p / q : null;
     return Container(
@@ -113,11 +116,11 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _campo(preco, 'Preço', prefix: 'R\$  '),
+                child: _campo(preco, t.preco, prefix: 'R\$  '),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _campo(qtd, 'Quantidade'),
+                child: _campo(qtd, t.quantidade),
               ),
               const SizedBox(width: 10),
               // 3ª coluna: preço por unidade (preço ÷ quantidade), só leitura.
@@ -127,8 +130,8 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text('Quantidade em g, ml ou unidades.',
-              style: TextStyle(color: AppColors.dim2, fontSize: 10.5)),
+          Text(t.quantidadeEmUnidades,
+              style: const TextStyle(color: AppColors.dim2, fontSize: 10.5)),
         ],
       ),
     );
@@ -137,11 +140,12 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
   /// Coluna "Por unidade": resultado (preço ÷ quantidade). Não é campo editável;
   /// tem a mesma altura dos inputs pra alinhar com Preço e Quantidade.
   Widget _resultadoUnidade(double? porUnidade) {
+    final t = ref.watch(stringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Por unidade',
-            style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
+        Text(t.porUnidade,
+            style: const TextStyle(color: AppColors.dim, fontSize: 11.5)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -228,7 +232,8 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
     required bool aMaisBarato,
     required double percent,
   }) {
-    final vencedor = aMaisBarato ? 'Produto A' : 'Produto B';
+    final t = ref.watch(stringsProvider);
+    final vencedor = aMaisBarato ? t.produtoA : t.produtoB;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -246,7 +251,7 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '$vencedor é mais barato (${percent.toStringAsFixed(0)}% mais barato)',
+                  t.vencedorMaisBarato(vencedor, percent.toStringAsFixed(0)),
                   style: const TextStyle(
                       color: AppColors.green,
                       fontSize: 14.5,
@@ -257,12 +262,13 @@ class _CalculadoraScreenState extends State<CalculadoraScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Com a quantidade do B (${qtdB.toStringAsFixed(qtdB.truncateToDouble() == qtdB ? 0 : 2)}), '
-            'o A custaria ${reais(aNoPesoB)}.',
+            t.comQtdBCustaria(
+                qtdB.toStringAsFixed(qtdB.truncateToDouble() == qtdB ? 0 : 2),
+                reais(aNoPesoB)),
             style: const TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4),
           ),
           const SizedBox(height: 4),
-          Text('O B custa ${reais(precoB)}.',
+          Text(t.oBCusta(reais(precoB)),
               style: const TextStyle(color: AppColors.dim, fontSize: 13.5)),
         ],
       ),

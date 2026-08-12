@@ -10,6 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
+- **2026-08-12 · `v0.37.0-teste42`** — **Inglês! 🇬🇧** O app inteiro agora fala **Português e Inglês** — troque em **Configurações** (⚙️ na aba Listas, agora com **Idioma** + Tamanho da fonte). Na 1ª vez segue o idioma do aparelho. Traduzido tudo que é do app (abas, telas, botões, categorias, meses, avisos); nomes que você digitou continuam como estão.
 - **2026-08-12 · `v0.36.0-teste41`** — O **"$"** da lista ficou **~30% mais estreito** (ícone e espaços menores) → sobra ainda mais espaço pro **nome do item**.
 - **2026-08-12 · `v0.35.0-teste40`** — Aba **Listas**: o **"$"** agora é **sempre** o símbolo (nunca mais o nome do mercado no lugar) e ficou **mais estreito** → sobra mais espaço pro **nome do item**. Ao **tocar**, ele expande e mostra o **preço** (item comparado) ou o **nome do mercado** (item de um mercado só); toca de novo pra esconder.
 - **2026-08-12 · `v0.34.0-teste39`** — **4 cores novas** de mercado (bege, vermelho forte, marrom, verde escuro → 12 no total) · na aba **Listas**, o preço saiu da linha: agora é um **"$"** discreto e alinhado (toca pra ver o valor); item de **um mercado só** mostra o **nome do mercado** ali · na **Calculadora**, nova 3ª coluna **"Por unidade"** (preço ÷ quantidade) · na aba **Itens**, **Mercados / Calculadora / Categorias** agora dividem a largura toda, **alinhados com "Buscar item"** (sem rolar pro lado).

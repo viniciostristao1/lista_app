@@ -14,6 +14,25 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 
 ## Diário
 
+### 2026-08-12 — i18n PT/EN (release v0.37) + "$" mais estreito (v0.36)
+- **"$" ~30% mais estreito** (v0.36): `_botaoDollar` ícone 18→15, minWidth 22→15, gaps 8→6.
+- **Inglês + Português** com troca em **Configurações**. Arquitetura **leve, sem intl/codegen**:
+  - `app/lib/l10n/strings.dart` = `class AppStrings { final bool en; ... }` — getters p/ texto fixo,
+    métodos p/ texto com valor no meio (ex.: `nItens(n)`, `finalizarMercado(m)`), `mesAbrev/mesNome`,
+    `haDias`, e `categoria_(Categoria)` (nome com `_` pra não colidir com o getter `categoria` = rótulo "Categoria").
+  - `services/prefs.dart`: `IdiomaNotifier` (persist `idiomaEn` no SharedPreferences; **padrão 1ª vez =
+    idioma do aparelho** via `WidgetsBinding.instance.platformDispatcher.locale`) + `stringsProvider`
+    (`Provider<AppStrings>` que assiste `idiomaEnProvider`).
+  - **Padrão nas telas:** `final t = ref.watch(stringsProvider)` no topo do build (reatividade) e `t.xxx`.
+    Em telas com callbacks (pedidos, produto_editor, listas) usei um getter `AppStrings get _t =>
+    ref.read(stringsProvider)` (read, não watch — watch em callback dá erro) + o watch no build garante o rebuild.
+  - **Conversões:** `calculadora_screen` e `main._Splash` viraram `Consumer*` (eram Stateless/Stateful sem ref);
+    `_SheetExportar` recebe `AppStrings t` pelo construtor.
+  - **Gotcha:** usar `AppStrings` como *tipo* (getter `_t`) exige `import '.../l10n/strings.dart'` no arquivo —
+    importar só `prefs.dart` (que reexporta? não) não basta. `flutter analyze` pega isso.
+  - **Regra viva:** todo texto de UI novo entra no catálogo (PT+EN); não hard-codar na tela. Varredura de
+    conferência: `grep` por literais com acento/palavra em `features/` — sobrou só `'Lista'` (marca) e `'($count)'`.
+
 ### 2026-08-12 — 4 cores novas + preço "$" na lista + "Por unidade" + botões alinhados
 - **Paleta de mercados 8→12** (`app_colors.dart`): bege, vermelho forte, marrom, verde
   escuro. **Gotcha:** o seletor de cores em `mercados_editor_sheet.dart` era um `Row`

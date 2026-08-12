@@ -59,11 +59,16 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.35.0-teste40`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
+  **A = `v0.37.0-teste42`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
   até **8 mercados** com **⭐ principal** ao lado de "Todos" + filtro **"Sem mercado"** + categoria
-  **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ ajuste de fonte** + **12 cores** de mercado +
-  preço em **"$"** sempre estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
-  na calculadora + botões da aba Itens alinhados com a busca). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+  **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ Configurações (Idioma + fonte)** + **12 cores** de mercado +
+  preço em **"$"** estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
+  na calculadora + botões da aba Itens alinhados com a busca + **i18n PT/EN**). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+
+  > **i18n (desde v0.37):** textos do app vivem em `app/lib/l10n/strings.dart` (`AppStrings`, campo `en`).
+  > Providers em `services/prefs.dart`: `idiomaEnProvider` (persistido; padrão = idioma do aparelho) +
+  > `stringsProvider`. Nas telas: `final t = ref.watch(stringsProvider)` e `t.xxx`. **Texto de UI novo →
+  > adicionar chave PT+EN no catálogo**, nunca hard-codar string na tela.
 - **Link fixo do APK (sempre a última):**
   `https://github.com/viniciostristao1/lista_app/releases/latest/download/lista-app.apk`
   — o usuário guarda esse link; cada release novo já responde nele (ver `README.md` + fluxo abaixo).

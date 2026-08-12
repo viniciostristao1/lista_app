@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/models/produto.dart';
 import 'package:lista_app/services/listas_repository.dart';
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
@@ -51,6 +53,10 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   Produto? get _p => widget.produto;
   bool get _editando => _p != null;
 
+  // read (não watch): serve build e callbacks; a reatividade vem do
+  // ref.watch(stringsProvider) no topo do build.
+  AppStrings get _t => ref.read(stringsProvider);
+
   @override
   void initState() {
     super.initState();
@@ -95,7 +101,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     final nome = _nome.text.trim();
     if (nome.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dá um nome pro produto 🙂')),
+        SnackBar(content: Text(_t.deUmNomeProduto)),
       );
       return;
     }
@@ -103,15 +109,13 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     // Abriu "num mercado só" mas não escolheu um mercado → alerta e não salva.
     if (_abrirMercadoFixo && !dedicado) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Escolha um mercado — ou toque em "Voltar a comparar preços".')),
+        SnackBar(content: Text(_t.escolhaMercadoOuVoltar)),
       );
       return;
     }
     if (_recorrente && !dedicado) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Escolha em qual mercado esse item recorrente fica.')),
+        SnackBar(content: Text(_t.escolhaMercadoRecorrente)),
       );
       return;
     }
@@ -184,16 +188,16 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Excluir produto?'),
-        content: const Text('Remove o produto do catálogo e seus preços.'),
+        title: Text(_t.excluirProdutoTitulo),
+        content: Text(_t.excluirProdutoMsg),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
+              child: Text(_t.cancelar)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Excluir',
-                  style: TextStyle(color: AppColors.danger))),
+              child: Text(_t.excluir,
+                  style: const TextStyle(color: AppColors.danger))),
         ],
       ),
     );
@@ -205,13 +209,14 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_editando ? 'Editar item' : 'Novo item'),
+        title: Text(_editando ? t.editarItem : t.novoItem),
         actions: [
           if (_editando)
             IconButton(
-              tooltip: 'Excluir',
+              tooltip: t.excluir,
               icon: const Icon(Icons.delete_outline, color: AppColors.dim),
               onPressed: _excluir,
             ),
@@ -228,32 +233,32 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 color: AppColors.green.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(11),
               ),
-              child: const Row(children: [
-                Icon(Icons.push_pin, size: 15, color: AppColors.green),
-                SizedBox(width: 8),
+              child: Row(children: [
+                const Icon(Icons.push_pin, size: 15, color: AppColors.green),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Compra recorrente — não sai ao "Finalizar compra".',
-                      style: TextStyle(color: AppColors.green, fontSize: 12.5)),
+                  child: Text(t.compraRecorrenteNaoSai,
+                      style: const TextStyle(color: AppColors.green, fontSize: 12.5)),
                 ),
               ]),
             ),
-          _label('Nome'),
+          _label(t.nome),
           const SizedBox(height: 8),
           TextField(
             controller: _nome,
             autofocus: !_editando,
             textCapitalization: TextCapitalization.sentences,
             style: const TextStyle(color: AppColors.text, fontSize: 15),
-            decoration: _dec('Ex: Café Pilão'),
+            decoration: _dec(t.exNomeProduto),
           ),
           const SizedBox(height: 18),
-          _label('Marca (opcional)'),
+          _label(t.marcaOpcional),
           const SizedBox(height: 8),
           TextField(
             controller: _marca,
             textCapitalization: TextCapitalization.sentences,
             style: const TextStyle(color: AppColors.text, fontSize: 15),
-            decoration: _dec('Ex: Pilão'),
+            decoration: _dec(t.exMarca),
           ),
           const SizedBox(height: 12),
           Row(
@@ -263,13 +268,13 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _label('Peso (opcional)'),
+                    _label(t.pesoOpcional),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _tamanho,
                       style:
                           const TextStyle(color: AppColors.text, fontSize: 15),
-                      decoration: _dec('Ex: 500'),
+                      decoration: _dec(t.exPeso),
                     ),
                   ],
                 ),
@@ -279,13 +284,13 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _label('Unidade (opcional)'),
+                    _label(t.unidadeOpcional),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _unidade,
                       style:
                           const TextStyle(color: AppColors.text, fontSize: 15),
-                      decoration: _dec('Ex: g, kg, L, un'),
+                      decoration: _dec(t.exUnidade),
                     ),
                   ],
                 ),
@@ -295,7 +300,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           const SizedBox(height: 22),
           _secaoMercado(),
           const SizedBox(height: 22),
-          _label('Categoria'),
+          _label(t.categoria),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -305,19 +310,19 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 _chip(
                   selecionado: _categoria == c,
                   onTap: () => setState(() => _categoria = c),
-                  texto: c.label,
+                  texto: t.categoria_(c),
                 ),
             ],
           ),
           const SizedBox(height: 22),
-          _label('Observações (opcional)'),
+          _label(t.observacoesOpcional),
           const SizedBox(height: 8),
           TextField(
             controller: _obs,
             minLines: 2,
             maxLines: 4,
             style: const TextStyle(color: AppColors.text, fontSize: 15),
-            decoration: _dec('Ex: marca preferida, ponto da fruta, promoção…'),
+            decoration: _dec(t.exObservacoes),
           ),
           const SizedBox(height: 26),
           SizedBox(
@@ -331,7 +336,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text(_salvando ? 'Salvando…' : 'Salvar'),
+              child: Text(_salvando ? t.salvando : t.salvar),
             ),
           ),
         ],
@@ -342,15 +347,16 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   /// Seção "preço/mercado": modo comparar (grade de preço + botão) OU modo
   /// "num mercado só" (escolhe mercado + recorrente, sem preço).
   Widget _secaoMercado() {
+    final t = _t;
     if (widget.mercados.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label('Preço por mercado'),
+          _label(t.precoPorMercado),
           const SizedBox(height: 6),
-          const Text(
-            'Cadastre seus mercados primeiro (aba Itens → Editar mercados).',
-            style: TextStyle(color: AppColors.dim2, fontSize: 12.5),
+          Text(
+            t.cadastreMercadosPrimeiro,
+            style: const TextStyle(color: AppColors.dim2, fontSize: 12.5),
           ),
         ],
       );
@@ -361,7 +367,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label('Preço por mercado'),
+          _label(t.precoPorMercado),
           ...widget.mercados.map(_linhaPreco),
           const SizedBox(height: 14),
           SizedBox(
@@ -370,8 +376,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
               onPressed: () => setState(() => _abrirMercadoFixo = true),
               icon: const Icon(Icons.storefront_outlined,
                   size: 18, color: AppColors.green),
-              label: const Text('Comprar sempre num mercado só',
-                  style: TextStyle(color: AppColors.green, fontSize: 13.5)),
+              label: Text(t.comprarSempreNumMercado,
+                  style: const TextStyle(color: AppColors.green, fontSize: 13.5)),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.surface2,
                 shape: RoundedRectangleBorder(
@@ -387,10 +393,10 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('Comprar sempre num mercado só'),
+        _label(t.comprarSempreNumMercado),
         const SizedBox(height: 4),
-        const Text('Sem comparação de preço — anote em Observações se quiser.',
-            style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
+        Text(t.semComparacaoAnote,
+            style: const TextStyle(color: AppColors.dim2, fontSize: 12.5)),
         const SizedBox(height: 12),
         // Caixa de alerta: fica realçada enquanto nenhum mercado é escolhido.
         Container(
@@ -423,8 +429,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                   const SizedBox(width: 6),
                   Text(
                     _mercadoFixo == null
-                        ? 'Selecionar mercado (obrigatório)'
-                        : 'Mercado selecionado',
+                        ? t.selecionarMercadoObrig
+                        : t.mercadoSelecionado,
                     style: TextStyle(
                         color: _mercadoFixo == null
                             ? AppColors.danger
@@ -451,8 +457,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           controlAffinity: ListTileControlAffinity.leading,
           dense: true,
           activeColor: AppColors.green,
-          title: const Text('Compra recorrente (não sai ao finalizar)',
-              style: TextStyle(color: AppColors.text, fontSize: 13.5)),
+          title: Text(t.compraRecorrenteCheck,
+              style: const TextStyle(color: AppColors.text, fontSize: 13.5)),
         ),
         const SizedBox(height: 4),
         SizedBox(
@@ -464,8 +470,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
               _recorrente = false;
             }),
             icon: const Icon(Icons.arrow_back, size: 18, color: AppColors.green),
-            label: const Text('Voltar a comparar preços',
-                style: TextStyle(color: AppColors.green, fontSize: 13.5)),
+            label: Text(t.voltarComparar,
+                style: const TextStyle(color: AppColors.green, fontSize: 13.5)),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.surface2,
               shape:
@@ -509,6 +515,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   }
 
   Widget _linhaPreco(Mercado m) {
+    final t = _t;
     final atual = _p?.precos[m.id];
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -534,8 +541,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 if (atual != null)
                   Text(
                     atual.desatualizado
-                        ? 'desatualizado (${haDias(atual.diasDesde)})'
-                        : haDias(atual.diasDesde),
+                        ? t.desatualizadoHa(t.haDias(atual.diasDesde))
+                        : t.haDias(atual.diasDesde),
                     style: TextStyle(
                       fontSize: 11,
                       color:

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
+import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
@@ -37,6 +38,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   /// Itens cujo preço está revelado (usuário tocou no "$"). Por padrão o preço
   /// fica escondido atrás do ícone, deixando a coluna alinhada.
   final Set<String> _precoVisivel = {};
+
+  // read (não watch): usado no build e em callbacks; a reatividade ao trocar de
+  // idioma vem do ref.watch(stringsProvider) no topo do build.
+  AppStrings get _t => ref.read(stringsProvider);
 
   /// Mercado "efetivo" do item: mercado fixo → mais barato. Null = solto
   /// (sem mercado) → cai no filtro "Sem mercado".
@@ -116,7 +121,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   void _jaNaLista() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Esse item já está na lista 🙂')),
+      SnackBar(content: Text(_t.itemJaNaLista)),
     );
   }
 
@@ -136,10 +141,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     final ctrl = messenger.showSnackBar(SnackBar(
-      content: Text('"$nome" removido'),
+      content: Text(_t.itemRemovido(nome)),
       duration: const Duration(seconds: 30), // fallback; fechamos manualmente
       action: SnackBarAction(
-        label: 'Desfazer',
+        label: _t.desfazer,
         textColor: AppColors.green,
         onPressed: () async {
           var produtoId = it.produtoId;
@@ -179,7 +184,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => _SheetExportar(mercados: mercados),
+      builder: (_) => _SheetExportar(mercados: mercados, t: _t),
     );
     if (escolha == null) return;
     final selec = escolha == 'todos' ? null : escolha;
@@ -194,13 +199,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     await Clipboard.setData(ClipboardData(text: texto));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lista copiada! 📋 Cole onde quiser.')),
+        SnackBar(content: Text(_t.listaCopiada)),
       );
     }
   }
 
-  void _mostrarConfigFonte() {
+  void _mostrarConfig() {
+    final t = _t;
     final atual = ref.read(fontScaleProvider);
+    final en = ref.read(idiomaEnProvider);
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -212,32 +219,60 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 2),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Tamanho da fonte',
-                    style: TextStyle(
-                        color: AppColors.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600)),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Vale para o app inteiro.',
-                    style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-              ),
-            ),
-            _opcaoFonte('Menor', 0.93, atual),
-            _opcaoFonte('Normal', 1.035, atual),
-            _opcaoFonte('Maior', 1.22, atual),
+            _tituloConfig(t.idioma),
+            _opcaoIdioma('Português', false, en),
+            _opcaoIdioma('English', true, en),
+            const Divider(color: AppColors.lineStrong, height: 20),
+            _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
+            _opcaoFonte(t.fonteMenor, 0.93, atual),
+            _opcaoFonte(t.fonteNormal, 1.035, atual),
+            _opcaoFonte(t.fonteMaior, 1.22, atual),
             const SizedBox(height: 10),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _tituloConfig(String titulo, {String? sub}) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, sub == null ? 6 : 2),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titulo,
+                style: const TextStyle(
+                    color: AppColors.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600)),
+            if (sub != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, bottom: 6),
+                child: Text(sub,
+                    style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _opcaoIdioma(String label, bool valor, bool atual) {
+    final sel = valor == atual;
+    return ListTile(
+      onTap: () {
+        ref.read(idiomaEnProvider.notifier).definir(valor);
+        Navigator.pop(context);
+      },
+      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
+          color: sel ? AppColors.green : AppColors.dim2),
+      title: Text(label,
+          style: TextStyle(
+              color: sel ? AppColors.green : AppColors.text,
+              fontSize: 15,
+              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
     );
   }
 
@@ -309,27 +344,28 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       }
     }
     final percent = baseSegundo > 0 ? economia / baseSegundo * 100 : 0.0;
+    final t = ref.watch(stringsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
-          SizedBox(width: 9),
-          Text('Minha lista'),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
+          const SizedBox(width: 9),
+          Text(t.minhaLista),
         ]),
         actions: [
           IconButton(
-            tooltip: 'Tamanho da fonte',
+            tooltip: t.configuracoes,
             icon: const Icon(Icons.settings_outlined, color: AppColors.dim),
-            onPressed: _mostrarConfigFonte,
+            onPressed: _mostrarConfig,
           ),
           IconButton(
-            tooltip: 'Copiar lista',
+            tooltip: t.copiarLista,
             icon: const Icon(Icons.ios_share, color: AppColors.dim),
             onPressed: () => _exportar(itens, produtosPorId, mercados),
           ),
           IconButton(
-            tooltip: 'Sair',
+            tooltip: t.sair,
             icon: const Icon(Icons.logout_rounded, color: AppColors.dim),
             onPressed: () => ref.read(authServiceProvider).signOut(),
           ),
@@ -382,8 +418,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           borderRadius: BorderRadius.circular(13),
           border: Border.all(color: AppColors.line),
         ),
-        child: const Text('Cadastre seus mercados na aba Itens (Editar mercados).',
-            style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
+        child: Text(_t.cadastreMercadosNaAbaItens,
+            style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
       );
     }
     // quantos itens caem em cada mercado (pelo mercado efetivo) + total.
@@ -398,7 +434,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         scrollDirection: Axis.horizontal,
         children: [
           _chipFiltro(
-            label: 'Todos',
+            label: _t.todos,
             count: itens.length,
             selecionado: filtro == null && !_filtroSemMercado,
             onTap: () => setState(() {
@@ -421,7 +457,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             ),
           // itens soltos (sem mercado) — pra rever e ajustar
           _chipFiltro(
-            label: 'Sem mercado',
+            label: _t.semMercado,
             count: contagem[null] ?? 0,
             selecionado: _filtroSemMercado,
             onTap: () => setState(() {
@@ -515,7 +551,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       onSubmitted: (_) => _submeterBusca(produtos, idsNaLista),
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
-        hintText: 'Pesquise ou adicione aqui',
+        hintText: _t.pesquiseOuAdicione,
         hintStyle: const TextStyle(color: AppColors.dim2, fontSize: 14),
         prefixIcon:
             const Icon(Icons.shopping_cart_outlined, color: AppColors.dim, size: 20),
@@ -564,7 +600,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           child: TextButton.icon(
             onPressed: () => _cadastrarEAdicionar(_buscaCtrl.text.trim()),
             icon: const Icon(Icons.add, size: 18, color: AppColors.green),
-            label: Text('Cadastrar "${_buscaCtrl.text.trim()}" e adicionar',
+            label: Text(_t.cadastrarEAdicionar(_buscaCtrl.text.trim()),
                 style: const TextStyle(color: AppColors.green)),
           ),
         ),
@@ -574,8 +610,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Ou já num mercado:',
-                    style: TextStyle(color: AppColors.dim, fontSize: 12)),
+                Text(_t.ouJaNumMercado,
+                    style: const TextStyle(color: AppColors.dim, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -590,11 +626,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
       ],
       if (matches.isEmpty && (q.isEmpty || exato))
-        const Padding(
-          padding: EdgeInsets.only(top: 20),
+        Padding(
+          padding: const EdgeInsets.only(top: 20),
           child: Center(
-            child: Text('Nenhum item encontrado.',
-                style: TextStyle(color: AppColors.dim2)),
+            child: Text(_t.nenhumItemEncontrado,
+                style: const TextStyle(color: AppColors.dim2)),
           ),
         ),
     ];
@@ -668,8 +704,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   ),
                 ),
                 if (naLista)
-                  const Text('já está na lista',
-                      style: TextStyle(color: AppColors.dim2, fontSize: 11.5))
+                  Text(_t.jaEstaNaListaCurto,
+                      style: const TextStyle(color: AppColors.dim2, fontSize: 11.5))
                 else if (p.menorPreco != null)
                   Text(reais(p.menorPreco!),
                       style: const TextStyle(
@@ -706,9 +742,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             child: Padding(
               padding: const EdgeInsets.only(top: 1),
               child: Text.rich(TextSpan(children: [
-                const TextSpan(
-                    text: 'Economia de ',
-                    style: TextStyle(color: AppColors.dim, fontSize: 13)),
+                TextSpan(
+                    text: _t.economiaDe,
+                    style: const TextStyle(color: AppColors.dim, fontSize: 13)),
                 TextSpan(
                     text: reais(economia),
                     style: const TextStyle(
@@ -730,12 +766,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Total ${reais(estimado)}',
+              Text(_t.total(reais(estimado)),
                   style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
                       fontWeight: FontWeight.w600)),
-              Text('$qtd ${qtd == 1 ? 'item' : 'itens'}',
+              Text(_t.nItens(qtd),
                   style:
                       const TextStyle(color: AppColors.dim2, fontSize: 11.5)),
             ],
@@ -769,7 +805,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       if (grupo.isEmpty) continue;
       widgets.add(Padding(
         padding: EdgeInsets.fromLTRB(2, primeiro ? 0 : 3, 2, 0),
-        child: Text(cat.label.toUpperCase(),
+        child: Text(_t.categoria_(cat).toUpperCase(),
             style: const TextStyle(
                 color: AppColors.dim2,
                 fontSize: 11,
@@ -840,14 +876,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       ),
                     ),
                     if (velho)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 2),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
                         child: Row(children: [
-                          Icon(Icons.warning_amber_rounded,
+                          const Icon(Icons.warning_amber_rounded,
                               size: 12, color: AppColors.danger),
-                          SizedBox(width: 4),
-                          Text('preço desatualizado',
-                              style: TextStyle(
+                          const SizedBox(width: 4),
+                          Text(_t.precoDesatualizado,
+                              style: const TextStyle(
                                   color: AppColors.danger, fontSize: 11)),
                         ]),
                       ),
@@ -866,7 +902,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   padding: EdgeInsets.zero,
                   constraints:
                       const BoxConstraints(minWidth: 28, minHeight: 22),
-                  tooltip: 'Editar preços/mercado',
+                  tooltip: _t.editarPrecosMercado,
                   icon: const Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
                   onPressed: () => mostrarEditorProduto(context, p, mercados),
@@ -916,7 +952,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       return _botaoDollar(
         cor: AppColors.dim2,
         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Esse item ainda não tem preço.')),
+          SnackBar(content: Text(_t.itemSemPreco)),
         ),
       );
     }
@@ -955,7 +991,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       // ~30% mais estreito que antes (era minWidth 22 + ícone 18) → sobra mais
       // espaço pro nome do item. A altura fica pra manter a área de toque.
       constraints: const BoxConstraints(minWidth: 15, minHeight: 22),
-      tooltip: 'Ver preço/mercado',
+      tooltip: _t.verPrecoMercado,
       icon: Icon(Icons.attach_money, size: 15, color: cor),
       onPressed: onTap,
     );
@@ -1038,9 +1074,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               size: 40, color: AppColors.dim2),
           const SizedBox(height: 12),
           Text(
-            mercado == null
-                ? 'Nada aqui.'
-                : 'Nenhum item em $mercado ainda.',
+            mercado == null ? _t.nadaAqui : _t.nenhumItemEmMercado(mercado),
             textAlign: TextAlign.center,
             style: const TextStyle(color: AppColors.dim, fontSize: 13),
           ),
@@ -1050,21 +1084,21 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Widget _vazio() {
-    return const Padding(
-      padding: EdgeInsets.only(top: 40),
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          Icon(Icons.search, size: 44, color: AppColors.dim2),
-          SizedBox(height: 14),
-          Text('Sua lista está vazia',
-              style: TextStyle(
+          const Icon(Icons.search, size: 44, color: AppColors.dim2),
+          const SizedBox(height: 14),
+          Text(_t.suaListaVazia,
+              style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 16,
                   fontWeight: FontWeight.w600)),
-          SizedBox(height: 4),
-          Text('Use a busca acima para puxar um item cadastrado.',
+          const SizedBox(height: 4),
+          Text(_t.useBuscaPuxarItem,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.dim, fontSize: 13)),
+              style: const TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
       ),
     );
@@ -1129,15 +1163,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 .removerItens(atual.id, removiveis.map((e) => e.id).toList());
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Compra finalizada! 🛒 (veja em Pedidos)')),
+                SnackBar(content: Text(_t.compraFinalizada)),
               );
             }
           },
           icon: const Icon(Icons.check_circle_outline, size: 20),
           label: Text(mercadoNome == null
-              ? 'Finalizar compra'
-              : 'Finalizar $mercadoNome'),
+              ? _t.finalizarCompra
+              : _t.finalizarMercado(mercadoNome)),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.green,
             foregroundColor: AppColors.onGreen,
@@ -1153,8 +1186,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
 /// Folha de seleção do mercado para "Copiar lista".
 class _SheetExportar extends StatelessWidget {
-  const _SheetExportar({required this.mercados});
+  const _SheetExportar({required this.mercados, required this.t});
   final List<Mercado> mercados;
+  final AppStrings t;
 
   @override
   Widget build(BuildContext context) {
@@ -1171,18 +1205,18 @@ class _SheetExportar extends StatelessWidget {
               borderRadius: BorderRadius.circular(3),
             ),
           ),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text('Copiar lista de:',
-                  style: TextStyle(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Text(t.copiarListaDe,
+                  style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 15,
                       fontWeight: FontWeight.w600)),
             ),
           ),
-          _opcao(context, 'todos', 'Todos os itens', null),
+          _opcao(context, 'todos', t.todosOsItens, null),
           for (final m in mercados) _opcao(context, m.id, m.nome, m.cor),
           const SizedBox(height: 10),
         ],

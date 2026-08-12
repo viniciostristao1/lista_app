@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/models/mercado.dart';
 import 'package:lista_app/models/pedido.dart';
 import 'package:lista_app/services/listas_repository.dart';
 import 'package:lista_app/services/mercados_repository.dart';
 import 'package:lista_app/services/pedidos_repository.dart';
+import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
-
-const _mesesAbrev = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
-];
-const _mesesNome = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
 
 /// Histórico de compras. Filtro por ano/mês (topo) + por mercado (chips).
 /// As somas do resumo respeitam o ano/mês/mercado selecionados.
@@ -31,6 +24,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
   String? _filtroMercado; // null = "Todos"
   late int _ano;
   late int _mes;
+
+  // read (não watch): usado tanto no build quanto em callbacks; a reatividade
+  // vem do ref.watch(stringsProvider) no topo do build.
+  AppStrings get _t => ref.read(stringsProvider);
 
   @override
   void initState() {
@@ -56,8 +53,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Pedido desfeito — itens voltaram pra lista 🔄')),
+        SnackBar(content: Text(_t.pedidoDesfeito)),
       );
     }
   }
@@ -67,17 +63,16 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Excluir pedido?'),
-        content: const Text(
-            'Apaga do histórico. NÃO devolve os itens para a lista.'),
+        title: Text(_t.excluirPedidoTitulo),
+        content: Text(_t.excluirPedidoMsg),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
+              child: Text(_t.cancelar)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Excluir',
-                  style: TextStyle(color: AppColors.danger))),
+              child: Text(_t.excluir,
+                  style: const TextStyle(color: AppColors.danger))),
         ],
       ),
     );
@@ -86,13 +81,14 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pedido excluído.')),
+        SnackBar(content: Text(_t.pedidoExcluido)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
     final pedidos = ref.watch(pedidosProvider).asData?.value ?? const [];
     final mercados = ref.watch(mercadosProvider).asData?.value ?? const [];
     final mercadosPorId = {for (final m in mercados) m.id: m};
@@ -126,10 +122,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.bar_chart_rounded, size: 21, color: AppColors.green),
-          SizedBox(width: 9),
-          Text('Pedidos'),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.bar_chart_rounded, size: 21, color: AppColors.green),
+          const SizedBox(width: 9),
+          Text(t.abaPedidos),
         ]),
         actions: [_dropdownAno(anos)],
       ),
@@ -145,7 +141,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
               children: [
-                _cardResumo(econ, total, _mesesNome[_mes - 1],
+                _cardResumo(econ, total, t.mesNome(_mes),
                     mercadosPorId[filtroMercado]?.nome),
                 const SizedBox(height: 14),
                 if (filtrados.isEmpty)
@@ -214,7 +210,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                   color: sel ? AppColors.green : AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(_mesesAbrev[i],
+                child: Text(_t.mesAbrev(mes),
                     style: TextStyle(
                       color: sel ? AppColors.onGreen : AppColors.dim,
                       fontSize: 12.5,
@@ -234,7 +230,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _chipMercado('Todos', null, filtro == null,
+          _chipMercado(_t.todos, null, filtro == null,
               () => setState(() => _filtroMercado = null)),
           for (final m in mercados)
             _chipMercado(m.nome, m.cor, filtro == m.id,
@@ -301,7 +297,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               padding: const EdgeInsets.only(top: 1),
               child: Text.rich(TextSpan(children: [
                 TextSpan(
-                    text: 'Em $mesNome economizou ',
+                    text: _t.emMesEconomizou(mesNome),
                     style: const TextStyle(color: AppColors.dim, fontSize: 13)),
                 TextSpan(
                     text: reais(economia),
@@ -317,7 +313,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Total ${reais(total)}',
+              Text(_t.total(reais(total)),
                   style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
@@ -366,7 +362,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                                 shape: BoxShape.circle),
                           ),
                           Text(
-                            mercado?.nome ?? 'Sem mercado',
+                            mercado?.nome ?? _t.semMercado,
                             style: const TextStyle(
                                 fontSize: 14.5, fontWeight: FontWeight.w600),
                           ),
@@ -375,7 +371,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                       const SizedBox(height: 4),
                       Text(
                         '${pe.data == null ? '' : '${diaMes(pe.data!)} · '}'
-                        '${pe.itens.length} ${pe.itens.length == 1 ? 'item' : 'itens'}',
+                        '${_t.nItens(pe.itens.length)}',
                         style: const TextStyle(color: AppColors.dim, fontSize: 12.5),
                       ),
                     ],
@@ -434,14 +430,14 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               ),
               const SizedBox(height: 14),
               Text(
-                '${mercado?.nome ?? 'Sem mercado'}'
+                '${mercado?.nome ?? _t.semMercado}'
                 '${pe.data == null ? '' : ' · ${diaMes(pe.data!)}'}',
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 2),
               Text(
-                'Total ${reais(pe.total)}'
-                '${pe.economia > 0 ? '  ·  economizou ${reais(pe.economia)}' : ''}',
+                '${_t.total(reais(pe.total))}'
+                '${pe.economia > 0 ? '  ·  ${_t.economizou(reais(pe.economia))}' : ''}',
                 style: const TextStyle(color: AppColors.dim, fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -480,7 +476,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _excluir(pe),
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Excluir pedido'),
+                  label: Text(_t.excluirPedido),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.danger,
                     side: BorderSide(
@@ -497,7 +493,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _desfazer(pe),
                   icon: const Icon(Icons.undo, size: 18),
-                  label: const Text('Desfazer pedido (voltar itens à lista)'),
+                  label: Text(_t.desfazerPedido),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.blue,
                     side: BorderSide(color: AppColors.blue.withValues(alpha: 0.5)),
@@ -521,16 +517,16 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
         children: [
           const Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.dim2),
           const SizedBox(height: 14),
-          Text('Nenhuma compra em ${_mesesNome[_mes - 1]} de $_ano',
+          Text(_t.nenhumaCompraEm(_t.mesNome(_mes), _ano),
               textAlign: TextAlign.center,
               style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 15,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text('Finalize uma compra na aba Listas.',
+          Text(_t.finalizeUmaCompra,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.dim, fontSize: 13)),
+              style: const TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
       ),
     );
