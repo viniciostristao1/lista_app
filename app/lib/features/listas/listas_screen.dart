@@ -873,12 +873,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 ),
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // Slot de preço enxuto: SEMPRE um "$" estreito (deixa espaço pro
               // nome). Tocar expande e revela o preço (item comparado) ou o
               // nome do mercado (item de um mercado só).
               _slotPreco(it, dedicado, menor, mercadoEfId, mercadosPorId),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
               SizedBox(
                 width: 9,
@@ -952,9 +952,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     return IconButton(
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+      // ~30% mais estreito que antes (era minWidth 22 + ícone 18) → sobra mais
+      // espaço pro nome do item. A altura fica pra manter a área de toque.
+      constraints: const BoxConstraints(minWidth: 15, minHeight: 22),
       tooltip: 'Ver preço/mercado',
-      icon: Icon(Icons.attach_money, size: 18, color: cor),
+      icon: Icon(Icons.attach_money, size: 15, color: cor),
       onPressed: onTap,
     );
   }
