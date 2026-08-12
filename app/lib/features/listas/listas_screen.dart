@@ -909,12 +909,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 ),
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
-              const SizedBox(width: 6),
+              const SizedBox(width: 3),
               // Slot de preço enxuto: SEMPRE um "$" estreito (deixa espaço pro
               // nome). Tocar expande e revela o preço (item comparado) ou o
-              // nome do mercado (item de um mercado só).
+              // nome do mercado (item de um mercado só). "+" e bolinha colados.
               _slotPreco(it, dedicado, menor, mercadoEfId, mercadosPorId),
-              const SizedBox(width: 6),
+              const SizedBox(width: 3),
               // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
               SizedBox(
                 width: 9,
@@ -985,15 +985,23 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Widget _botaoDollar({required Color cor, required VoidCallback onTap}) {
-    return IconButton(
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      // ~30% mais estreito que antes (era minWidth 22 + ícone 18) → sobra mais
-      // espaço pro nome do item. A altura fica pra manter a área de toque.
-      constraints: const BoxConstraints(minWidth: 15, minHeight: 22),
-      tooltip: _t.verPrecoMercado,
-      icon: Icon(Icons.attach_money, size: 15, color: cor),
-      onPressed: onTap,
+    // Sem IconButton de propósito: ele reserva a área de toque padrão (~40px de
+    // largura) mesmo com minWidth pequeno. Aqui a área é uma SizedBox estreita
+    // de verdade (16px), com o toque garantido pela altura. Assim o "+" e a
+    // bolinha do mercado ficam colados, com só o "$" no meio.
+    return Tooltip(
+      message: _t.verPrecoMercado,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 16,
+          height: 30,
+          child: Center(
+            child: Icon(Icons.attach_money, size: 15, color: cor),
+          ),
+        ),
+      ),
     );
   }
 
