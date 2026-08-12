@@ -72,7 +72,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(_t.excluir,
-                  style: const TextStyle(color: AppColors.danger))),
+                  style: TextStyle(color: AppColors.danger))),
         ],
       ),
     );
@@ -123,7 +123,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.bar_chart_rounded, size: 21, color: AppColors.green),
+          Icon(Icons.bar_chart_rounded, size: 21, color: AppColors.green),
           const SizedBox(width: 9),
           Text(t.abaPedidos),
         ]),
@@ -177,11 +177,11 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('$_ano',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
                       fontWeight: FontWeight.w600)),
-              const Icon(Icons.arrow_drop_down, color: AppColors.dim, size: 20),
+              Icon(Icons.arrow_drop_down, color: AppColors.dim, size: 20),
             ],
           ),
         ),
@@ -281,10 +281,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1D2128), Color(0xFF171A20)],
+          colors: [AppColors.cardGrad1, AppColors.cardGrad2],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.line),
@@ -298,10 +298,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               child: Text.rich(TextSpan(children: [
                 TextSpan(
                     text: _t.emMesEconomizou(mesNome),
-                    style: const TextStyle(color: AppColors.dim, fontSize: 13)),
+                    style: TextStyle(color: AppColors.dim, fontSize: 13)),
                 TextSpan(
                     text: reais(economia),
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.green,
                         fontSize: 16,
                         fontWeight: FontWeight.w700)),
@@ -314,14 +314,14 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(_t.total(reais(total)),
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
                       fontWeight: FontWeight.w600)),
               if (mercadoNome != null)
                 Text(mercadoNome,
                     style:
-                        const TextStyle(color: AppColors.dim2, fontSize: 11.5)),
+                        TextStyle(color: AppColors.dim2, fontSize: 11.5)),
             ],
           ),
         ],
@@ -372,7 +372,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                       Text(
                         '${pe.data == null ? '' : '${diaMes(pe.data!)} · '}'
                         '${_t.nItens(pe.itens.length)}',
-                        style: const TextStyle(color: AppColors.dim, fontSize: 12.5),
+                        style: TextStyle(color: AppColors.dim, fontSize: 12.5),
                       ),
                     ],
                   ),
@@ -385,14 +385,14 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                             fontSize: 15, fontWeight: FontWeight.w700)),
                     if (pe.economia > 0)
                       Text('−${reais(pe.economia)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: AppColors.green,
                               fontSize: 12,
                               fontWeight: FontWeight.w600)),
                   ],
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.chevron_right, color: AppColors.dim2),
+                Icon(Icons.chevron_right, color: AppColors.dim2),
               ],
             ),
           ),
@@ -438,10 +438,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               Text(
                 '${_t.total(reais(pe.total))}'
                 '${pe.economia > 0 ? '  ·  ${_t.economizou(reais(pe.economia))}' : ''}',
-                style: const TextStyle(color: AppColors.dim, fontSize: 13),
+                style: TextStyle(color: AppColors.dim, fontSize: 13),
               ),
               const SizedBox(height: 12),
-              const Divider(color: AppColors.line, height: 1),
+              Divider(color: AppColors.line, height: 1),
               Expanded(
                 child: ListView(
                   controller: scroll,
@@ -456,13 +456,13 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                                 it.quantidade > 1
                                     ? '${it.nome}  ×${it.quantidade}'
                                     : it.nome,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: AppColors.text, fontSize: 14),
                               ),
                             ),
                             Text(
                               it.precoUnit == null ? '—' : reais(it.subtotal),
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: AppColors.dim, fontSize: 13.5),
                             ),
                           ],
@@ -515,18 +515,18 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       padding: const EdgeInsets.only(top: 50),
       child: Column(
         children: [
-          const Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.dim2),
+          Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.dim2),
           const SizedBox(height: 14),
           Text(_t.nenhumaCompraEm(_t.mesNome(_mes), _ano),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                   color: AppColors.text,
                   fontSize: 15,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(_t.finalizeUmaCompra,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.dim, fontSize: 13)),
+              style: TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
       ),
     );

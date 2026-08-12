@@ -1,59 +1,63 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
+import 'palette.dart';
 
-/// Tema escuro do app (estilo da maquete). Ponto único de verdade visual.
-ThemeData buildAppTheme() {
-  final base = ThemeData.dark(useMaterial3: true);
+/// Monta o ThemeData a partir da [Palette] ativa. Claro ou escuro conforme
+/// `palette.brightness`. Ponto único de verdade visual (o resto usa AppColors).
+ThemeData buildAppTheme(Palette p) {
+  final base = ThemeData(brightness: p.brightness, useMaterial3: true);
 
   return base.copyWith(
-    scaffoldBackgroundColor: AppColors.bg,
-    colorScheme: const ColorScheme.dark(
-      primary: AppColors.green,
-      onPrimary: AppColors.onGreen,
-      secondary: AppColors.blue,
-      surface: AppColors.surface,
-      onSurface: AppColors.text,
-      error: AppColors.danger,
+    scaffoldBackgroundColor: p.bg,
+    colorScheme: ColorScheme(
+      brightness: p.brightness,
+      primary: p.green,
+      onPrimary: p.onGreen,
+      secondary: p.blue,
+      onSecondary: p.onGreen,
+      surface: p.surface,
+      onSurface: p.text,
+      error: p.danger,
+      onError: p.onGreen,
     ),
     textTheme: base.textTheme.apply(
-      bodyColor: AppColors.text,
-      displayColor: AppColors.text,
+      bodyColor: p.text,
+      displayColor: p.text,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.bg,
-      foregroundColor: AppColors.text,
+    appBarTheme: AppBarTheme(
+      backgroundColor: p.bg,
+      foregroundColor: p.text,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
-        color: AppColors.text,
+        color: p.text,
         fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: const Color(0xFF101216),
-      indicatorColor: const Color(0x2233D17F),
+      backgroundColor: p.navBg,
+      indicatorColor: p.green.withValues(alpha: 0.15),
       elevation: 0,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: selected ? AppColors.green : AppColors.dim2,
+          color: selected ? p.green : p.dim2,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
-          color: selected ? AppColors.green : AppColors.dim2,
+          color: selected ? p.green : p.dim2,
         );
       }),
     ),
-    dividerColor: AppColors.line,
-    snackBarTheme: const SnackBarThemeData(
-      backgroundColor: AppColors.surface2,
-      contentTextStyle: TextStyle(color: AppColors.text),
+    dividerColor: p.line,
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: p.surface2,
+      contentTextStyle: TextStyle(color: p.text),
       behavior: SnackBarBehavior.floating,
     ),
   );

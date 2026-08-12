@@ -51,7 +51,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         content: SingleChildScrollView(
           child: SelectableText(
             '$codigo\n\n$detalhe',
-            style: const TextStyle(fontSize: 12.5, color: AppColors.dim),
+            style: TextStyle(fontSize: 12.5, color: AppColors.dim),
           ),
         ),
         actions: [
@@ -85,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 t.loginTagline,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.dim, height: 1.4),
+                style: TextStyle(color: AppColors.dim, height: 1.4),
               ),
               const Spacer(flex: 4),
               SizedBox(
@@ -103,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                   icon: _loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
@@ -116,7 +116,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 16),
               Text(
                 t.dadosSoComVoce,
-                style: const TextStyle(color: AppColors.dim2, fontSize: 12),
+                style: TextStyle(color: AppColors.dim2, fontSize: 12),
               ),
               const Spacer(flex: 1),
             ],

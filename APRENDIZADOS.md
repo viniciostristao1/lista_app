@@ -14,6 +14,32 @@ qualquer sessão futura (ou pessoa) entender o caminho.
 
 ## Diário
 
+### 2026-08-12 — 4 temas selecionáveis (v0.39) + "$" estreito de verdade
+- **"$" estreito de verdade:** o `IconButton` reserva a **área de toque padrão (~40px)** mesmo com
+  `minWidth` pequeno — por isso antes só a fonte encolhia, não a largura. Troquei por
+  `GestureDetector`+`SizedBox(16×30)` (toque garantido pela altura) e gaps 6→3. **Lição:** pra ícone
+  realmente estreito numa linha densa, **não usar IconButton** — usar toque próprio dimensionado.
+- **Temas (Âmbar/Bege Areia/Claro Azul/Ameixa), claro e escuro:**
+  - `theme/palette.dart`: `class Palette` (todos os tokens) + enum `Tema` + 4 instâncias const + `paletteDoTema`.
+  - `AppColors` **deixou de ser const**: virou getters de `AppColors.palette` (campo estático, trocável).
+    Isso quebra todo `const` que referencia cor → **removi ~100+ `const`**. Feito com script:
+    (1) `perl` tira `const` de linhas que contêm `AppColors.`; (2) `flutter analyze` acha os
+    `invalid_constant` aninhados (const num pai, cor numa linha abaixo); (3) script Python
+    (`scratchpad/fix_const.py`) sobe a partir de cada erro e remove o `const` do pai, iterando até limpar.
+    40 aninhados resolvidos em 1 iteração. **Guardar essa receita** pra futuras cores.
+  - `temaProvider` (persist `tema`) em prefs; `buildAppTheme(Palette)` virou brightness-aware; gradientes
+    hard-coded dos cards (economia/resumo) viraram `AppColors.cardGrad1/2`.
+  - **Gotcha de runtime (importante):** como as cores vêm de `AppColors` **estático** (não de `Theme.of`),
+    trocar a paleta **não repinta** a árvore `const`. Fix: `main.dart` seta `AppColors.palette` no build +
+    `KeyedSubtree(key: ValueKey(tema))` no `builder` do MaterialApp → reconstrói a árvore ao trocar de tema
+    (custo: reseta a aba p/ Listas, aceitável). Providers seguram o estado, então não pisca splash.
+  - Seletor em Configurações (aba Listas ⚙️) com prévia (chip fundo+acento). Nomes dos temas no catálogo i18n.
+- **Erro de processo (registrar):** `gh run watch ... > log; echo EXIT=$?` — a notificação "exit 0" é do
+  **comando bash inteiro** (termina no echo), NÃO da conclusão do CI. O build do "$" (v0.38) tinha
+  **falhado por infra** (HTTP 503 baixando o Gradle) e eu cortei o release do `ci-latest` **antigo** →
+  v0.38 saiu = v0.37. **Sempre conferir `gh run view <id> --json conclusion` (ou o `EXIT=` do log) antes de
+  cortar release.** v0.38 apagado; tudo rejuntado no v0.39.
+
 ### 2026-08-12 — i18n PT/EN (release v0.37) + "$" mais estreito (v0.36)
 - **"$" ~30% mais estreito** (v0.36): `_botaoDollar` ícone 18→15, minWidth 22→15, gaps 8→6.
 - **Inglês + Português** com troca em **Configurações**. Arquitetura **leve, sem intl/codegen**:

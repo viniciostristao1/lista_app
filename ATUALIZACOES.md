@@ -10,7 +10,7 @@ O que mudou em cada versão, resumido em **uma linha + data**. Serve de guia do 
 
 ---
 
-- **2026-08-12 · `v0.38.0-teste43`** — O **"$"** da lista agora ocupa **bem menos largura** de verdade (era o `IconButton` que reservava área de toque; troquei por um toque estreito) → o **"−/+"** e a **bolinha do mercado** ficam colados, com só o **"$"** no meio. Mais espaço pro nome do item.
+- **2026-08-12 · `v0.39.0-teste44`** — **Temas! 🎨** Escolha o visual em **Configurações → Tema**: **Âmbar** (o atual), **Bege Areia** (claro, marrom no lugar do âmbar), **Claro Azul** (claro) e **Ameixa** (escuro, violeta). · O **"$"** da lista ficou **bem mais estreito de verdade** (era o botão que reservava a área de toque; agora é um toque de 16px) → o **"−/+"** e a **bolinha do mercado** ficam colados, com só o **"$"** no meio.
 - **2026-08-12 · `v0.37.0-teste42`** — **Inglês! 🇬🇧** O app inteiro agora fala **Português e Inglês** — troque em **Configurações** (⚙️ na aba Listas, agora com **Idioma** + Tamanho da fonte). Na 1ª vez segue o idioma do aparelho. Traduzido tudo que é do app (abas, telas, botões, categorias, meses, avisos); nomes que você digitou continuam como estão.
 - **2026-08-12 · `v0.36.0-teste41`** — O **"$"** da lista ficou **~30% mais estreito** (ícone e espaços menores) → sobra ainda mais espaço pro **nome do item**.
 - **2026-08-12 · `v0.35.0-teste40`** — Aba **Listas**: o **"$"** agora é **sempre** o símbolo (nunca mais o nome do mercado no lugar) e ficou **mais estreito** → sobra mais espaço pro **nome do item**. Ao **tocar**, ele expande e mostra o **preço** (item comparado) ou o **nome do mercado** (item de um mercado só); toca de novo pra esconder.

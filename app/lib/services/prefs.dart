@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/strings.dart';
 import '../models/categoria.dart';
+import '../theme/palette.dart';
 
 /// Escala de fonte do app, escolhida pelo usuário e guardada no aparelho.
 /// Fatores sobre o texto-base (~14,5): 0.93 = Menor (~13,5) · 1.035 = Normal
@@ -107,3 +108,34 @@ final idiomaEnProvider =
 /// Textos do app no idioma atual. Assista este provider e use `t.xxx`.
 final stringsProvider =
     Provider<AppStrings>((ref) => AppStrings(ref.watch(idiomaEnProvider)));
+
+/// Tema escolhido pelo usuário (cores do app). Guardado no aparelho.
+class TemaNotifier extends Notifier<Tema> {
+  static const _key = 'tema';
+
+  @override
+  Tema build() {
+    _restaurar();
+    return temaPadrao;
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    final nome = p.getString(_key);
+    if (nome == null) return;
+    for (final t in Tema.values) {
+      if (t.name == nome) {
+        state = t;
+        return;
+      }
+    }
+  }
+
+  Future<void> definir(Tema t) async {
+    state = t;
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_key, t.name);
+  }
+}
+
+final temaProvider = NotifierProvider<TemaNotifier, Tema>(TemaNotifier.new);

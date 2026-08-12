@@ -1,29 +1,37 @@
 import 'package:flutter/material.dart';
 
-/// Paleta do app (tema escuro), derivada da maquete.
+import 'palette.dart';
+
+/// Paleta do app. Antes era const (tema único); agora as cores vêm da [Palette]
+/// ativa, trocável em tempo real (o usuário escolhe o tema em Configurações).
+/// A API `AppColors.xxx` continua igual — só deixou de ser `const`.
 abstract final class AppColors {
-  static const bg = Color(0xFF0E0F13); // fundo
-  static const surface = Color(0xFF191C22); // cards
-  static const surface2 = Color(0xFF212530); // hover / elevação
-  // FLAT: sem contorno de cards (transparente). A separação vem do contraste
-  // bg↔surface. `lineStrong` guarda só as arestas estruturais (stepper/inputs).
-  static const line = Color(0x00FFFFFF); // transparente
-  static const lineStrong = Color(0x14FFFFFF); // ~8% branco
+  /// Paleta ativa (trocada em Configurações). main.dart a seta a cada build.
+  static Palette palette = paletteDoTema(temaPadrao);
 
-  static const text = Color(0xFFEDEFF3); // texto principal
-  static const dim = Color(0xFF8B93A1); // texto secundário
-  static const dim2 = Color(0xFF5F6674); // texto terciário / ícones apagados
+  static Color get bg => palette.bg;
+  static Color get surface => palette.surface;
+  static Color get surface2 => palette.surface2;
+  static Color get line => palette.line;
+  static Color get lineStrong => palette.lineStrong;
+  static Color get text => palette.text;
+  static Color get dim => palette.dim;
+  static Color get dim2 => palette.dim2;
 
-  // === ACENTO = âmbar (escolha do usuário 2026-07-31) ===
-  // (mantém o nome `green` por compatibilidade; é o acento do app)
-  static const green = Color(0xFFE0A24A); // âmbar quente
-  static const onGreen = Color(0xFF201603); // texto sobre o acento
-  static const blue = Color(0xFF4C8DFF); // ações
-  static const amber = Color(0xFFF2B84B);
-  static const danger = Color(0xFFFF7A7A);
+  // === ACENTO (mantém o nome `green` por compatibilidade histórica) ===
+  static Color get green => palette.green;
+  static Color get onGreen => palette.onGreen;
+  static Color get blue => palette.blue;
+  static Color get amber => palette.amber;
+  static Color get danger => palette.danger;
 
-  /// Cores que o usuário pode escolher para pintar cada mercado (distintas
-  /// entre si; não usam o âmbar do acento pra não confundir).
+  // Gradiente dos cards de destaque (economia / resumo do mês) e barra inferior.
+  static Color get cardGrad1 => palette.cardGrad1;
+  static Color get cardGrad2 => palette.cardGrad2;
+  static Color get navBg => palette.navBg;
+
+  /// Cores que o usuário pode escolher para pintar cada mercado. Ficam const —
+  /// não dependem do tema (a bolinha do mercado é a mesma em qualquer tema).
   static const mercadoCores = <Color>[
     Color(0xFF4C8DFF), // azul
     Color(0xFF33D17F), // verde

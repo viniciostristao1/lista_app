@@ -71,7 +71,7 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
         children: [
           Text(
             t.calculadoraIntro,
-            style: const TextStyle(color: AppColors.dim, fontSize: 13, height: 1.4),
+            style: TextStyle(color: AppColors.dim, fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 18),
           _blocoProduto(t.produtoA, _precoA, _qtdA),
@@ -84,7 +84,7 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(t.preenchaOsDois,
-                  style: const TextStyle(color: AppColors.dim2, fontSize: 13)),
+                  style: TextStyle(color: AppColors.dim2, fontSize: 13)),
             ),
         ],
       ),
@@ -107,7 +107,7 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(titulo,
-              style: const TextStyle(
+              style: TextStyle(
                   color: AppColors.text,
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
@@ -131,7 +131,7 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
           ),
           const SizedBox(height: 8),
           Text(t.quantidadeEmUnidades,
-              style: const TextStyle(color: AppColors.dim2, fontSize: 10.5)),
+              style: TextStyle(color: AppColors.dim2, fontSize: 10.5)),
         ],
       ),
     );
@@ -145,7 +145,7 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(t.porUnidade,
-            style: const TextStyle(color: AppColors.dim, fontSize: 11.5)),
+            style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -190,18 +190,18 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(color: AppColors.dim, fontSize: 11.5)),
+            style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
         const SizedBox(height: 6),
         TextField(
           controller: c,
           onChanged: (_) => setState(() {}),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(color: AppColors.text, fontSize: 15),
+          style: TextStyle(color: AppColors.text, fontSize: 15),
           decoration: InputDecoration(
             prefixText: prefix,
-            prefixStyle: const TextStyle(color: AppColors.dim, fontSize: 15),
+            prefixStyle: TextStyle(color: AppColors.dim, fontSize: 15),
             hintText: '0',
-            hintStyle: const TextStyle(color: AppColors.dim2),
+            hintStyle: TextStyle(color: AppColors.dim2),
             isDense: true,
             filled: true,
             fillColor: AppColors.bg,
@@ -209,15 +209,15 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(11),
-              borderSide: const BorderSide(color: AppColors.lineStrong),
+              borderSide: BorderSide(color: AppColors.lineStrong),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(11),
-              borderSide: const BorderSide(color: AppColors.lineStrong),
+              borderSide: BorderSide(color: AppColors.lineStrong),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(11),
-              borderSide: const BorderSide(color: AppColors.green),
+              borderSide: BorderSide(color: AppColors.green),
             ),
           ),
         ),
@@ -246,13 +246,13 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.emoji_events_outlined,
+              Icon(Icons.emoji_events_outlined,
                   color: AppColors.green, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   t.vencedorMaisBarato(vencedor, percent.toStringAsFixed(0)),
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.green,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700),
@@ -265,11 +265,11 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
             t.comQtdBCustaria(
                 qtdB.toStringAsFixed(qtdB.truncateToDouble() == qtdB ? 0 : 2),
                 reais(aNoPesoB)),
-            style: const TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4),
+            style: TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4),
           ),
           const SizedBox(height: 4),
           Text(t.oBCusta(reais(precoB)),
-              style: const TextStyle(color: AppColors.dim, fontSize: 13.5)),
+              style: TextStyle(color: AppColors.dim, fontSize: 13.5)),
         ],
       ),
     );

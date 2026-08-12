@@ -197,7 +197,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(_t.excluir,
-                  style: const TextStyle(color: AppColors.danger))),
+                  style: TextStyle(color: AppColors.danger))),
         ],
       ),
     );
@@ -217,7 +217,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           if (_editando)
             IconButton(
               tooltip: t.excluir,
-              icon: const Icon(Icons.delete_outline, color: AppColors.dim),
+              icon: Icon(Icons.delete_outline, color: AppColors.dim),
               onPressed: _excluir,
             ),
         ],
@@ -234,11 +234,11 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                 borderRadius: BorderRadius.circular(11),
               ),
               child: Row(children: [
-                const Icon(Icons.push_pin, size: 15, color: AppColors.green),
+                Icon(Icons.push_pin, size: 15, color: AppColors.green),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(t.compraRecorrenteNaoSai,
-                      style: const TextStyle(color: AppColors.green, fontSize: 12.5)),
+                      style: TextStyle(color: AppColors.green, fontSize: 12.5)),
                 ),
               ]),
             ),
@@ -248,7 +248,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             controller: _nome,
             autofocus: !_editando,
             textCapitalization: TextCapitalization.sentences,
-            style: const TextStyle(color: AppColors.text, fontSize: 15),
+            style: TextStyle(color: AppColors.text, fontSize: 15),
             decoration: _dec(t.exNomeProduto),
           ),
           const SizedBox(height: 18),
@@ -257,7 +257,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           TextField(
             controller: _marca,
             textCapitalization: TextCapitalization.sentences,
-            style: const TextStyle(color: AppColors.text, fontSize: 15),
+            style: TextStyle(color: AppColors.text, fontSize: 15),
             decoration: _dec(t.exMarca),
           ),
           const SizedBox(height: 12),
@@ -273,7 +273,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                     TextField(
                       controller: _tamanho,
                       style:
-                          const TextStyle(color: AppColors.text, fontSize: 15),
+                          TextStyle(color: AppColors.text, fontSize: 15),
                       decoration: _dec(t.exPeso),
                     ),
                   ],
@@ -289,7 +289,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                     TextField(
                       controller: _unidade,
                       style:
-                          const TextStyle(color: AppColors.text, fontSize: 15),
+                          TextStyle(color: AppColors.text, fontSize: 15),
                       decoration: _dec(t.exUnidade),
                     ),
                   ],
@@ -321,7 +321,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             controller: _obs,
             minLines: 2,
             maxLines: 4,
-            style: const TextStyle(color: AppColors.text, fontSize: 15),
+            style: TextStyle(color: AppColors.text, fontSize: 15),
             decoration: _dec(t.exObservacoes),
           ),
           const SizedBox(height: 26),
@@ -356,7 +356,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           const SizedBox(height: 6),
           Text(
             t.cadastreMercadosPrimeiro,
-            style: const TextStyle(color: AppColors.dim2, fontSize: 12.5),
+            style: TextStyle(color: AppColors.dim2, fontSize: 12.5),
           ),
         ],
       );
@@ -374,10 +374,10 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: () => setState(() => _abrirMercadoFixo = true),
-              icon: const Icon(Icons.storefront_outlined,
+              icon: Icon(Icons.storefront_outlined,
                   size: 18, color: AppColors.green),
               label: Text(t.comprarSempreNumMercado,
-                  style: const TextStyle(color: AppColors.green, fontSize: 13.5)),
+                  style: TextStyle(color: AppColors.green, fontSize: 13.5)),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.surface2,
                 shape: RoundedRectangleBorder(
@@ -396,7 +396,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
         _label(t.comprarSempreNumMercado),
         const SizedBox(height: 4),
         Text(t.semComparacaoAnote,
-            style: const TextStyle(color: AppColors.dim2, fontSize: 12.5)),
+            style: TextStyle(color: AppColors.dim2, fontSize: 12.5)),
         const SizedBox(height: 12),
         // Caixa de alerta: fica realçada enquanto nenhum mercado é escolhido.
         Container(
@@ -458,7 +458,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           dense: true,
           activeColor: AppColors.green,
           title: Text(t.compraRecorrenteCheck,
-              style: const TextStyle(color: AppColors.text, fontSize: 13.5)),
+              style: TextStyle(color: AppColors.text, fontSize: 13.5)),
         ),
         const SizedBox(height: 4),
         SizedBox(
@@ -469,9 +469,9 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
               _mercadoFixo = null;
               _recorrente = false;
             }),
-            icon: const Icon(Icons.arrow_back, size: 18, color: AppColors.green),
+            icon: Icon(Icons.arrow_back, size: 18, color: AppColors.green),
             label: Text(t.voltarComparar,
-                style: const TextStyle(color: AppColors.green, fontSize: 13.5)),
+                style: TextStyle(color: AppColors.green, fontSize: 13.5)),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.surface2,
               shape:
@@ -537,7 +537,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style:
-                        const TextStyle(color: AppColors.text, fontSize: 14)),
+                        TextStyle(color: AppColors.text, fontSize: 14)),
                 if (atual != null)
                   Text(
                     atual.desatualizado
@@ -557,7 +557,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             child: TextField(
               controller: _precoCtrls[m.id],
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: AppColors.text, fontSize: 15),
+              style: TextStyle(color: AppColors.text, fontSize: 15),
               decoration: _dec('R\$ —', prefix: 'R\$  '),
             ),
           ),
@@ -567,30 +567,30 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   }
 
   Widget _label(String t) => Text(t,
-      style: const TextStyle(
+      style: TextStyle(
           color: AppColors.dim, fontSize: 12, fontWeight: FontWeight.w600));
 
   InputDecoration _dec(String hint, {String? prefix}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.dim2),
+      hintStyle: TextStyle(color: AppColors.dim2),
       prefixText: prefix,
-      prefixStyle: const TextStyle(color: AppColors.dim, fontSize: 15),
+      prefixStyle: TextStyle(color: AppColors.dim, fontSize: 15),
       isDense: true,
       filled: true,
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.green),
+        borderSide: BorderSide(color: AppColors.green),
       ),
     );
   }

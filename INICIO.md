@@ -59,16 +59,21 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.37.0-teste42`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
+  **A = `v0.39.0-teste44`** — candidata a lançamento (estilo Flat + mercado dedicado +
   até **8 mercados** com **⭐ principal** ao lado de "Todos" + filtro **"Sem mercado"** + categoria
-  **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ Configurações (Idioma + fonte)** + **12 cores** de mercado +
-  preço em **"$"** estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
-  na calculadora + botões da aba Itens alinhados com a busca + **i18n PT/EN**). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+  **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ Configurações (Tema + Idioma + fonte)** + **12 cores** de mercado +
+  preço em **"$"** bem estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
+  na calculadora + botões da aba Itens alinhados com a busca + **i18n PT/EN** + **4 temas**). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
 
-  > **i18n (desde v0.37):** textos do app vivem em `app/lib/l10n/strings.dart` (`AppStrings`, campo `en`).
-  > Providers em `services/prefs.dart`: `idiomaEnProvider` (persistido; padrão = idioma do aparelho) +
-  > `stringsProvider`. Nas telas: `final t = ref.watch(stringsProvider)` e `t.xxx`. **Texto de UI novo →
-  > adicionar chave PT+EN no catálogo**, nunca hard-codar string na tela.
+  > **i18n (desde v0.37):** textos do app em `app/lib/l10n/strings.dart` (`AppStrings`, campo `en`).
+  > Providers em `services/prefs.dart`: `idiomaEnProvider` + `stringsProvider`. Nas telas:
+  > `final t = ref.watch(stringsProvider)` e `t.xxx`. **Texto de UI novo → chave PT+EN no catálogo.**
+  >
+  > **Temas (desde v0.39):** cores em `app/lib/theme/palette.dart` (`Palette` + enum `Tema` + 4 paletas).
+  > `AppColors` deixou de ser `const` — agora são getters da `AppColors.palette` ativa (por isso o app
+  > tem MUITO menos `const` nas telas). `temaProvider` (persistido) em prefs; `main.dart` seta
+  > `AppColors.palette` no build e usa `KeyedSubtree(ValueKey(tema))` p/ repintar ao trocar. **Cor nova de
+  > UI → adicionar campo na `Palette` (todas as paletas) + getter em `AppColors`, nunca `Color(0x..)` solto.**
 - **Link fixo do APK (sempre a última):**
   `https://github.com/viniciostristao1/lista_app/releases/latest/download/lista-app.apk`
   — o usuário guarda esse link; cada release novo já responde nele (ver `README.md` + fluxo abaixo).

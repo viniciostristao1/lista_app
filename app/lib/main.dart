@@ -9,6 +9,7 @@ import 'services/auth_service.dart';
 import 'services/prefs.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'theme/palette.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,15 +25,23 @@ class ListaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final escala = ref.watch(fontScaleProvider);
+    // Aplica o tema escolhido: seta a paleta ativa ANTES de montar a árvore
+    // (os filhos leem AppColors.xxx no build) e reconstrói ao trocar.
+    final tema = ref.watch(temaProvider);
+    final palette = paletteDoTema(tema);
+    AppColors.palette = palette;
     return MaterialApp(
       title: 'Lista',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
-      // aplica o tamanho de fonte escolhido pelo usuário no app inteiro
+      theme: buildAppTheme(palette),
+      // aplica o tamanho de fonte escolhido pelo usuário no app inteiro.
+      // KeyedSubtree(ValueKey(tema)): como as cores vêm de AppColors estático
+      // (não de Theme.of), trocar o tema exige reconstruir a árvore do zero pra
+      // repintar tudo — a chave por tema faz isso (só quando o tema muda).
       builder: (context, child) => MediaQuery.withClampedTextScaling(
         minScaleFactor: escala,
         maxScaleFactor: escala,
-        child: child!,
+        child: KeyedSubtree(key: ValueKey(tema), child: child!),
       ),
       home: const _AuthGate(),
     );
@@ -66,8 +75,8 @@ class _Splash extends ConsumerWidget {
       body: Center(
         child: erro
             ? Text(t.falhaAoCarregar,
-                style: const TextStyle(color: AppColors.dim))
-            : const CircularProgressIndicator(color: AppColors.green),
+                style: TextStyle(color: AppColors.dim))
+            : CircularProgressIndicator(color: AppColors.green),
       ),
     );
   }

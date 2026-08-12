@@ -1,4 +1,5 @@
 import '../models/categoria.dart';
+import '../theme/palette.dart';
 
 /// Textos do app em Português e Inglês. Fonte única de tudo que é "nativo" do
 /// app (não depende do usuário). Trocar o idioma = trocar a instância via
@@ -49,6 +50,13 @@ class AppStrings {
   // ---------- configurações ----------
   String get configuracoes => _s('Configurações', 'Settings');
   String get idioma => _s('Idioma', 'Language');
+  String get tema => _s('Tema', 'Theme');
+  String nomeTema(Tema t) => switch (t) {
+        Tema.ambar => _s('Âmbar (atual)', 'Amber (current)'),
+        Tema.begeAreia => _s('Bege Areia', 'Sand Beige'),
+        Tema.claroAzul => _s('Claro Azul', 'Light Blue'),
+        Tema.ameixa => _s('Ameixa', 'Plum'),
+      };
   String get tamanhoDaFonte => _s('Tamanho da fonte', 'Font size');
   String get valeAppInteiro =>
       _s('Vale para o app inteiro.', 'Applies to the whole app.');

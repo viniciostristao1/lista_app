@@ -62,7 +62,7 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
               style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(t.ordenarCategoriasDica,
-              style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+              style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
           const SizedBox(height: 12),
           Flexible(
             child: ReorderableListView.builder(
@@ -90,12 +90,12 @@ class _OrdenarCategoriasState extends ConsumerState<_OrdenarCategorias> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(t.categoria_(c),
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: AppColors.text, fontSize: 15)),
                         ),
                         ReorderableDragStartListener(
                           index: i,
-                          child: const Padding(
+                          child: Padding(
                             padding: EdgeInsets.all(4),
                             child: Icon(Icons.drag_handle,
                                 color: AppColors.dim2, size: 22),

@@ -151,7 +151,7 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(t.mercadosDescricao,
-                style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+                style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
             const SizedBox(height: 14),
             Flexible(
               child: SingleChildScrollView(
@@ -162,10 +162,10 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                     if (_slots.length < _maxMercados)
                       TextButton.icon(
                         onPressed: _adicionar,
-                        icon: const Icon(Icons.add,
+                        icon: Icon(Icons.add,
                             size: 18, color: AppColors.green),
                         label: Text(t.adicionarMercado,
-                            style: const TextStyle(color: AppColors.green)),
+                            style: TextStyle(color: AppColors.green)),
                       ),
                   ],
                 ),
@@ -221,18 +221,18 @@ class _EditorMercadosState extends ConsumerState<_EditorMercados> {
                   controller: slot.nomeCtrl,
                   autofocus: slot.novo,
                   textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(color: AppColors.text, fontSize: 15),
+                  style: TextStyle(color: AppColors.text, fontSize: 15),
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
                     hintText: t.nomeDoMercado,
-                    hintStyle: const TextStyle(color: AppColors.dim2),
+                    hintStyle: TextStyle(color: AppColors.dim2),
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () => _remover(i),
-                icon: const Icon(Icons.delete_outline,
+                icon: Icon(Icons.delete_outline,
                     color: AppColors.dim2, size: 20),
               ),
             ],

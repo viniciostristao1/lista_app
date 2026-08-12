@@ -19,6 +19,7 @@ import 'package:lista_app/services/pedidos_repository.dart';
 import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
+import 'package:lista_app/theme/palette.dart';
 import 'package:lista_app/util/format.dart';
 
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
@@ -208,29 +209,71 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final t = _t;
     final atual = ref.read(fontScaleProvider);
     final en = ref.read(idiomaEnProvider);
+    final temaAtual = ref.read(temaProvider);
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 16),
-            _tituloConfig(t.idioma),
-            _opcaoIdioma('Português', false, en),
-            _opcaoIdioma('English', true, en),
-            const Divider(color: AppColors.lineStrong, height: 20),
-            _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
-            _opcaoFonte(t.fonteMenor, 0.93, atual),
-            _opcaoFonte(t.fonteNormal, 1.035, atual),
-            _opcaoFonte(t.fonteMaior, 1.22, atual),
-            const SizedBox(height: 10),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              _tituloConfig(t.tema),
+              for (final tm in Tema.values) _opcaoTema(tm, temaAtual),
+              Divider(color: AppColors.lineStrong, height: 20),
+              _tituloConfig(t.idioma),
+              _opcaoIdioma('Português', false, en),
+              _opcaoIdioma('English', true, en),
+              Divider(color: AppColors.lineStrong, height: 20),
+              _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
+              _opcaoFonte(t.fonteMenor, 0.93, atual),
+              _opcaoFonte(t.fonteNormal, 1.035, atual),
+              _opcaoFonte(t.fonteMaior, 1.22, atual),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _opcaoTema(Tema tm, Tema atual) {
+    final sel = tm == atual;
+    final p = paletteDoTema(tm);
+    return ListTile(
+      onTap: () {
+        ref.read(temaProvider.notifier).definir(tm);
+        Navigator.pop(context);
+      },
+      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
+          color: sel ? AppColors.green : AppColors.dim2),
+      // prévia do tema: fundo + acento do tema
+      trailing: Container(
+        width: 46,
+        height: 26,
+        decoration: BoxDecoration(
+          color: p.bg,
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: AppColors.lineStrong),
+        ),
+        child: Center(
+          child: Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(color: p.green, shape: BoxShape.circle),
+          ),
+        ),
+      ),
+      title: Text(_t.nomeTema(tm),
+          style: TextStyle(
+              color: sel ? AppColors.green : AppColors.text,
+              fontSize: 15,
+              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
     );
   }
 
@@ -243,7 +286,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(titulo,
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppColors.text,
                     fontSize: 16,
                     fontWeight: FontWeight.w600)),
@@ -251,7 +294,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 2, bottom: 6),
                 child: Text(sub,
-                    style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+                    style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
               ),
           ],
         ),
@@ -349,24 +392,24 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
+          Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
           const SizedBox(width: 9),
           Text(t.minhaLista),
         ]),
         actions: [
           IconButton(
             tooltip: t.configuracoes,
-            icon: const Icon(Icons.settings_outlined, color: AppColors.dim),
+            icon: Icon(Icons.settings_outlined, color: AppColors.dim),
             onPressed: _mostrarConfig,
           ),
           IconButton(
             tooltip: t.copiarLista,
-            icon: const Icon(Icons.ios_share, color: AppColors.dim),
+            icon: Icon(Icons.ios_share, color: AppColors.dim),
             onPressed: () => _exportar(itens, produtosPorId, mercados),
           ),
           IconButton(
             tooltip: t.sair,
-            icon: const Icon(Icons.logout_rounded, color: AppColors.dim),
+            icon: Icon(Icons.logout_rounded, color: AppColors.dim),
             onPressed: () => ref.read(authServiceProvider).signOut(),
           ),
         ],
@@ -419,7 +462,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           border: Border.all(color: AppColors.line),
         ),
         child: Text(_t.cadastreMercadosNaAbaItens,
-            style: const TextStyle(color: AppColors.dim, fontSize: 12.5)),
+            style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
       );
     }
     // quantos itens caem em cada mercado (pelo mercado efetivo) + total.
@@ -549,16 +592,16 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       textInputAction: TextInputAction.done,
       onChanged: (v) => setState(() => _busca = v),
       onSubmitted: (_) => _submeterBusca(produtos, idsNaLista),
-      style: const TextStyle(color: AppColors.text, fontSize: 15),
+      style: TextStyle(color: AppColors.text, fontSize: 15),
       decoration: InputDecoration(
         hintText: _t.pesquiseOuAdicione,
-        hintStyle: const TextStyle(color: AppColors.dim2, fontSize: 14),
+        hintStyle: TextStyle(color: AppColors.dim2, fontSize: 14),
         prefixIcon:
-            const Icon(Icons.shopping_cart_outlined, color: AppColors.dim, size: 20),
+            Icon(Icons.shopping_cart_outlined, color: AppColors.dim, size: 20),
         suffixIcon: _busca.isEmpty
             ? null
             : IconButton(
-                icon: const Icon(Icons.close, color: AppColors.dim, size: 18),
+                icon: Icon(Icons.close, color: AppColors.dim, size: 18),
                 onPressed: () {
                   _buscaCtrl.clear();
                   setState(() => _busca = '');
@@ -570,15 +613,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         contentPadding: const EdgeInsets.symmetric(vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.green),
+          borderSide: BorderSide(color: AppColors.green),
         ),
       ),
     );
@@ -599,9 +642,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           padding: const EdgeInsets.only(top: 2),
           child: TextButton.icon(
             onPressed: () => _cadastrarEAdicionar(_buscaCtrl.text.trim()),
-            icon: const Icon(Icons.add, size: 18, color: AppColors.green),
+            icon: Icon(Icons.add, size: 18, color: AppColors.green),
             label: Text(_t.cadastrarEAdicionar(_buscaCtrl.text.trim()),
-                style: const TextStyle(color: AppColors.green)),
+                style: TextStyle(color: AppColors.green)),
           ),
         ),
         if (mercados.isNotEmpty)
@@ -611,7 +654,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_t.ouJaNumMercado,
-                    style: const TextStyle(color: AppColors.dim, fontSize: 12)),
+                    style: TextStyle(color: AppColors.dim, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -630,7 +673,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           padding: const EdgeInsets.only(top: 20),
           child: Center(
             child: Text(_t.nenhumItemEncontrado,
-                style: const TextStyle(color: AppColors.dim2)),
+                style: TextStyle(color: AppColors.dim2)),
           ),
         ),
     ];
@@ -655,10 +698,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             ),
             const SizedBox(width: 7),
             Text(m.nome,
-                style: const TextStyle(color: AppColors.text, fontSize: 12.5)),
+                style: TextStyle(color: AppColors.text, fontSize: 12.5)),
             if (m.preferencia) ...[
               const SizedBox(width: 5),
-              const Icon(Icons.star, size: 12, color: AppColors.green),
+              Icon(Icons.star, size: 12, color: AppColors.green),
             ],
           ],
         ),
@@ -698,17 +741,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       if (p.detalhe.isNotEmpty)
                         TextSpan(
                             text: '  ${p.detalhe}',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: AppColors.dim2, fontSize: 12)),
                     ]),
                   ),
                 ),
                 if (naLista)
                   Text(_t.jaEstaNaListaCurto,
-                      style: const TextStyle(color: AppColors.dim2, fontSize: 11.5))
+                      style: TextStyle(color: AppColors.dim2, fontSize: 11.5))
                 else if (p.menorPreco != null)
                   Text(reais(p.menorPreco!),
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.green,
                           fontSize: 14,
                           fontWeight: FontWeight.w600)),
@@ -727,10 +770,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1D2128), Color(0xFF171A20)],
+          colors: [AppColors.cardGrad1, AppColors.cardGrad2],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.line),
@@ -744,17 +787,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               child: Text.rich(TextSpan(children: [
                 TextSpan(
                     text: _t.economiaDe,
-                    style: const TextStyle(color: AppColors.dim, fontSize: 13)),
+                    style: TextStyle(color: AppColors.dim, fontSize: 13)),
                 TextSpan(
                     text: reais(economia),
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.green,
                         fontSize: 16,
                         fontWeight: FontWeight.w700)),
                 if (percent > 0)
                   TextSpan(
                       text: ' (${percent.toStringAsFixed(0)}%)',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.green,
                           fontSize: 13,
                           fontWeight: FontWeight.w600)),
@@ -767,13 +810,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(_t.total(reais(estimado)),
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
                       fontWeight: FontWeight.w600)),
               Text(_t.nItens(qtd),
                   style:
-                      const TextStyle(color: AppColors.dim2, fontSize: 11.5)),
+                      TextStyle(color: AppColors.dim2, fontSize: 11.5)),
             ],
           ),
         ],
@@ -806,7 +849,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       widgets.add(Padding(
         padding: EdgeInsets.fromLTRB(2, primeiro ? 0 : 3, 2, 0),
         child: Text(_t.categoria_(cat).toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
                 color: AppColors.dim2,
                 fontSize: 11,
                 height: 1.0,
@@ -843,7 +886,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         color: AppColors.danger.withValues(alpha: 0.16),
-        child: const Icon(Icons.delete_outline, color: AppColors.danger),
+        child: Icon(Icons.delete_outline, color: AppColors.danger),
       ),
       onDismissed: (_) => _removerComDesfazer(it, p, atual.id),
       child: InkWell(
@@ -853,7 +896,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
           child: Row(
@@ -879,11 +922,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Row(children: [
-                          const Icon(Icons.warning_amber_rounded,
+                          Icon(Icons.warning_amber_rounded,
                               size: 12, color: AppColors.danger),
                           const SizedBox(width: 4),
                           Text(_t.precoDesatualizado,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: AppColors.danger, fontSize: 11)),
                         ]),
                       ),
@@ -892,7 +935,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               ),
               // #5: pino de "recorrente" depois da descrição, antes do editar
               if (p?.fixado == true) ...[
-                const Icon(Icons.push_pin, size: 13, color: AppColors.green),
+                Icon(Icons.push_pin, size: 13, color: AppColors.green),
                 const SizedBox(width: 4),
               ],
               // atalho: abre o editor do item (preços/mercado) sem ir à aba Itens
@@ -903,7 +946,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   constraints:
                       const BoxConstraints(minWidth: 28, minHeight: 22),
                   tooltip: _t.editarPrecosMercado,
-                  icon: const Icon(Icons.sell_outlined,
+                  icon: Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
                   onPressed: () => mostrarEditorProduto(context, p, mercados),
                 ),
@@ -1021,7 +1064,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           constraints: const BoxConstraints(minWidth: 20),
           alignment: Alignment.center,
           child: Text('${it.quantidade}',
-              style: const TextStyle(
+              style: TextStyle(
                   color: AppColors.text,
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
@@ -1068,7 +1111,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ),
       ),
       child: marcado
-          ? const Icon(Icons.check, size: 15, color: AppColors.onGreen)
+          ? Icon(Icons.check, size: 15, color: AppColors.onGreen)
           : null,
     );
   }
@@ -1078,13 +1121,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          const Icon(Icons.filter_alt_off_outlined,
+          Icon(Icons.filter_alt_off_outlined,
               size: 40, color: AppColors.dim2),
           const SizedBox(height: 12),
           Text(
             mercado == null ? _t.nadaAqui : _t.nenhumItemEmMercado(mercado),
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.dim, fontSize: 13),
+            style: TextStyle(color: AppColors.dim, fontSize: 13),
           ),
         ],
       ),
@@ -1096,17 +1139,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          const Icon(Icons.search, size: 44, color: AppColors.dim2),
+          Icon(Icons.search, size: 44, color: AppColors.dim2),
           const SizedBox(height: 14),
           Text(_t.suaListaVazia,
-              style: const TextStyle(
+              style: TextStyle(
                   color: AppColors.text,
                   fontSize: 16,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(_t.useBuscaPuxarItem,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.dim, fontSize: 13)),
+              style: TextStyle(color: AppColors.dim, fontSize: 13)),
         ],
       ),
     );
@@ -1218,7 +1261,7 @@ class _SheetExportar extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Text(t.copiarListaDe,
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.text,
                       fontSize: 15,
                       fontWeight: FontWeight.w600)),
@@ -1247,7 +1290,7 @@ class _SheetExportar extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(label,
-                style: const TextStyle(color: AppColors.text, fontSize: 14.5)),
+                style: TextStyle(color: AppColors.text, fontSize: 14.5)),
           ],
         ),
       ),
