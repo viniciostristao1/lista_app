@@ -59,11 +59,11 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.34.0-teste39`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
+  **A = `v0.35.0-teste40`** — candidata a lançamento (âmbar + estilo Flat + mercado dedicado +
   até **8 mercados** com **⭐ principal** ao lado de "Todos" + filtro **"Sem mercado"** + categoria
   **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ ajuste de fonte** + **12 cores** de mercado +
-  preço em **"$"** que revela ao toque + **"Por unidade"** na calculadora + botões da aba Itens
-  alinhados com a busca). Histórico linha-a-linha em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+  preço em **"$"** sempre estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
+  na calculadora + botões da aba Itens alinhados com a busca). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
 - **Link fixo do APK (sempre a última):**
   `https://github.com/viniciostristao1/lista_app/releases/latest/download/lista-app.apk`
   — o usuário guarda esse link; cada release novo já responde nele (ver `README.md` + fluxo abaixo).

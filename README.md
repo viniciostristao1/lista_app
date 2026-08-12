@@ -20,7 +20,7 @@ histórico de pedidos e login Google. Feito em Flutter, dados na nuvem (Firebase
 > "Not Found", é só abrir a **página de releases** e clicar no APK do topo:
 > https://github.com/viniciostristao1/lista_app/releases/latest
 
-**Versão atual (A):** `v0.34.0-teste39` — *4 cores novas de mercado + preço vira "$" alinhado na lista + coluna "Por unidade" na calculadora + botões alinhados com "Buscar item".*
+**Versão atual (A):** `v0.35.0-teste40` — *"$" sempre visível e mais estreito na lista (revela preço ou nome do mercado ao toque) + 4 cores novas de mercado + coluna "Por unidade" na calculadora + botões alinhados com "Buscar item".*
 **Fallback testado (B):** `v0.13.0-teste16`.
 Histórico completo do que mudou → [**ATUALIZACOES.md**](ATUALIZACOES.md).
 
