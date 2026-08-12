@@ -874,10 +874,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 8),
-              // Slot de preço: por padrão um "$" discreto (coluna alinhada);
-              // tocar revela o valor. Item de um mercado só (dedicado) não tem
-              // comparação de preço → mostra o nome do mercado escolhido.
-              _slotPreco(it, p, dedicado, menor, mercadoEfId, mercadosPorId),
+              // Slot de preço enxuto: SEMPRE um "$" estreito (deixa espaço pro
+              // nome). Tocar expande e revela o preço (item comparado) ou o
+              // nome do mercado (item de um mercado só).
+              _slotPreco(it, dedicado, menor, mercadoEfId, mercadosPorId),
               const SizedBox(width: 8),
               // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
               SizedBox(
@@ -896,34 +896,23 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  // Slot de preço alinhado: por padrão um "$" discreto que, ao toque, revela o
-  // valor. Item "de um mercado só" (dedicado) não tem preço a comparar → mostra
-  // o nome do mercado escolhido, indicando que foi fixado num mercado.
+  // Slot de preço enxuto: por padrão SEMPRE um "$" estreito (deixa mais espaço
+  // pro nome do item). Ao tocar, expande e revela o texto — o preço (item
+  // comparado) ou o nome do mercado (item de um mercado só). Toca de novo esconde.
   Widget _slotPreco(
     ItemLista it,
-    Produto? p,
     bool dedicado,
     MapEntry<String, PrecoMercado>? menor,
     String? mercadoEfId,
     Map<String, Mercado> mercadosPorId,
   ) {
-    if (dedicado) {
-      final nome = mercadosPorId[mercadoEfId]?.nome;
-      return ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 104),
-        child: Text(
-          nome ?? '—',
-          textAlign: TextAlign.right,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 12,
-            color: it.comprado ? AppColors.dim2 : AppColors.dim,
-          ),
-        ),
-      );
-    }
-    // Sem preço cadastrado: "$" apagado (nada a revelar).
-    if (menor == null) {
+    // O que o "$" revela: o nome do mercado (dedicado) ou o preço (comparado).
+    final String? revelado = dedicado
+        ? mercadosPorId[mercadoEfId]?.nome
+        : (menor == null ? null : reais(menor.value.valor));
+
+    // Nada cadastrado ainda: "$" apagado, só avisa (não expande).
+    if (revelado == null) {
       return _botaoDollar(
         cor: AppColors.dim2,
         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
@@ -931,20 +920,28 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ),
       );
     }
-    // Com preço: revelado mostra o valor (toca p/ esconder); escondido, só o "$".
+
+    // Revelado: expande e "empurra" o nome (Expanded) pra caber o texto.
     if (_precoVisivel.contains(it.id)) {
       return GestureDetector(
         onTap: () => setState(() => _precoVisivel.remove(it.id)),
-        child: Text(
-          reais(menor.value.valor),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: it.comprado ? AppColors.dim : AppColors.text,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 150),
+          child: Text(
+            revelado,
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: dedicado ? 12.5 : 14,
+              fontWeight: dedicado ? FontWeight.w500 : FontWeight.w600,
+              color: it.comprado ? AppColors.dim : AppColors.text,
+            ),
           ),
         ),
       );
     }
+
+    // Colapsado: "$" estreito.
     return _botaoDollar(
       cor: it.comprado ? AppColors.dim2 : AppColors.dim,
       onTap: () => setState(() => _precoVisivel.add(it.id)),
@@ -955,8 +952,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     return IconButton(
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 28, minHeight: 22),
-      tooltip: 'Ver preço',
+      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+      tooltip: 'Ver preço/mercado',
       icon: Icon(Icons.attach_money, size: 18, color: cor),
       onPressed: onTap,
     );
