@@ -7,6 +7,16 @@ import 'palette.dart';
 ThemeData buildAppTheme(Palette p) {
   final base = ThemeData(brightness: p.brightness, useMaterial3: true);
 
+  // Barra inferior: com navAccent, o fundo é o acento e o texto é onGreen
+  // (contraste forte). Senão, fundo neutro (navBg) e acento só no item ativo.
+  final navBg = p.navAccent ? p.green : p.navBg;
+  final navSel = p.navAccent ? p.onGreen : p.green;
+  final navUnsel =
+      p.navAccent ? p.onGreen.withValues(alpha: 0.60) : p.dim2;
+  final navInd = p.navAccent
+      ? p.onGreen.withValues(alpha: 0.20)
+      : p.green.withValues(alpha: 0.15);
+
   return base.copyWith(
     scaffoldBackgroundColor: p.bg,
     colorScheme: ColorScheme(
@@ -36,21 +46,21 @@ ThemeData buildAppTheme(Palette p) {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: p.navBg,
-      indicatorColor: p.green.withValues(alpha: 0.15),
+      backgroundColor: navBg,
+      indicatorColor: navInd,
       elevation: 0,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: selected ? p.green : p.dim2,
+          color: selected ? navSel : navUnsel,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
-          color: selected ? p.green : p.dim2,
+          color: selected ? navSel : navUnsel,
         );
       }),
     ),

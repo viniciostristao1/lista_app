@@ -52,9 +52,9 @@ class AppStrings {
   String get idioma => _s('Idioma', 'Language');
   String get tema => _s('Tema', 'Theme');
   String nomeTema(Tema t) => switch (t) {
-        Tema.ambar => _s('Âmbar (atual)', 'Amber (current)'),
-        Tema.begeAreia => _s('Bege Areia', 'Sand Beige'),
-        Tema.claroAzul => _s('Claro Azul', 'Light Blue'),
+        Tema.ambar => _s('Âmbar', 'Amber'),
+        Tema.begeAreia => _s('Bege', 'Beige'),
+        Tema.claroAzul => _s('Azul', 'Blue'),
         Tema.ameixa => _s('Ameixa', 'Plum'),
       };
   String get tamanhoDaFonte => _s('Tamanho da fonte', 'Font size');
@@ -87,6 +87,12 @@ class AppStrings {
   String cadastrarEAdicionar(String nome) => en
       ? 'Add "$nome" to catalog'
       : 'Cadastrar "$nome" e adicionar';
+  String adicionarATodos(String nome) =>
+      en ? 'Add "$nome" to All' : 'Adicionar "$nome" à Todos';
+  String get adicionarECadastrarItem =>
+      _s('Adicionar e cadastrar item', 'Add and register item');
+  String cadastrarItem(String nome) =>
+      en ? 'Register "$nome"' : 'Cadastrar "$nome"';
   String get ouJaNumMercado => _s('Ou já num mercado:', 'Or at a specific store:');
   String get nenhumItemEncontrado =>
       _s('Nenhum item encontrado.', 'No items found.');

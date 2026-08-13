@@ -21,6 +21,7 @@ class Palette {
     required this.cardGrad1,
     required this.cardGrad2,
     required this.navBg,
+    this.navAccent = false,
   });
 
   final Brightness brightness;
@@ -40,6 +41,9 @@ class Palette {
   final Color cardGrad1; // gradiente dos cards de destaque (economia/resumo)
   final Color cardGrad2;
   final Color navBg; // fundo da barra de navegação inferior
+  // Se true, a barra inferior usa o ACENTO como fundo (com texto onGreen), pra
+  // dar contraste. Se false, usa navBg (fundo neutro) com o acento no item ativo.
+  final bool navAccent;
 }
 
 /// Os temas disponíveis (escolha do usuário em Configurações).
@@ -85,6 +89,7 @@ const _begeAreia = Palette(
   cardGrad1: Color(0xFFF8F1E3),
   cardGrad2: Color(0xFFF1E7D6),
   navBg: Color(0xFFEDE3D1),
+  navAccent: true, // barra inferior marrom
 );
 
 /// Claro Azul — tema claro, cartões brancos e acento azul.
@@ -106,6 +111,7 @@ const _claroAzul = Palette(
   cardGrad1: Color(0xFFFFFFFF),
   cardGrad2: Color(0xFFF0F4FC),
   navBg: Color(0xFFFFFFFF),
+  navAccent: true, // barra inferior azul
 );
 
 /// Ameixa — escuro, violeta suave.
@@ -127,6 +133,7 @@ const _ameixa = Palette(
   cardGrad1: Color(0xFF241C2D),
   cardGrad2: Color(0xFF1C1622),
   navBg: Color(0xFF120E18),
+  navAccent: true, // barra inferior ameixa
 );
 
 const temaPadrao = Tema.ambar;

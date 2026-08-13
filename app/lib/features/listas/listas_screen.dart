@@ -87,6 +87,28 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
+  // Adiciona à lista E abre o editor pra cadastrar preço/mercado/detalhes.
+  Future<void> _adicionarECadastrar(String nome) async {
+    final id = await ref
+        .read(produtosRepoProvider)
+        .criarProduto(nome: nome, categoria: Categoria.outros);
+    final listaRepo = ref.read(listasRepoProvider);
+    final atual = await listaRepo.obterOuCriarAtiva();
+    await listaRepo.adicionarItem(atual.id,
+        produtoId: id, nome: nome, categoria: Categoria.outros);
+    _buscaCtrl.clear();
+    setState(() => _busca = '');
+    if (!mounted) return;
+    final mercados =
+        ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
+    final p = Produto(
+        id: id,
+        nome: nome,
+        nomeLower: nome.toLowerCase(),
+        categoria: Categoria.outros);
+    await mostrarEditorProduto(context, p, mercados);
+  }
+
   // Mercados com o ⭐ preferido primeiro.
   List<Mercado> _mercadosOrdenados(List<Mercado> mercados) => [
         ...mercados.where((m) => m.preferencia),
@@ -221,20 +243,78 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.dim2,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              // Tema — 4 opções lado a lado (com prévia da cor).
               _tituloConfig(t.tema),
-              for (final tm in Tema.values) _opcaoTema(tm, temaAtual),
-              Divider(color: AppColors.lineStrong, height: 20),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < Tema.values.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      Expanded(
+                          child: _chipTema(
+                              Tema.values[i], Tema.values[i] == temaAtual)),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Idioma — lado a lado.
               _tituloConfig(t.idioma),
-              _opcaoIdioma('Português', false, en),
-              _opcaoIdioma('English', true, en),
-              Divider(color: AppColors.lineStrong, height: 20),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: _chipTexto('Português', !en,
+                            () => _aplicarConfig(() => ref
+                                .read(idiomaEnProvider.notifier)
+                                .definir(false)))),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: _chipTexto('English', en,
+                            () => _aplicarConfig(() => ref
+                                .read(idiomaEnProvider.notifier)
+                                .definir(true)))),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Tamanho da fonte — lado a lado.
               _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
-              _opcaoFonte(t.fonteMenor, 0.93, atual),
-              _opcaoFonte(t.fonteNormal, 1.035, atual),
-              _opcaoFonte(t.fonteMaior, 1.22, atual),
-              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                child: Row(
+                  children: [
+                    for (final o in [
+                      (t.fonteMenor, 0.93),
+                      (t.fonteNormal, 1.035),
+                      (t.fonteMaior, 1.22),
+                    ]) ...[
+                      if (o.$2 != 0.93) const SizedBox(width: 8),
+                      Expanded(
+                          child: _chipTexto(o.$1, (atual - o.$2).abs() < 0.001,
+                              () => _aplicarConfig(() => ref
+                                  .read(fontScaleProvider.notifier)
+                                  .definir(o.$2)))),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -242,97 +322,122 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  Widget _opcaoTema(Tema tm, Tema atual) {
-    final sel = tm == atual;
-    final p = paletteDoTema(tm);
-    return ListTile(
-      onTap: () {
-        ref.read(temaProvider.notifier).definir(tm);
-        Navigator.pop(context);
-      },
-      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
-          color: sel ? AppColors.green : AppColors.dim2),
-      // prévia do tema: fundo + acento do tema
-      trailing: Container(
-        width: 46,
-        height: 26,
-        decoration: BoxDecoration(
-          color: p.bg,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(color: AppColors.lineStrong),
-        ),
-        child: Center(
-          child: Container(
-            width: 14,
-            height: 14,
-            decoration: BoxDecoration(color: p.green, shape: BoxShape.circle),
-          ),
-        ),
-      ),
-      title: Text(_t.nomeTema(tm),
-          style: TextStyle(
-              color: sel ? AppColors.green : AppColors.text,
-              fontSize: 15,
-              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
-    );
+  // Aplica uma mudança de config e fecha a folha (a árvore repinta atrás).
+  void _aplicarConfig(VoidCallback acao) {
+    acao();
+    Navigator.pop(context);
   }
 
   Widget _tituloConfig(String titulo, {String? sub}) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, sub == null ? 6 : 2),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(titulo,
-                style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600)),
-            if (sub != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2, bottom: 6),
-                child: Text(sub,
-                    style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
-              ),
-          ],
-        ),
+      padding: EdgeInsets.fromLTRB(20, 0, 20, sub == null ? 8 : 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(titulo,
+              style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600)),
+          if (sub != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 1, bottom: 8),
+              child: Text(sub,
+                  style: TextStyle(color: AppColors.dim, fontSize: 12)),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _opcaoIdioma(String label, bool valor, bool atual) {
-    final sel = valor == atual;
-    return ListTile(
-      onTap: () {
-        ref.read(idiomaEnProvider.notifier).definir(valor);
-        Navigator.pop(context);
-      },
-      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
-          color: sel ? AppColors.green : AppColors.dim2),
-      title: Text(label,
-          style: TextStyle(
-              color: sel ? AppColors.green : AppColors.text,
-              fontSize: 15,
-              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
+  // Chip de texto (idioma / fonte): pílula preenchida quando selecionada.
+  Widget _chipTexto(String label, bool sel, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: sel ? AppColors.green : AppColors.bg,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(
+              color: sel ? AppColors.green : AppColors.lineStrong),
+        ),
+        child: Text(label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13.5,
+              color: sel ? AppColors.onGreen : AppColors.text,
+              fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+            )),
+      ),
     );
   }
 
-  Widget _opcaoFonte(String label, double v, double atual) {
-    final sel = (atual - v).abs() < 0.001;
-    return ListTile(
-      onTap: () {
-        ref.read(fontScaleProvider.notifier).definir(v);
-        Navigator.pop(context);
-      },
-      leading: Icon(sel ? Icons.radio_button_checked : Icons.radio_button_off,
-          color: sel ? AppColors.green : AppColors.dim2),
-      title: Text(label,
-          style: TextStyle(
-              color: sel ? AppColors.green : AppColors.text,
-              fontSize: 15 * v,
-              fontWeight: sel ? FontWeight.w700 : FontWeight.w500)),
+  // Chip de tema: prévia (fundo + acento + faixa da barra inferior) + nome curto.
+  Widget _chipTema(Tema tm, bool sel) {
+    final p = paletteDoTema(tm);
+    return GestureDetector(
+      onTap: () => _aplicarConfig(
+          () => ref.read(temaProvider.notifier).definir(tm)),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(5, 6, 5, 7),
+        decoration: BoxDecoration(
+          color: sel ? AppColors.green.withValues(alpha: 0.12) : AppColors.bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: sel ? AppColors.green : AppColors.lineStrong,
+            width: sel ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // prévia do tema: fundo, bolinha do acento e faixa da barra inferior
+            Container(
+              width: double.infinity,
+              height: 34,
+              decoration: BoxDecoration(
+                color: p.bg,
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: AppColors.lineStrong),
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                            color: p.green, shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: p.navAccent ? p.green : p.navBg,
+                      borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(6)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(_t.nomeTema(tm),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: sel ? AppColors.green : AppColors.dim,
+                  fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -636,16 +741,19 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
     return [
       for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id)),
-      // Item novo (não existe ainda): cadastrar solto OU já num mercado.
+      // Item novo (não existe ainda): duas ações + já num mercado.
       if (q.isNotEmpty && !exato) ...[
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: TextButton.icon(
-            onPressed: () => _cadastrarEAdicionar(_buscaCtrl.text.trim()),
-            icon: Icon(Icons.add, size: 18, color: AppColors.green),
-            label: Text(_t.cadastrarEAdicionar(_buscaCtrl.text.trim()),
-                style: TextStyle(color: AppColors.green)),
-          ),
+        // 1) adiciona rápido à lista (item solto, aparece em "Todos")
+        _acaoAdicionar(
+          Icons.add,
+          _t.adicionarATodos(_buscaCtrl.text.trim()),
+          () => _cadastrarEAdicionar(_buscaCtrl.text.trim()),
+        ),
+        // 2) adiciona e já abre o cadastro (preço/mercado/detalhes)
+        _acaoAdicionar(
+          Icons.sell_outlined,
+          _t.adicionarECadastrarItem,
+          () => _adicionarECadastrar(_buscaCtrl.text.trim()),
         ),
         if (mercados.isNotEmpty)
           Padding(
@@ -677,6 +785,22 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
         ),
     ];
+  }
+
+  // Uma ação de "item novo" no mesmo formato (ícone + texto verde).
+  Widget _acaoAdicionar(IconData icon, String label, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: TextButton.icon(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        ),
+        icon: Icon(icon, size: 18, color: AppColors.green),
+        label: Text(label, style: TextStyle(color: AppColors.green)),
+      ),
+    );
   }
 
   Widget _chipCadastrarMercado(Mercado m) {

@@ -15,22 +15,28 @@ import 'package:lista_app/util/format.dart';
 Future<void> mostrarEditorProduto(
   BuildContext context,
   Produto? produto,
-  List<Mercado> mercados,
-) {
+  List<Mercado> mercados, {
+  String? nomeInicial,
+}) {
   return Navigator.push<void>(
     context,
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => ProdutoEditorScreen(produto: produto, mercados: mercados),
+      builder: (_) => ProdutoEditorScreen(
+          produto: produto, mercados: mercados, nomeInicial: nomeInicial),
     ),
   );
 }
 
 class ProdutoEditorScreen extends ConsumerStatefulWidget {
-  const ProdutoEditorScreen({super.key, this.produto, required this.mercados});
+  const ProdutoEditorScreen(
+      {super.key, this.produto, required this.mercados, this.nomeInicial});
 
   final Produto? produto;
   final List<Mercado> mercados;
+
+  /// Nome pré-preenchido ao cadastrar um item NOVO (produto == null).
+  final String? nomeInicial;
 
   @override
   ConsumerState<ProdutoEditorScreen> createState() =>
@@ -60,7 +66,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
   @override
   void initState() {
     super.initState();
-    _nome = TextEditingController(text: _p?.nome ?? '');
+    _nome = TextEditingController(text: _p?.nome ?? widget.nomeInicial ?? '');
     _marca = TextEditingController(text: _p?.marca ?? '');
     _tamanho = TextEditingController(text: _p?.tamanho ?? '');
     _unidade = TextEditingController(text: _p?.unidade ?? '');

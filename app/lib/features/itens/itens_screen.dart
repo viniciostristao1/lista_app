@@ -21,7 +21,8 @@ class ItensScreen extends ConsumerStatefulWidget {
 }
 
 class _ItensScreenState extends ConsumerState<ItensScreen> {
-  String _busca = '';
+  String _busca = ''; // minúsculo, p/ comparação
+  String _buscaRaw = ''; // como digitado, p/ pré-preencher o cadastro
 
   /// Assinatura do conjunto de mercados já higienizado (evita repetir a limpeza).
   String? _limpezaFeitaPara;
@@ -62,7 +63,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: TextField(
-              onChanged: (v) => setState(() => _busca = v.trim().toLowerCase()),
+              onChanged: (v) => setState(() {
+                _buscaRaw = v.trim();
+                _busca = _buscaRaw.toLowerCase();
+              }),
               style: TextStyle(color: AppColors.text, fontSize: 14),
               decoration: InputDecoration(
                 hintText: t.buscarItem,
@@ -134,12 +138,22 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 final lista = _busca.isEmpty
                     ? todos
                     : todos.where((p) => p.nomeLower.contains(_busca)).toList();
-                if (todos.isEmpty) return _vazio();
+                if (todos.isEmpty && _busca.isEmpty) return _vazio();
+                // Palavra nova (sem item igual): oferece cadastrar no topo.
+                final exato =
+                    _busca.isNotEmpty && todos.any((p) => p.nomeLower == _busca);
+                final mostrarCadastrar = _busca.isNotEmpty && !exato;
+                final extra = mostrarCadastrar ? 1 : 0;
                 return ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 100),
-                  itemCount: lista.length,
-                  itemBuilder: (_, i) =>
-                      _cardProduto(lista[i], mercados, mercadosPorId),
+                  itemCount: lista.length + extra,
+                  itemBuilder: (_, i) {
+                    if (mostrarCadastrar && i == 0) {
+                      return _cardCadastrarNovo(mercados);
+                    }
+                    return _cardProduto(
+                        lista[i - extra], mercados, mercadosPorId);
+                  },
                 );
               },
             ),
@@ -392,6 +406,42 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                   fontSize: 13,
                   fontWeight: FontWeight.w700)),
         ],
+      ),
+    );
+  }
+
+  // Buscou uma palavra que não existe no catálogo → oferece cadastrar,
+  // já abrindo o editor com o nome preenchido.
+  Widget _cardCadastrarNovo(List<Mercado> mercados) {
+    final t = ref.watch(stringsProvider);
+    final nome = capitalizar(_buscaRaw);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppColors.green.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(13),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: () =>
+              mostrarEditorProduto(context, null, mercados, nomeInicial: nome),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.add_circle_outline,
+                    color: AppColors.green, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(t.cadastrarItem(nome),
+                      style: TextStyle(
+                          color: AppColors.green,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
