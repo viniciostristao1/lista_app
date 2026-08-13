@@ -20,7 +20,7 @@ histórico de pedidos e login Google. Feito em Flutter, dados na nuvem (Firebase
 > "Not Found", é só abrir a **página de releases** e clicar no APK do topo:
 > https://github.com/viniciostristao1/lista_app/releases/latest
 
-**Versão atual (A):** `v0.40.0-teste45` — *4 temas com barra inferior colorida + Configurações lado a lado + adicionar item com 2 opções (Listas) e "Cadastrar" na aba Itens + Inglês/Português + "$" estreito.*
+**Versão atual (A):** `v0.41.0-teste46` — *4 temas com barra inferior colorida + Configurações lado a lado + adicionar item com 2 opções (Listas) e "Cadastrar" na aba Itens + Inglês/Português + "$" estreito.*
 **Fallback testado (B):** `v0.13.0-teste16`.
 Histórico completo do que mudou → [**ATUALIZACOES.md**](ATUALIZACOES.md).
 

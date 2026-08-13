@@ -118,7 +118,8 @@ class AppStrings {
 
   // ---------- tela Itens / comparador ----------
   String get itensComparador => _s('Itens | Comparador', 'Items | Compare');
-  String get buscarItem => _s('Buscar item…', 'Search item…');
+  String get buscarItem =>
+      _s('Buscar item ou cadastrar', 'Search or register item');
   String get mercados => _s('Mercados', 'Stores');
   String get calculadora => _s('Calculadora', 'Calculator');
   String get categorias => _s('Categorias', 'Categories');

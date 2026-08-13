@@ -49,6 +49,10 @@ ThemeData buildAppTheme(Palette p) {
       backgroundColor: navBg,
       indicatorColor: navInd,
       elevation: 0,
+      // Barra mais baixa: corta o espaço vazio do padrão (80) sem mexer no
+      // tamanho da fonte nem no ícone → sobra mais área útil pra lista.
+      // 60 dá margem pra não cortar o rótulo no ajuste de fonte "Maior".
+      height: 60,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
