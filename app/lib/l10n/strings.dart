@@ -319,8 +319,7 @@ class AppStrings {
   String get categoria => _s('Categoria', 'Category', 'Categoría');
   String get observacoesOpcional => _s(
       'Observações (opcional)', 'Notes (optional)', 'Observaciones (opcional)');
-  String get observacoesAtualizadasEm => _s('Observações atualizadas em',
-      'Notes updated on', 'Observaciones actualizadas el');
+  String get atualizadasEm => _s('Atualizadas em', 'Updated on', 'Actualizadas el');
   String get exObservacoes => _s(
       'Ex: marca preferida, ponto da fruta, promoção…',
       'e.g. preferred brand, ripeness, on sale…',

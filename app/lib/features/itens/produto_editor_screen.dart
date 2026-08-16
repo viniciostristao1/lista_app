@@ -337,7 +337,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
               // observação salva (produtos antigos caem no updatedAt).
               if (_p?.observacoes != null && _p!.observacoesData != null)
                 Text(
-                  '${t.observacoesAtualizadasEm} '
+                  '${t.atualizadasEm} '
                   '${dataCompleta(_p!.observacoesData!)}',
                   style: TextStyle(
                       color: AppColors.dim2,
