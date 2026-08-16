@@ -230,7 +230,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   void _mostrarConfig() {
     final t = _t;
     final atual = ref.read(fontScaleProvider);
-    final en = ref.read(idiomaEnProvider);
+    final idioma = ref.read(idiomaProvider);
     final temaAtual = ref.read(temaProvider);
     showModalBottomSheet(
       context: context,
@@ -273,22 +273,23 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               ),
               const SizedBox(height: 14),
               // Idioma — lado a lado.
-              _tituloConfig(t.idioma),
+              _tituloConfig(t.tituloIdioma),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
                 child: Row(
                   children: [
-                    Expanded(
-                        child: _chipTexto('Português', !en,
-                            () => _aplicarConfig(() => ref
-                                .read(idiomaEnProvider.notifier)
-                                .definir(false)))),
-                    const SizedBox(width: 8),
-                    Expanded(
-                        child: _chipTexto('English', en,
-                            () => _aplicarConfig(() => ref
-                                .read(idiomaEnProvider.notifier)
-                                .definir(true)))),
+                    for (final o in [
+                      ('Português', Idioma.pt),
+                      ('English', Idioma.en),
+                      ('Español', Idioma.es),
+                    ]) ...[
+                      if (o.$2 != Idioma.pt) const SizedBox(width: 8),
+                      Expanded(
+                          child: _chipTexto(o.$1, idioma == o.$2,
+                              () => _aplicarConfig(() => ref
+                                  .read(idiomaProvider.notifier)
+                                  .definir(o.$2)))),
+                    ],
                   ],
                 ),
               ),

@@ -129,6 +129,12 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     try {
       final repo = ref.read(produtosRepoProvider);
       final eraRecorrente = _p?.fixado ?? false;
+      // Data das observações: carimba "agora" ao criar com obs ou ao mudar o
+      // texto; mantém a data antiga se o texto não mudou; zera ao apagar.
+      final obs = _nuloSeVazio(_obs);
+      final obsData = obs == null
+          ? null
+          : (obs != _p?.observacoes ? DateTime.now() : _p?.observacoesAtualizadasEm);
       final String id;
       if (_editando) {
         id = _p!.id;
@@ -139,7 +145,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           marca: _nuloSeVazio(_marca),
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
-          observacoes: _nuloSeVazio(_obs),
+          observacoes: obs,
+          observacoesAtualizadasEm: obsData,
           fixado: _recorrente,
           mercadoFixo: _mercadoFixo,
         );
@@ -150,7 +157,8 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
           marca: _nuloSeVazio(_marca),
           tamanho: _nuloSeVazio(_tamanho),
           unidade: _nuloSeVazio(_unidade),
-          observacoes: _nuloSeVazio(_obs),
+          observacoes: obs,
+          observacoesAtualizadasEm: obsData,
           fixado: _recorrente,
           mercadoFixo: _mercadoFixo,
         );
@@ -321,7 +329,23 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             ],
           ),
           const SizedBox(height: 22),
-          _label(t.observacoesOpcional),
+          Row(
+            children: [
+              _label(t.observacoesOpcional),
+              const Spacer(),
+              // Data da última observação gravada — mostra só quando há uma
+              // observação salva (produtos antigos caem no updatedAt).
+              if (_p?.observacoes != null && _p!.observacoesData != null)
+                Text(
+                  '${t.observacoesAtualizadasEm} '
+                  '${dataCompleta(_p!.observacoesData!)}',
+                  style: TextStyle(
+                      color: AppColors.dim2,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500),
+                ),
+            ],
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: _obs,

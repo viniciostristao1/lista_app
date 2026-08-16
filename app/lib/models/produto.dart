@@ -27,6 +27,8 @@ class Produto {
     this.tamanho,
     this.unidade,
     this.observacoes,
+    this.observacoesAtualizadasEm,
+    this.updatedAt,
     this.fixado = false,
     this.mercadoFixo,
     this.ultimoPreco,
@@ -43,6 +45,13 @@ class Produto {
   final String? tamanho;
   final String? unidade;
   final String? observacoes;
+
+  /// Quando as [observacoes] foram escritas/atualizadas pela última vez.
+  final DateTime? observacoesAtualizadasEm;
+
+  /// Última modificação de qualquer campo (fallback p/ a data de observações
+  /// de produtos antigos, criados antes de existir [observacoesAtualizadasEm]).
+  final DateTime? updatedAt;
 
   /// Fixado = "recorrente": não sai da lista ao "Finalizar compra" (só por
   /// exclusão manual). No modelo atual, recorrente sempre tem [mercadoFixo].
@@ -102,6 +111,10 @@ class Produto {
     return ord.map((e) => e.value.data).reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
+  /// Data da última observação gravada. Produtos antigos (sem a marca) caem
+  /// no [updatedAt] para não ficarem sem data.
+  DateTime? get observacoesData => observacoesAtualizadasEm ?? updatedAt;
+
   factory Produto.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? const {};
     final precosRaw = (d['precos'] as Map<String, dynamic>?) ?? const {};
@@ -123,6 +136,9 @@ class Produto {
       tamanho: d['tamanho'] as String?,
       unidade: d['unidade'] as String?,
       observacoes: d['observacoes'] as String?,
+      observacoesAtualizadasEm:
+          (d['observacoesAtualizadasEm'] as Timestamp?)?.toDate(),
+      updatedAt: (d['updatedAt'] as Timestamp?)?.toDate(),
       fixado: (d['fixado'] as bool?) ?? false,
       mercadoFixo: d['mercadoFixo'] as String?,
       ultimoPreco: (d['ultimoPreco'] as num?)?.toDouble(),

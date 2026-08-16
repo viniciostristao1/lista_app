@@ -28,6 +28,7 @@ class ProdutosRepository {
     String? tamanho,
     String? unidade,
     String? observacoes,
+    DateTime? observacoesAtualizadasEm,
     bool fixado = false,
     String? mercadoFixo,
   }) async {
@@ -39,6 +40,9 @@ class ProdutosRepository {
       'tamanho': tamanho,
       'unidade': unidade,
       'observacoes': observacoes,
+      'observacoesAtualizadasEm': observacoesAtualizadasEm == null
+          ? null
+          : Timestamp.fromDate(observacoesAtualizadasEm),
       'fixado': fixado,
       'mercadoFixo': mercadoFixo,
       'vezesComprado': 0,
@@ -57,6 +61,7 @@ class ProdutosRepository {
     String? tamanho,
     String? unidade,
     String? observacoes,
+    DateTime? observacoesAtualizadasEm,
     bool fixado = false,
     String? mercadoFixo,
   }) {
@@ -68,6 +73,9 @@ class ProdutosRepository {
       'tamanho': tamanho,
       'unidade': unidade,
       'observacoes': observacoes,
+      'observacoesAtualizadasEm': observacoesAtualizadasEm == null
+          ? null
+          : Timestamp.fromDate(observacoesAtualizadasEm),
       'fixado': fixado,
       'mercadoFixo': mercadoFixo,
       'updatedAt': Timestamp.now(),

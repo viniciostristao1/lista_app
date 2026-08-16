@@ -76,38 +76,59 @@ final categoriaOrdemProvider =
     NotifierProvider<CategoriaOrdemNotifier, List<Categoria>>(
         CategoriaOrdemNotifier.new);
 
-/// Idioma do app: `true` = inglês, `false` = português. Guardado no aparelho.
-/// Padrão na 1ª vez: segue o idioma do aparelho (pt → português; senão inglês).
-class IdiomaNotifier extends Notifier<bool> {
-  static const _key = 'idiomaEn';
+/// Idioma do app. Guardado no aparelho. Padrão na 1ª vez: segue o idioma do
+/// aparelho (pt → português, es → espanhol; senão inglês).
+class IdiomaNotifier extends Notifier<Idioma> {
+  static const _key = 'idioma';
+
+  /// Chave antiga (booleano `en`) — só para migrar quem já escolheu inglês.
+  static const _keyLegacy = 'idiomaEn';
 
   @override
-  bool build() {
+  Idioma build() {
     _restaurar();
     final loc =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    return loc != 'pt';
+    return switch (loc) {
+      'pt' => Idioma.pt,
+      'es' => Idioma.es,
+      _ => Idioma.en,
+    };
   }
 
   Future<void> _restaurar() async {
     final p = await SharedPreferences.getInstance();
-    final v = p.getBool(_key);
-    if (v != null) state = v;
+    // Migração única da chave antiga (booleano `en`): converte e apaga, pra
+    // não ter prioridade eterna sobre a escolha nova de idioma.
+    final legado = p.getBool(_keyLegacy);
+    if (legado != null) {
+      state = legado ? Idioma.en : Idioma.pt;
+      await p.remove(_keyLegacy);
+      await p.setString(_key, state.name);
+      return;
+    }
+    final v = p.getString(_key);
+    if (v == null) return;
+    for (final i in Idioma.values) {
+      if (i.name == v) {
+        state = i;
+        return;
+      }
+    }
   }
 
-  Future<void> definir(bool en) async {
-    state = en;
+  Future<void> definir(Idioma idioma) async {
+    state = idioma;
     final p = await SharedPreferences.getInstance();
-    await p.setBool(_key, en);
+    await p.setString(_key, idioma.name);
   }
 }
 
-final idiomaEnProvider =
-    NotifierProvider<IdiomaNotifier, bool>(IdiomaNotifier.new);
+final idiomaProvider = NotifierProvider<IdiomaNotifier, Idioma>(IdiomaNotifier.new);
 
 /// Textos do app no idioma atual. Assista este provider e use `t.xxx`.
 final stringsProvider =
-    Provider<AppStrings>((ref) => AppStrings(ref.watch(idiomaEnProvider)));
+    Provider<AppStrings>((ref) => AppStrings(ref.watch(idiomaProvider)));
 
 /// Tema escolhido pelo usuário (cores do app). Guardado no aparelho.
 class TemaNotifier extends Notifier<Tema> {

@@ -36,6 +36,10 @@ String valorEditavel(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
 String diaMes(DateTime d) =>
     '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
 
+/// Data completa dia/mês/ano: 2026-07-05 -> "05/07/2026".
+String dataCompleta(DateTime d) =>
+    '${diaMes(d)}/${d.year.toString().padLeft(4, '0')}';
+
 /// Lê um preço digitado ("18,50", "1.234,56", "18.5") -> double? (null se vazio).
 double? parsePreco(String texto) {
   var t = texto.replaceAll(RegExp(r'[^0-9.,]'), '');
