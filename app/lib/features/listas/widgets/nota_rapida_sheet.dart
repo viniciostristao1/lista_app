@@ -4,14 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/theme/app_colors.dart';
 
 /// Caixinha de "nota rápida / recado": um campo de texto que cresce conforme o
 /// usuário dá enter ou escreve mais linhas, com uma barra de ferramentas
-/// (copiar, limpar, fechar, to do). O "to do" liga/desliga uma caixinha de
-/// seleção única — igual aos itens da lista, dá pra marcar e desmarcar.
-/// Persiste no aparelho via [notaRapidaProvider] (ver prefs.dart).
+/// (copiar, limpar, fechar, to do). O "to do" transforma o recado numa
+/// **checklist**: cada linha vira um item com sua própria caixinha de seleção
+/// (marca/desmarca igual aos itens da lista); dar **enter** cria uma nova linha
+/// marcável, e **backspace** numa linha vazia junta com a de cima. Persiste no
+/// aparelho via [notaRapidaProvider] (ver prefs.dart).
 Future<void> mostrarNotaRapida(BuildContext context) {
   return showModalBottomSheet(
     context: context,
@@ -24,6 +27,25 @@ Future<void> mostrarNotaRapida(BuildContext context) {
   );
 }
 
+/// Uma linha da checklist no modo "to do": texto (com controller/foco próprios)
+/// + estado marcado.
+class _LinhaTodo {
+  _LinhaTodo({String texto = '', this.feito = false})
+      : ctrl = TextEditingController(text: texto),
+        foco = FocusNode();
+
+  final TextEditingController ctrl;
+  final FocusNode foco;
+  bool feito;
+
+  String get texto => ctrl.text;
+
+  void dispose() {
+    ctrl.dispose();
+    foco.dispose();
+  }
+}
+
 class _NotaRapidaSheet extends ConsumerStatefulWidget {
   const _NotaRapidaSheet();
 
@@ -32,11 +54,12 @@ class _NotaRapidaSheet extends ConsumerStatefulWidget {
 }
 
 class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
+  // Modo texto livre: um controller só. Modo "to do": uma lista de linhas.
   late final TextEditingController _ctrl;
+  final List<_LinhaTodo> _linhas = [];
   // Capturado no initState pra poder gravar no dispose sem tocar em `ref` lá.
   late final NotaRapidaNotifier _notifier;
   late bool _todo;
-  late bool _feito;
 
   // Feedback visível do "Copiar" (um snackbar ficaria escondido atrás da
   // folha): o botão vira ✓ "Copiado!" por ~1,2s.
@@ -50,29 +73,62 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     final n = ref.read(notaRapidaProvider);
     _ctrl = TextEditingController(text: n.texto);
     _todo = n.todo;
-    _feito = n.feito;
+    if (_todo) _montarLinhas(n.texto, n.feitos);
   }
 
   @override
   void dispose() {
     _copiadoTimer?.cancel();
-    // Backup: garante que a última edição de texto seja salva mesmo se a folha
-    // for fechada arrastando pra baixo (sem passar pelo botão "Fechar").
+    // Backup: garante que a última edição seja salva mesmo se a folha for
+    // fechada arrastando pra baixo (sem passar pelo botão "Fechar").
     _persistir();
     _ctrl.dispose();
+    for (final l in _linhas) {
+      l.dispose();
+    }
     super.dispose();
   }
 
+  // ---------- conversão texto livre <-> checklist ----------
+
+  // Cria as linhas da checklist a partir do texto (uma por '\n'). O marcado
+  // de cada linha vem de [feitos] (alinhado por índice), senão desmarcado.
+  void _montarLinhas(String texto, List<bool> feitos) {
+    _descartarLinhas();
+    final partes = texto.isEmpty ? [''] : texto.split('\n');
+    for (var i = 0; i < partes.length; i++) {
+      _linhas.add(_LinhaTodo(
+        texto: partes[i],
+        feito: i < feitos.length ? feitos[i] : false,
+      ));
+    }
+  }
+
+  void _descartarLinhas() {
+    for (final l in _linhas) {
+      l.dispose();
+    }
+    _linhas.clear();
+  }
+
+  String get _textoAtual =>
+      _todo ? _linhas.map((l) => l.texto).join('\n') : _ctrl.text;
+
+  List<bool> get _feitosAtual =>
+      _todo ? _linhas.map((l) => l.feito).toList() : const [];
+
   void _persistir() {
     _notifier.salvar(NotaRapida(
-      texto: _ctrl.text,
+      texto: _textoAtual,
       todo: _todo,
-      feito: _feito,
+      feitos: _feitosAtual,
     ));
   }
 
+  // ---------- ações da barra ----------
+
   void _copiar() {
-    Clipboard.setData(ClipboardData(text: _ctrl.text));
+    Clipboard.setData(ClipboardData(text: _textoAtual));
     setState(() => _copiadoAgora = true);
     _copiadoTimer?.cancel();
     _copiadoTimer = Timer(const Duration(milliseconds: 1200), () {
@@ -83,7 +139,10 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   void _limpar() {
     setState(() {
       _ctrl.clear();
-      _feito = false;
+      if (_todo) {
+        _descartarLinhas();
+        _linhas.add(_LinhaTodo());
+      }
     });
     _persistir();
   }
@@ -93,19 +152,81 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     Navigator.of(context).pop();
   }
 
-  // Liga/desliga a caixinha de seleção. Ao desligar, some a seleção (e zera o
-  // "marcado", pra não voltar marcada da próxima vez).
+  // Liga/desliga o modo checklist, preservando o texto entre os dois modos.
   void _alternarTodo() {
     setState(() {
-      _todo = !_todo;
-      if (!_todo) _feito = false;
+      if (_todo) {
+        // checklist -> texto livre
+        _ctrl.text = _textoAtual;
+        _descartarLinhas();
+        _todo = false;
+      } else {
+        // texto livre -> checklist
+        _montarLinhas(_ctrl.text, const []);
+        _todo = true;
+      }
     });
+    _persistir();
+    // Foca algo sensato após trocar de modo.
+    if (_todo && _linhas.isNotEmpty) {
+      _focarLinha(_linhas.length - 1);
+    }
+  }
+
+  void _alternarFeito(int i) {
+    setState(() => _linhas[i].feito = !_linhas[i].feito);
     _persistir();
   }
 
-  void _alternarFeito() {
-    setState(() => _feito = !_feito);
+  // ---------- edição das linhas da checklist ----------
+
+  // Enter (onSubmitted) numa linha cria a PRÓXIMA linha marcável. O texto após
+  // o cursor migra pra linha nova (Enter no fim = linha nova vazia). Usar
+  // onSubmitted (e não detectar '\n' no onChanged) é o que funciona igual nos
+  // teclados virtual e físico — é o mesmo padrão do campo de busca do app.
+  void _novaLinhaApos(int i) {
+    final l = _linhas[i];
+    final texto = l.ctrl.text;
+    final sel = l.ctrl.selection.baseOffset;
+    final corte = (sel >= 0 && sel <= texto.length) ? sel : texto.length;
+    setState(() {
+      l.ctrl.text = texto.substring(0, corte);
+      _linhas.insert(i + 1, _LinhaTodo(texto: texto.substring(corte)));
+    });
+    _focarLinha(i + 1, inicio: true);
     _persistir();
+  }
+
+  // Backspace no começo de uma linha VAZIA junta com a linha de cima (remove a
+  // linha atual e leva o cursor pro fim da anterior). Best-effort: em alguns
+  // teclados virtuais o backspace-em-vazio pode não chegar como evento — aí a
+  // linha só fica vazia (sem quebrar nada).
+  KeyEventResult _aoTeclarLinha(int i, KeyEvent event) {
+    final ehBackspace = event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace;
+    if (ehBackspace && _linhas[i].texto.isEmpty && _linhas.length > 1) {
+      final anteriorIdx = i - 1 >= 0 ? i - 1 : 0;
+      final posCursor = i - 1 >= 0 ? _linhas[anteriorIdx].texto.length : 0;
+      setState(() {
+        final removida = _linhas.removeAt(i);
+        removida.dispose();
+      });
+      _focarLinha(anteriorIdx, offset: posCursor);
+      _persistir();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  // Foca a linha [i] após o frame (a árvore precisa existir primeiro).
+  void _focarLinha(int i, {bool inicio = false, int? offset}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || i < 0 || i >= _linhas.length) return;
+      final l = _linhas[i];
+      l.foco.requestFocus();
+      final pos = offset ?? (inicio ? 0 : l.texto.length);
+      l.ctrl.selection = TextSelection.collapsed(offset: pos);
+    });
   }
 
   @override
@@ -154,51 +275,13 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: Container(
                 constraints: BoxConstraints(maxHeight: maxAltura),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.bg,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.line),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_todo) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: _checkbox(),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    Expanded(
-                      child: TextField(
-                        controller: _ctrl,
-                        autofocus: true,
-                        minLines: 2,
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        textCapitalization: TextCapitalization.sentences,
-                        onChanged: (_) => setState(() {}),
-                        style: TextStyle(
-                          color: _feito ? AppColors.dim : AppColors.text,
-                          fontSize: 15,
-                          height: 1.35,
-                          decoration:
-                              _feito ? TextDecoration.lineThrough : null,
-                          decorationColor: AppColors.dim2,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: t.notaRapidaHint,
-                          hintStyle:
-                              TextStyle(color: AppColors.dim2, fontSize: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _todo ? _campoChecklist(t) : _campoLivre(t),
               ),
             ),
             // Barra de ferramentas.
@@ -232,24 +315,103 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     );
   }
 
-  // Caixinha de seleção do recado — mesmo visual do checkbox dos itens.
-  Widget _checkbox() {
+  // Texto livre: um campo multilinha que cresce.
+  Widget _campoLivre(AppStrings t) {
+    return TextField(
+      controller: _ctrl,
+      autofocus: true,
+      minLines: 2,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      textCapitalization: TextCapitalization.sentences,
+      onChanged: (_) => setState(() {}),
+      style: TextStyle(color: AppColors.text, fontSize: 15, height: 1.35),
+      decoration: InputDecoration(
+        isDense: true,
+        border: InputBorder.none,
+        hintText: t.notaRapidaHint,
+        hintStyle: TextStyle(color: AppColors.dim2, fontSize: 14),
+      ),
+    );
+  }
+
+  // Checklist: uma linha marcável por item (rola quando passa do teto).
+  Widget _campoChecklist(AppStrings t) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < _linhas.length; i++) _linhaChecklist(i, t),
+        ],
+      ),
+    );
+  }
+
+  Widget _linhaChecklist(int i, AppStrings t) {
+    final l = _linhas[i];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _checkbox(l.feito, () => _alternarFeito(i)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Focus(
+              onKeyEvent: (_, event) => _aoTeclarLinha(i, event),
+              child: TextField(
+                controller: l.ctrl,
+                focusNode: l.foco,
+                autofocus: i == 0 && l.texto.isEmpty,
+                maxLines: 1,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                textCapitalization: TextCapitalization.sentences,
+                // Mantém o teclado aberto e cria a próxima linha (não deixa o
+                // "next" padrão pular o foco pra outro campo).
+                onEditingComplete: () => _novaLinhaApos(i),
+                style: TextStyle(
+                  color: l.feito ? AppColors.dim : AppColors.text,
+                  fontSize: 15,
+                  height: 1.3,
+                  decoration:
+                      l.feito ? TextDecoration.lineThrough : null,
+                  decorationColor: AppColors.dim2,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: i == 0 ? t.notaRapidaHint : null,
+                  hintStyle:
+                      TextStyle(color: AppColors.dim2, fontSize: 14),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Caixinha de seleção — mesmo visual do checkbox dos itens da lista.
+  Widget _checkbox(bool feito, VoidCallback onTap) {
     return GestureDetector(
-      onTap: _alternarFeito,
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         width: 20,
         height: 20,
         decoration: BoxDecoration(
-          color: _feito ? AppColors.green : Colors.transparent,
+          color: feito ? AppColors.green : Colors.transparent,
           borderRadius: BorderRadius.circular(7),
           border: Border.all(
-            color: _feito ? AppColors.green : AppColors.dim2,
+            color: feito ? AppColors.green : AppColors.dim2,
             width: 2,
           ),
         ),
-        child: _feito
+        child: feito
             ? Icon(Icons.check, size: 15, color: AppColors.onGreen)
             : null,
       ),

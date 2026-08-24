@@ -39,6 +39,16 @@ retrabalho e mantém o link fixo do APK funcionando.
 6. **Entregar** — mandar pro usuário o **link fixo** (não um link "versão X"). O changelog vive
    no `ATUALIZACOES.md`/`README.md` que ele atualiza no navegador.
 
+> ⚠️ **SEMPRE FECHAR O CICLO — nunca parar no meio.** Um pedido só está "pronto" quando
+> **todas** as 6 etapas acima foram feitas: código → analyze → push → **CI verde** →
+> **`release.sh` cortado** → **docs (ATUALIZACOES + README + INICIO) bumpados** → link entregue.
+> Não escreva a linha do changelog antes de cortar a release, e não deixe a sessão acabar
+> após o push sem rodar o `release.sh`. **Incidente real:** a `v0.42.0-teste47` (Espanhol,
+> 16/08) foi codada, pushada e buildada com sucesso, mas o `release.sh` nunca rodou e o
+> README/INICIO não foram bumpados → o link fixo ficou preso na `v0.41` por 8 dias, e o ES só
+> chegou ao usuário na `v0.43` (24/08). Se precisar interromper, avise explicitamente em que
+> etapa parou.
+
 **Convenção de versão:** `vMAJOR.MINOR.PATCH-testeN` (N = contador de teste sequencial).
 Toda mudança visível ganha um `MINOR` novo. `B` (fallback testado) **nunca** é sobrescrita.
 
@@ -59,9 +69,10 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.43.0-teste48`** — candidata a lançamento (**"Save List"** = nome novo + **logo no título** da aba Listas ·
+  **A = `v0.44.0-teste49`** — candidata a lançamento (**"Save List"** = nome novo + **logo no título** da aba Listas ·
   **Nota rápida/recados** — botão 📝 entre ⚙️ e compartilhar, caixinha que cresce + barra Copiar/Limpar/Fechar/To-do,
-  o To-do liga uma caixinha de seleção marcável, salvo em SharedPreferences via `notaRapidaProvider` ·
+  o To-do vira uma **checklist por linha** (enter cria item via `onEditingComplete`, backspace-em-vazio junta linhas),
+  marcado por linha salvo em SharedPreferences via `notaRapidaProvider` (`feitos: List<bool>`) ·
   app **abre no mercado favorito ⭐** e ordem dos filtros = ⭐ → Todos → Sem mercado → demais ·
   estilo Flat + mercado dedicado +
   até **8 mercados** com **⭐ principal** + filtro **"Sem mercado"** + categoria

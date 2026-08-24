@@ -165,20 +165,22 @@ final temaProvider = NotifierProvider<TemaNotifier, Tema>(TemaNotifier.new);
 /// "to do" (uma caixinha de seleção única que pode ser marcada/desmarcada,
 /// igual aos itens da lista). Guardada no aparelho.
 class NotaRapida {
-  const NotaRapida({this.texto = '', this.todo = false, this.feito = false});
+  const NotaRapida({this.texto = '', this.todo = false, this.feitos = const []});
 
   final String texto;
 
-  /// Modo "to do" ligado: mostra a caixinha de seleção ao lado do recado.
+  /// Modo "to do" ligado: cada linha do recado vira um item com caixinha.
   final bool todo;
 
-  /// Caixinha marcada (só vale quando [todo] está ligado).
-  final bool feito;
+  /// Marcado por LINHA (alinhado por índice às linhas de [texto]); só vale
+  /// quando [todo] está ligado.
+  final List<bool> feitos;
 
-  NotaRapida copyWith({String? texto, bool? todo, bool? feito}) => NotaRapida(
+  NotaRapida copyWith({String? texto, bool? todo, List<bool>? feitos}) =>
+      NotaRapida(
         texto: texto ?? this.texto,
         todo: todo ?? this.todo,
-        feito: feito ?? this.feito,
+        feitos: feitos ?? this.feitos,
       );
 }
 
@@ -187,7 +189,7 @@ class NotaRapida {
 class NotaRapidaNotifier extends Notifier<NotaRapida> {
   static const _kTexto = 'notaRapidaTexto';
   static const _kTodo = 'notaRapidaTodo';
-  static const _kFeito = 'notaRapidaFeito';
+  static const _kFeitos = 'notaRapidaFeitos'; // '1'/'0' por linha
 
   @override
   NotaRapida build() {
@@ -197,10 +199,12 @@ class NotaRapidaNotifier extends Notifier<NotaRapida> {
 
   Future<void> _restaurar() async {
     final p = await SharedPreferences.getInstance();
+    final feitos =
+        (p.getStringList(_kFeitos) ?? const []).map((e) => e == '1').toList();
     state = NotaRapida(
       texto: p.getString(_kTexto) ?? '',
       todo: p.getBool(_kTodo) ?? false,
-      feito: p.getBool(_kFeito) ?? false,
+      feitos: feitos,
     );
   }
 
@@ -209,7 +213,8 @@ class NotaRapidaNotifier extends Notifier<NotaRapida> {
     final p = await SharedPreferences.getInstance();
     await p.setString(_kTexto, n.texto);
     await p.setBool(_kTodo, n.todo);
-    await p.setBool(_kFeito, n.feito);
+    await p.setStringList(
+        _kFeitos, n.feitos.map((f) => f ? '1' : '0').toList());
   }
 }
 
