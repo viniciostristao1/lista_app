@@ -24,6 +24,9 @@ class AppStrings {
         Idioma.es => esTxt,
       };
 
+  /// Nome/marca do app — igual em todos os idiomas.
+  String get appNome => 'Save List';
+
   // ---------- abas / navegação ----------
   String get abaListas => _s('Listas', 'Lists', 'Listas');
   String get abaItens => _s('Itens', 'Items', 'Artículos');
@@ -168,6 +171,17 @@ class AppStrings {
   String get compraFinalizada => _s('Compra finalizada! 🛒 (veja em Pedidos)',
       'Purchase done! 🛒 (see it in Orders)',
       '¡Compra finalizada! 🛒 (míralo en Pedidos)');
+
+  // ---------- nota rápida / recado ----------
+  String get notaRapida => _s('Nota rápida', 'Quick note', 'Nota rápida');
+  String get notaRapidaHint => _s(
+      'Escreva um recado ou nota rápida…',
+      'Write a note or reminder…',
+      'Escribe un recado o nota rápida…');
+  String get copiar => _s('Copiar', 'Copy', 'Copiar');
+  String get copiado => _s('Copiado!', 'Copied!', '¡Copiado!');
+  String get limpar => _s('Limpar', 'Clear', 'Limpiar');
+  String get toDo => 'To-do';
 
   // ---------- tela Itens / comparador ----------
   String get itensComparador =>

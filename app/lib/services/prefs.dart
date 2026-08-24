@@ -160,3 +160,58 @@ class TemaNotifier extends Notifier<Tema> {
 }
 
 final temaProvider = NotifierProvider<TemaNotifier, Tema>(TemaNotifier.new);
+
+/// Nota rápida / recado do usuário: texto livre (fora das listas) + modo
+/// "to do" (uma caixinha de seleção única que pode ser marcada/desmarcada,
+/// igual aos itens da lista). Guardada no aparelho.
+class NotaRapida {
+  const NotaRapida({this.texto = '', this.todo = false, this.feito = false});
+
+  final String texto;
+
+  /// Modo "to do" ligado: mostra a caixinha de seleção ao lado do recado.
+  final bool todo;
+
+  /// Caixinha marcada (só vale quando [todo] está ligado).
+  final bool feito;
+
+  NotaRapida copyWith({String? texto, bool? todo, bool? feito}) => NotaRapida(
+        texto: texto ?? this.texto,
+        todo: todo ?? this.todo,
+        feito: feito ?? this.feito,
+      );
+}
+
+/// Nota rápida persistida no aparelho. Ninguém `watch`a este provider (só a
+/// própria caixinha o lê/grava), então gravar ao fechar a folha é seguro.
+class NotaRapidaNotifier extends Notifier<NotaRapida> {
+  static const _kTexto = 'notaRapidaTexto';
+  static const _kTodo = 'notaRapidaTodo';
+  static const _kFeito = 'notaRapidaFeito';
+
+  @override
+  NotaRapida build() {
+    _restaurar();
+    return const NotaRapida();
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    state = NotaRapida(
+      texto: p.getString(_kTexto) ?? '',
+      todo: p.getBool(_kTodo) ?? false,
+      feito: p.getBool(_kFeito) ?? false,
+    );
+  }
+
+  Future<void> salvar(NotaRapida n) async {
+    state = n;
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_kTexto, n.texto);
+    await p.setBool(_kTodo, n.todo);
+    await p.setBool(_kFeito, n.feito);
+  }
+}
+
+final notaRapidaProvider =
+    NotifierProvider<NotaRapidaNotifier, NotaRapida>(NotaRapidaNotifier.new);

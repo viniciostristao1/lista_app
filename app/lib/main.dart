@@ -31,7 +31,7 @@ class ListaApp extends ConsumerWidget {
     final palette = paletteDoTema(tema);
     AppColors.palette = palette;
     return MaterialApp(
-      title: 'Lista',
+      title: 'Save List',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(palette),
       // aplica o tamanho de fonte escolhido pelo usuário no app inteiro.

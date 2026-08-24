@@ -59,11 +59,15 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
 - **Ícone/logo:** carrinho + lupa com "$", âmbar degradê (extraído do desenho do usuário). Fonte em `design/`.
 - Distribuição de teste: **releases no GitHub** (APK arm64). **Duas versões:**
   **B = `v0.13.0-teste16`** (commit `05b09b6`) — **testada pelo usuário ✅**, fallback seguro;
-  **A = `v0.41.0-teste46`** — candidata a lançamento (estilo Flat + mercado dedicado +
-  até **8 mercados** com **⭐ principal** ao lado de "Todos" + filtro **"Sem mercado"** + categoria
+  **A = `v0.43.0-teste48`** — candidata a lançamento (**"Save List"** = nome novo + **logo no título** da aba Listas ·
+  **Nota rápida/recados** — botão 📝 entre ⚙️ e compartilhar, caixinha que cresce + barra Copiar/Limpar/Fechar/To-do,
+  o To-do liga uma caixinha de seleção marcável, salvo em SharedPreferences via `notaRapidaProvider` ·
+  app **abre no mercado favorito ⭐** e ordem dos filtros = ⭐ → Todos → Sem mercado → demais ·
+  estilo Flat + mercado dedicado +
+  até **8 mercados** com **⭐ principal** + filtro **"Sem mercado"** + categoria
   **Utilidades** + botão **"Categorias"** p/ reordenar + **⚙️ Configurações (Tema + Idioma + fonte)** + **12 cores** de mercado +
   preço em **"$"** bem estreito que revela **preço ou nome do mercado** ao toque + **"Por unidade"**
-  na calculadora + botões da aba Itens alinhados com a busca + **i18n PT/EN** + **4 temas**). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
+  na calculadora + botões da aba Itens alinhados com a busca + **i18n PT/EN/ES** + **4 temas**). Histórico em [`ATUALIZACOES.md`](ATUALIZACOES.md).
 
   > **i18n (desde v0.37):** textos do app em `app/lib/l10n/strings.dart` (`AppStrings`, campo `en`).
   > Providers em `services/prefs.dart`: `idiomaEnProvider` + `stringsProvider`. Nas telas:

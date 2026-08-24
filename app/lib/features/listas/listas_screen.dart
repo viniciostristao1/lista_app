@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
+import 'package:lista_app/features/listas/widgets/nota_rapida_sheet.dart';
 import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
@@ -21,6 +22,7 @@ import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/theme/palette.dart';
 import 'package:lista_app/util/format.dart';
+import 'package:lista_app/widgets/logo_lista.dart';
 
 /// A compra atual: lista única. Busca um item cadastrado (aba Itens) e puxa.
 class ListasScreen extends ConsumerStatefulWidget {
@@ -36,6 +38,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   String? _filtroMercado; // null = "Todos"
   bool _filtroSemMercado = false; // filtro "Sem mercado" (itens soltos)
 
+  /// Ao abrir o app, o filtro começa no mercado favorito (⭐), não em "Todos".
+  /// Isto marca que essa escolha inicial já foi aplicada (uma vez, quando os
+  /// mercados carregam) — depois disso o filtro segue o que o usuário tocar.
+  bool _iniciouFiltro = false;
+
   /// Itens cujo preço está revelado (usuário tocou no "$"). Por padrão o preço
   /// fica escondido atrás do ícone, deixando a coluna alinhada.
   final Set<String> _precoVisivel = {};
@@ -47,6 +54,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   /// Mercado "efetivo" do item: mercado fixo → mais barato. Null = solto
   /// (sem mercado) → cai no filtro "Sem mercado".
   String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
+
+  @override
+  void initState() {
+    super.initState();
+    // Aquece a nota rápida (dispara a restauração do aparelho) pra que a
+    // caixinha já abra com o recado salvo, sem piscar vazia na 1ª vez.
+    ref.read(notaRapidaProvider);
+  }
 
   @override
   void dispose() {
@@ -452,6 +467,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final ordemCategorias = ref.watch(categoriaOrdemProvider);
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
+    // 1ª vez que os mercados carregam: já abre no mercado favorito (⭐). Se não
+    // houver favorito, fica em "Todos". Depois disso respeita o toque do usuário.
+    if (!_iniciouFiltro && mercados.isNotEmpty) {
+      _iniciouFiltro = true;
+      final favoritos = mercados.where((m) => m.preferencia).toList();
+      if (favoritos.isNotEmpty) _filtroMercado = favoritos.first.id;
+    }
+
     final itens = atual == null
         ? const <ItemLista>[]
         : (ref.watch(itensProvider(atual.id)).asData?.value ??
@@ -498,15 +521,23 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.checklist_rounded, size: 21, color: AppColors.green),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: const LogoLista(size: 26),
+          ),
           const SizedBox(width: 9),
-          Text(t.minhaLista),
+          Text(t.appNome),
         ]),
         actions: [
           IconButton(
             tooltip: t.configuracoes,
             icon: Icon(Icons.settings_outlined, color: AppColors.dim),
             onPressed: _mostrarConfig,
+          ),
+          IconButton(
+            tooltip: t.notaRapida,
+            icon: Icon(Icons.note_alt_outlined, color: AppColors.dim),
+            onPressed: () => mostrarNotaRapida(context),
           ),
           IconButton(
             tooltip: t.copiarLista,
@@ -582,16 +613,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _chipFiltro(
-            label: _t.todos,
-            count: itens.length,
-            selecionado: filtro == null && !_filtroSemMercado,
-            onTap: () => setState(() {
-              _filtroMercado = null;
-              _filtroSemMercado = false;
-            }),
-          ),
-          // ⭐ mercado principal — em destaque, logo ao lado de "Todos"
+          // ⭐ mercado favorito primeiro — é onde o app abre por padrão
           for (final m in mercados.where((m) => m.preferencia))
             _chipFiltro(
               label: m.nome,
@@ -604,6 +626,15 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 _filtroSemMercado = false;
               }),
             ),
+          _chipFiltro(
+            label: _t.todos,
+            count: itens.length,
+            selecionado: filtro == null && !_filtroSemMercado,
+            onTap: () => setState(() {
+              _filtroMercado = null;
+              _filtroSemMercado = false;
+            }),
+          ),
           // itens soltos (sem mercado) — pra rever e ajustar
           _chipFiltro(
             label: _t.semMercado,

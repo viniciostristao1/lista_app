@@ -76,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Spacer(flex: 3),
               const LogoLista(size: 88),
               const SizedBox(height: 24),
-              Text('Lista',
+              Text(t.appNome,
                   style: Theme.of(context)
                       .textTheme
                       .headlineMedium
