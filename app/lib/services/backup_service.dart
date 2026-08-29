@@ -101,6 +101,13 @@ class BackupService {
     return d;
   }
 
+  dynamic _toEncodable(dynamic v) {
+    if (v is Timestamp) return v.toDate().toIso8601String();
+    if (v is Map) return v.map((k, val) => MapEntry(k, _toEncodable(val)));
+    if (v is List) return v.map(_toEncodable).toList();
+    return v;
+  }
+
   Future<void> exportarJson(BuildContext context) async {
     final t = _ref.read(stringsProvider);
     Map<String, dynamic>? dados;
@@ -114,7 +121,8 @@ class BackupService {
     }
     String jsonStr;
     try {
-      jsonStr = const JsonEncoder.withIndent('  ').convert(dados);
+      final encodable = _toEncodable(dados);
+      jsonStr = const JsonEncoder.withIndent('  ').convert(encodable);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
@@ -209,11 +217,30 @@ class BackupService {
     }
     try {
       await _db.collection('users').doc(uid).set({'ultimoBackup': Timestamp.now()}, SetOptions(merge: true));
-      await _db.collection('users').doc(uid).collection('backups').add({
-        'criadoEm': Timestamp.now(),
-        'versao': 1,
-        'nota': 'snapshot manual',
-      });
+      try {
+        final dados = await _coletar();
+        final encodable = _toEncodable(dados);
+        final jsonLen = jsonEncode(encodable).length;
+        if (jsonLen < 900000) {
+          await _db.collection('users').doc(uid).collection('backups').add({
+            'criadoEm': Timestamp.now(),
+            'versao': 1,
+            'dados': encodable,
+          });
+        } else {
+          await _db.collection('users').doc(uid).collection('backups').add({
+            'criadoEm': Timestamp.now(),
+            'versao': 1,
+            'nota': 'snapshot manual (dados grandes, ver export JSON)',
+          });
+        }
+      } catch (_) {
+        await _db.collection('users').doc(uid).collection('backups').add({
+          'criadoEm': Timestamp.now(),
+          'versao': 1,
+          'nota': 'snapshot manual',
+        });
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupSalvoNuvem)));
       }
