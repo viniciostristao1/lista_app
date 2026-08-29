@@ -177,19 +177,26 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   }
 
   void _limpar() {
-    if (_textoAtual.isEmpty && (!_todo || _linhas.length <= 1 && _linhas.isEmpty)) return;
+    if (_textoAtual.trim().isEmpty) return;
     _pushImediato();
     setState(() {
-      _ctrl.clear();
       if (_todo) {
         _descartarLinhas();
         final l = _LinhaTodo();
         l.ctrl.addListener(_onTextoBurst);
         _linhas.add(l);
+      } else {
+        _ctrl.clear();
       }
       _prevTexto = _textoAtual;
     });
     _persistir();
+    if (_todo) {
+      _focarLinha(0);
+    } else {
+      _focoLivre.requestFocus();
+    }
+    setState(() {});
   }
 
   void _fechar() {
