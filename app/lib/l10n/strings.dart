@@ -184,6 +184,51 @@ class AppStrings {
   String get toDo => 'To-do';
   String get voltar => _s('Voltar', 'Undo', 'Deshacer');
 
+  // ---------- backup / configurações ----------
+  String get backup => _s('Backup', 'Backup', 'Respaldo');
+  String get backupDescricao => _s(
+      'Salve ou restaure seus dados. Com Google, tudo já fica na nuvem.',
+      'Save or restore your data. With Google, everything is already in the cloud.',
+      'Guarda o restaura tus datos. Con Google, todo ya está en la nube.');
+  String get backupNuvemAtivo => _s(
+      'Backup na nuvem ativo', 'Cloud backup active', 'Respaldo en nube activo');
+  String get backupNuvemInativo => _s('Backup local apenas', 'Local backup only',
+      'Solo respaldo local');
+  String get contaConectada => _s('Conta conectada', 'Connected account', 'Cuenta conectada');
+  String get entrarComGoogleBackup => _s(
+      'Entrar com Google para ativar backup na nuvem',
+      'Sign in with Google to enable cloud backup',
+      'Entrar con Google para activar respaldo en nube');
+  String get exportarJson => _s('Exportar JSON', 'Export JSON', 'Exportar JSON');
+  String get exportarJsonDescricao => _s(
+      'Gera um arquivo .json com tudo e compartilha',
+      'Creates a .json file with everything and shares it',
+      'Crea un archivo .json con todo y lo comparte');
+  String get importarJson => _s('Importar JSON', 'Import JSON', 'Importar JSON');
+  String get importarJsonDescricao => _s('Restaura de um arquivo .json',
+      'Restores from a .json file', 'Restaura desde un archivo .json');
+  String get salvarNaNuvem => _s('Salvar cópia na nuvem', 'Save copy to cloud',
+      'Guardar copia en nube');
+  String get salvarNaNuvemDescricao => _s(
+      'Guarda um snapshot em backups na sua conta',
+      'Saves a snapshot in backups on your account',
+      'Guarda una snapshot en respaldos de tu cuenta');
+  String get backupExportado => _s(
+      'Backup exportado! 📤', 'Backup exported! 📤', '¡Respaldo exportado! 📤');
+  String get backupImportado => _s('Backup restaurado! ✅', 'Backup restored! ✅',
+      '¡Respaldo restaurado! ✅');
+  String get backupSalvoNuvem => _s('Cópia salva na nuvem! ☁️',
+      'Copy saved to cloud! ☁️', '¡Copia guardada en nube! ☁️');
+  String get falhaBackup => _s('Falha no backup', 'Backup failed', 'Falló el respaldo');
+  String get confirmarImportacao => _s(
+      'Restaurar backup?', 'Restore backup?', '¿Restaurar respaldo?');
+  String get confirmarImportacaoMsg => _s(
+      'Isso vai substituir seus dados atuais pelos do arquivo. Continuar?',
+      'This will replace your current data with the file contents. Continue?',
+      'Esto reemplazará tus datos actuales con el contenido del archivo. ¿Continuar?');
+  String get nenhumBackupEncontrado => _s(
+      'Nenhum arquivo selecionado.', 'No file selected.', 'Ningún archivo seleccionado.');
+
   // ---------- tela Itens / comparador ----------
   String get itensComparador =>
       _s('Itens | Comparador', 'Items | Compare', 'Artículos | Comparar');
