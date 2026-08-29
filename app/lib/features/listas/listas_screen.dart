@@ -335,18 +335,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 2),
-                    child: Row(
-                      children: [
-                        Expanded(child: _tituloConfigInline(t.backup, sub: t.backupDescricao)),
-                        IconButton(
-                          onPressed: () => setSB(() => backupExpandido = !backupExpandido),
-                          icon: Icon(backupExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                              color: AppColors.dim),
-                          tooltip: t.backup,
-                        ),
-                      ],
+                  InkWell(
+                    onTap: () => setSB(() => backupExpandido = !backupExpandido),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: _tituloConfigInline(t.backup, sub: t.backupDescricao)),
+                          Icon(backupExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.dim, size: 24),
+                        ],
+                      ),
                     ),
                   ),
                   if (backupExpandido) ...[

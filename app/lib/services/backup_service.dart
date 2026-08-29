@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -110,25 +111,48 @@ class BackupService {
       }
       return;
     }
+    String jsonStr;
     try {
-      final jsonStr = const JsonEncoder.withIndent('  ').convert(dados);
+      jsonStr = const JsonEncoder.withIndent('  ').convert(dados);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
+      }
+      return;
+    }
+    try {
       final dir = await getTemporaryDirectory();
       final nome = 'savelist-backup-${DateTime.now().toIso8601String().split('T').first}.json';
       final file = File('${dir.path}/$nome');
       await file.writeAsString(jsonStr);
       if (!context.mounted) return;
       final box = context.findRenderObject() as RenderBox?;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'application/json')],
-        subject: 'Save List backup',
-        sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-      ));
+      try {
+        await SharePlus.instance.share(ShareParams(
+          files: [XFile(file.path, mimeType: 'application/json')],
+          subject: 'Save List backup',
+          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+        ));
+      } catch (_) {
+        await Clipboard.setData(ClipboardData(text: jsonStr));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.backupExportado} (copiado)')));
+        }
+        return;
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupExportado)));
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
+      try {
+        await Clipboard.setData(ClipboardData(text: jsonStr));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.backupExportado} (copiado)')));
+        }
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
+        }
       }
     }
   }
