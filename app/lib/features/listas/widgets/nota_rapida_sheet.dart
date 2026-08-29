@@ -171,12 +171,8 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     if (_todo && _linhas.isNotEmpty) {
       _focarLinha(_linhas.length - 1);
     } else if (indoParaLivre) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _focoLivre.requestFocus();
-        _ctrl.selection =
-            TextSelection.collapsed(offset: _ctrl.text.length);
-      });
+      _focoLivre.requestFocus();
+      _ctrl.selection = TextSelection.collapsed(offset: _ctrl.text.length);
     }
   }
 
@@ -242,9 +238,7 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     final maxAltura = MediaQuery.of(context).size.height * 0.5;
 
     return SafeArea(
-      child: AnimatedPadding(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
+      child: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -280,23 +274,17 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                alignment: Alignment.topCenter,
-                child: Container(
-                  constraints: BoxConstraints(maxHeight: maxAltura),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.bg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.line),
-                  ),
-                  child: _todo ? _campoChecklist(t) : _campoLivre(t),
+              child: Container(
+                constraints: BoxConstraints(maxHeight: maxAltura),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.line),
                 ),
+                child: _todo ? _campoChecklist(t) : _campoLivre(t),
               ),
             ),
-            // Barra de ferramentas.
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
               child: Row(
@@ -308,9 +296,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
                     ativo: _copiadoAgora,
                   ),
                   _ferramenta(
-                      Icons.delete_sweep_outlined, t.limpar, _limpar),
-                  _ferramenta(Icons.close_rounded, t.fechar, _fechar),
-                  _ferramenta(
                     _todo
                         ? Icons.check_box_rounded
                         : Icons.check_box_outlined,
@@ -318,6 +303,9 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
                     _alternarTodo,
                     ativo: _todo,
                   ),
+                  _ferramenta(
+                      Icons.delete_sweep_outlined, t.limpar, _limpar),
+                  _ferramenta(Icons.close_rounded, t.fechar, _fechar),
                 ],
               ),
             ),
