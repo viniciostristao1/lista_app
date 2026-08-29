@@ -8,13 +8,6 @@ import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/services/prefs.dart';
 import 'package:lista_app/theme/app_colors.dart';
 
-/// Caixinha de "nota rápida / recado": um campo de texto que cresce conforme o
-/// usuário dá enter ou escreve mais linhas, com uma barra de ferramentas
-/// (copiar, limpar, fechar, to do). O "to do" transforma o recado numa
-/// **checklist**: cada linha vira um item com sua própria caixinha de seleção
-/// (marca/desmarca igual aos itens da lista); dar **enter** cria uma nova linha
-/// marcável, e **backspace** numa linha vazia junta com a de cima. Persiste no
-/// aparelho via [notaRapidaProvider] (ver prefs.dart).
 Future<void> mostrarNotaRapida(BuildContext context) {
   return showModalBottomSheet(
     context: context,
@@ -27,8 +20,6 @@ Future<void> mostrarNotaRapida(BuildContext context) {
   );
 }
 
-/// Uma linha da checklist no modo "to do": texto (com controller/foco próprios)
-/// + estado marcado.
 class _LinhaTodo {
   _LinhaTodo({String texto = '', this.feito = false})
       : ctrl = TextEditingController(text: texto),
@@ -59,11 +50,14 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   final List<_LinhaTodo> _linhas = [];
   late final NotaRapidaNotifier _notifier;
   late bool _todo;
-
-  // Feedback visível do "Copiar" (um snackbar ficaria escondido atrás da
-  // folha): o botão vira ✓ "Copiado!" por ~1,2s.
   bool _copiadoAgora = false;
   Timer? _copiadoTimer;
+
+  final List<NotaRapida> _historico = [];
+  bool _emVoltar = false;
+  bool _emBurst = false;
+  Timer? _burstTimer;
+  late String _prevTexto;
 
   @override
   void initState() {
@@ -73,38 +67,87 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     _ctrl = TextEditingController(text: n.texto);
     _focoLivre = FocusNode();
     _todo = n.todo;
+    _prevTexto = n.texto;
     if (_todo) _montarLinhas(n.texto, n.feitos);
+    _ctrl.addListener(_onTextoBurst);
   }
 
   @override
   void dispose() {
     _copiadoTimer?.cancel();
+    _burstTimer?.cancel();
     _persistir();
+    _ctrl.removeListener(_onTextoBurst);
     _ctrl.dispose();
     _focoLivre.dispose();
     for (final l in _linhas) {
+      l.ctrl.removeListener(_onTextoBurst);
       l.dispose();
     }
     super.dispose();
   }
 
-  // ---------- conversão texto livre <-> checklist ----------
+  bool _feitosIguais(List<bool> a, List<bool> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
-  // Cria as linhas da checklist a partir do texto (uma por '\n'). O marcado
-  // de cada linha vem de [feitos] (alinhado por índice), senão desmarcado.
+  void _pushSnapshot(String texto, bool todo, List<bool> feitos) {
+    if (_emVoltar) return;
+    final snap = NotaRapida(texto: texto, todo: todo, feitos: List<bool>.from(feitos));
+    if (_historico.isNotEmpty &&
+        _historico.last.texto == snap.texto &&
+        _historico.last.todo == snap.todo &&
+        _feitosIguais(_historico.last.feitos, snap.feitos)) {
+      return;
+    }
+    _historico.add(snap);
+    if (_historico.length > 50) _historico.removeAt(0);
+  }
+
+  void _pushImediato() {
+    _burstTimer?.cancel();
+    _emBurst = false;
+    _pushSnapshot(_textoAtual, _todo, _feitosAtual);
+  }
+
+  void _onTextoBurst() {
+    if (_emVoltar) {
+      _prevTexto = _textoAtual;
+      return;
+    }
+    final novo = _textoAtual;
+    if (novo == _prevTexto) return;
+    if (!_emBurst) {
+      _pushSnapshot(_prevTexto, _todo, _feitosAtual);
+      _emBurst = true;
+    }
+    _burstTimer?.cancel();
+    _burstTimer = Timer(const Duration(milliseconds: 900), () => _emBurst = false);
+    _prevTexto = novo;
+    _persistir();
+    if (mounted) setState(() {});
+  }
+
   void _montarLinhas(String texto, List<bool> feitos) {
     _descartarLinhas();
     final partes = texto.isEmpty ? [''] : texto.split('\n');
     for (var i = 0; i < partes.length; i++) {
-      _linhas.add(_LinhaTodo(
+      final l = _LinhaTodo(
         texto: partes[i],
         feito: i < feitos.length ? feitos[i] : false,
-      ));
+      );
+      l.ctrl.addListener(_onTextoBurst);
+      _linhas.add(l);
     }
   }
 
   void _descartarLinhas() {
     for (final l in _linhas) {
+      l.ctrl.removeListener(_onTextoBurst);
       l.dispose();
     }
     _linhas.clear();
@@ -124,8 +167,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     ));
   }
 
-  // ---------- ações da barra ----------
-
   void _copiar() {
     Clipboard.setData(ClipboardData(text: _textoAtual));
     setState(() => _copiadoAgora = true);
@@ -136,12 +177,17 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   }
 
   void _limpar() {
+    if (_textoAtual.isEmpty && (!_todo || _linhas.length <= 1 && _linhas.isEmpty)) return;
+    _pushImediato();
     setState(() {
       _ctrl.clear();
       if (_todo) {
         _descartarLinhas();
-        _linhas.add(_LinhaTodo());
+        final l = _LinhaTodo();
+        l.ctrl.addListener(_onTextoBurst);
+        _linhas.add(l);
       }
+      _prevTexto = _textoAtual;
     });
     _persistir();
   }
@@ -151,21 +197,65 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     Navigator.of(context).pop();
   }
 
+  void _voltar() {
+    if (_historico.isEmpty) return;
+    _burstTimer?.cancel();
+    _emBurst = false;
+    final anterior = _historico.removeLast();
+    _emVoltar = true;
+    setState(() {
+      _todo = anterior.todo;
+      if (_todo) {
+        _descartarLinhas();
+        final partes = anterior.texto.isEmpty ? [''] : anterior.texto.split('\n');
+        for (var i = 0; i < partes.length; i++) {
+          final l = _LinhaTodo(
+            texto: partes[i],
+            feito: i < anterior.feitos.length ? anterior.feitos[i] : false,
+          );
+          l.ctrl.addListener(_onTextoBurst);
+          _linhas.add(l);
+        }
+      } else {
+        _descartarLinhas();
+        _ctrl.value = TextEditingValue(
+          text: anterior.texto,
+          selection: TextSelection.collapsed(offset: anterior.texto.length),
+        );
+      }
+      _prevTexto = anterior.texto;
+    });
+    _emVoltar = false;
+    _persistir();
+    if (_todo && _linhas.isNotEmpty) {
+      _focarLinha(_linhas.length - 1);
+    } else if (!_todo) {
+      _focoLivre.requestFocus();
+    }
+    setState(() {});
+  }
+
   void _alternarTodo() {
+    _pushImediato();
     final indoParaLivre = _todo;
     final textoPreservado = _textoAtual;
     setState(() {
       if (_todo) {
+        _ctrl.removeListener(_onTextoBurst);
         _ctrl.value = TextEditingValue(
           text: textoPreservado,
           selection: TextSelection.collapsed(offset: textoPreservado.length),
         );
+        _ctrl.addListener(_onTextoBurst);
         _descartarLinhas();
         _todo = false;
       } else {
+        _ctrl.removeListener(_onTextoBurst);
         _montarLinhas(_ctrl.text, const []);
+        _ctrl.addListener(_onTextoBurst);
         _todo = true;
       }
+      _prevTexto = _textoAtual;
     });
     _persistir();
     if (_todo && _linhas.isNotEmpty) {
@@ -174,45 +264,46 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
       _focoLivre.requestFocus();
       _ctrl.selection = TextSelection.collapsed(offset: _ctrl.text.length);
     }
+    setState(() {});
   }
 
   void _alternarFeito(int i) {
+    _pushImediato();
     setState(() => _linhas[i].feito = !_linhas[i].feito);
+    _prevTexto = _textoAtual;
     _persistir();
+    setState(() {});
   }
 
-  // ---------- edição das linhas da checklist ----------
-
-  // Enter (onSubmitted) numa linha cria a PRÓXIMA linha marcável. O texto após
-  // o cursor migra pra linha nova (Enter no fim = linha nova vazia). Usar
-  // onSubmitted (e não detectar '\n' no onChanged) é o que funciona igual nos
-  // teclados virtual e físico — é o mesmo padrão do campo de busca do app.
   void _novaLinhaApos(int i) {
+    _pushImediato();
     final l = _linhas[i];
     final texto = l.ctrl.text;
     final sel = l.ctrl.selection.baseOffset;
     final corte = (sel >= 0 && sel <= texto.length) ? sel : texto.length;
     setState(() {
       l.ctrl.text = texto.substring(0, corte);
-      _linhas.insert(i + 1, _LinhaTodo(texto: texto.substring(corte)));
+      final nl = _LinhaTodo(texto: texto.substring(corte));
+      nl.ctrl.addListener(_onTextoBurst);
+      _linhas.insert(i + 1, nl);
+      _prevTexto = _textoAtual;
     });
     _focarLinha(i + 1, inicio: true);
     _persistir();
   }
 
-  // Backspace no começo de uma linha VAZIA junta com a linha de cima (remove a
-  // linha atual e leva o cursor pro fim da anterior). Best-effort: em alguns
-  // teclados virtuais o backspace-em-vazio pode não chegar como evento — aí a
-  // linha só fica vazia (sem quebrar nada).
   KeyEventResult _aoTeclarLinha(int i, KeyEvent event) {
     final ehBackspace = event is KeyDownEvent &&
         event.logicalKey == LogicalKeyboardKey.backspace;
     if (ehBackspace && _linhas[i].texto.isEmpty && _linhas.length > 1) {
+      _pushImediato();
       final anteriorIdx = i - 1 >= 0 ? i - 1 : 0;
       final posCursor = i - 1 >= 0 ? _linhas[anteriorIdx].texto.length : 0;
       setState(() {
         final removida = _linhas.removeAt(i);
+        removida.ctrl.removeListener(_onTextoBurst);
         removida.dispose();
+        _prevTexto = _textoAtual;
       });
       _focarLinha(anteriorIdx, offset: posCursor);
       _persistir();
@@ -221,7 +312,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     return KeyEventResult.ignored;
   }
 
-  // Foca a linha [i] após o frame (a árvore precisa existir primeiro).
   void _focarLinha(int i, {bool inicio = false, int? offset}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || i < 0 || i >= _linhas.length) return;
@@ -304,6 +394,11 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
                     ativo: _todo,
                   ),
                   _ferramenta(
+                    Icons.undo_rounded,
+                    t.voltar,
+                    _historico.isEmpty ? null : _voltar,
+                  ),
+                  _ferramenta(
                       Icons.delete_sweep_outlined, t.limpar, _limpar),
                   _ferramenta(Icons.close_rounded, t.fechar, _fechar),
                 ],
@@ -336,7 +431,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     );
   }
 
-  // Checklist: uma linha marcável por item (rola quando passa do teto).
   Widget _campoChecklist(AppStrings t) {
     return SingleChildScrollView(
       child: Column(
@@ -368,9 +462,8 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
                 textCapitalization: TextCapitalization.sentences,
-                // Mantém o teclado aberto e cria a próxima linha (não deixa o
-                // "next" padrão pular o foco pra outro campo).
                 onEditingComplete: () => _novaLinhaApos(i),
+                onChanged: (_) => _persistir(),
                 style: TextStyle(
                   color: l.feito ? AppColors.dim : AppColors.text,
                   fontSize: 15,
@@ -394,7 +487,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     );
   }
 
-  // Caixinha de seleção — mesmo visual do checkbox dos itens da lista.
   Widget _checkbox(bool feito, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -418,11 +510,14 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     );
   }
 
-  // Um botão da barra de ferramentas: ícone em cima, rótulo embaixo. Quando
-  // "ativo" (caso do to do ligado), pinta de verde.
-  Widget _ferramenta(IconData icon, String label, VoidCallback onTap,
+  Widget _ferramenta(IconData icon, String label, VoidCallback? onTap,
       {bool ativo = false}) {
-    final cor = ativo ? AppColors.green : AppColors.dim;
+    final enabled = onTap != null;
+    final cor = !enabled
+        ? AppColors.dim2
+        : ativo
+            ? AppColors.green
+            : AppColors.dim;
     return Expanded(
       child: InkWell(
         onTap: onTap,

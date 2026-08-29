@@ -182,6 +182,7 @@ class AppStrings {
   String get copiado => _s('Copiado!', 'Copied!', '¡Copiado!');
   String get limpar => _s('Limpar', 'Clear', 'Limpiar');
   String get toDo => 'To-do';
+  String get voltar => _s('Voltar', 'Undo', 'Deshacer');
 
   // ---------- tela Itens / comparador ----------
   String get itensComparador =>
