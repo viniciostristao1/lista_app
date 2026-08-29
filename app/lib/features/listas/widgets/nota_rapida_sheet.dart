@@ -54,10 +54,9 @@ class _NotaRapidaSheet extends ConsumerStatefulWidget {
 }
 
 class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
-  // Modo texto livre: um controller só. Modo "to do": uma lista de linhas.
   late final TextEditingController _ctrl;
+  late final FocusNode _focoLivre;
   final List<_LinhaTodo> _linhas = [];
-  // Capturado no initState pra poder gravar no dispose sem tocar em `ref` lá.
   late final NotaRapidaNotifier _notifier;
   late bool _todo;
 
@@ -72,6 +71,7 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     _notifier = ref.read(notaRapidaProvider.notifier);
     final n = ref.read(notaRapidaProvider);
     _ctrl = TextEditingController(text: n.texto);
+    _focoLivre = FocusNode();
     _todo = n.todo;
     if (_todo) _montarLinhas(n.texto, n.feitos);
   }
@@ -79,10 +79,9 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   @override
   void dispose() {
     _copiadoTimer?.cancel();
-    // Backup: garante que a última edição seja salva mesmo se a folha for
-    // fechada arrastando pra baixo (sem passar pelo botão "Fechar").
     _persistir();
     _ctrl.dispose();
+    _focoLivre.dispose();
     for (final l in _linhas) {
       l.dispose();
     }
@@ -152,24 +151,32 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     Navigator.of(context).pop();
   }
 
-  // Liga/desliga o modo checklist, preservando o texto entre os dois modos.
   void _alternarTodo() {
+    final indoParaLivre = _todo;
+    final textoPreservado = _textoAtual;
     setState(() {
       if (_todo) {
-        // checklist -> texto livre
-        _ctrl.text = _textoAtual;
+        _ctrl.value = TextEditingValue(
+          text: textoPreservado,
+          selection: TextSelection.collapsed(offset: textoPreservado.length),
+        );
         _descartarLinhas();
         _todo = false;
       } else {
-        // texto livre -> checklist
         _montarLinhas(_ctrl.text, const []);
         _todo = true;
       }
     });
     _persistir();
-    // Foca algo sensato após trocar de modo.
     if (_todo && _linhas.isNotEmpty) {
       _focarLinha(_linhas.length - 1);
+    } else if (indoParaLivre) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _focoLivre.requestFocus();
+        _ctrl.selection =
+            TextSelection.collapsed(offset: _ctrl.text.length);
+      });
     }
   }
 
@@ -235,8 +242,9 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     final maxAltura = MediaQuery.of(context).size.height * 0.5;
 
     return SafeArea(
-      child: Padding(
-        // Sobe junto com o teclado.
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -270,18 +278,22 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
                 ],
               ),
             ),
-            // Campo do recado (cresce com o texto até um teto, depois rola).
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: Container(
-                constraints: BoxConstraints(maxHeight: maxAltura),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.bg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.line),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                alignment: Alignment.topCenter,
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: maxAltura),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: _todo ? _campoChecklist(t) : _campoLivre(t),
                 ),
-                child: _todo ? _campoChecklist(t) : _campoLivre(t),
               ),
             ),
             // Barra de ferramentas.
@@ -315,17 +327,17 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     );
   }
 
-  // Texto livre: um campo multilinha que cresce.
   Widget _campoLivre(AppStrings t) {
     return TextField(
       controller: _ctrl,
-      autofocus: true,
+      focusNode: _focoLivre,
+      autofocus: !_todo,
       minLines: 2,
       maxLines: null,
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
       textCapitalization: TextCapitalization.sentences,
-      onChanged: (_) => setState(() {}),
+      onChanged: (_) => _persistir(),
       style: TextStyle(color: AppColors.text, fontSize: 15, height: 1.35),
       decoration: InputDecoration(
         isDense: true,
