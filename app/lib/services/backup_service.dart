@@ -21,24 +21,35 @@ class BackupService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   Future<Map<String, dynamic>> _coletar() async {
-    final uid = _ref.read(uidProvider);
     final prefs = await SharedPreferences.getInstance();
-    final mercadosSnap = await _refs.mercados.get();
-    final produtosSnap = await _refs.produtos.get();
-    final listasSnap = await _refs.listas.get();
-    final pedidosSnap = await _refs.pedidos.get();
-
-    final mercados = mercadosSnap.docs.map((d) => d.data()..['id'] = d.id).toList();
-    final produtos = produtosSnap.docs.map((d) => _produtoParaBackup(d)).toList();
-    final listas = <Map<String, dynamic>>[];
-    for (final doc in listasSnap.docs) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['id'] = doc.id;
-      final itensSnap = await _refs.itens(doc.id).get();
-      data['itens'] = itensSnap.docs.map((i) => Map<String, dynamic>.from(i.data())..['id'] = i.id).toList();
-      listas.add(data);
+    String? uid;
+    try {
+      uid = _ref.read(uidProvider);
+    } catch (_) {
+      uid = null;
     }
-    final pedidos = pedidosSnap.docs.map((d) => Map<String, dynamic>.from(d.data())..['id'] = d.id).toList();
+    List<Map<String, dynamic>> mercados = [];
+    List<Map<String, dynamic>> produtos = [];
+    List<Map<String, dynamic>> listas = [];
+    List<Map<String, dynamic>> pedidos = [];
+    if (uid != null) {
+      try {
+        final mercadosSnap = await _refs.mercados.get();
+        final produtosSnap = await _refs.produtos.get();
+        final listasSnap = await _refs.listas.get();
+        final pedidosSnap = await _refs.pedidos.get();
+        mercados = mercadosSnap.docs.map((d) => Map<String, dynamic>.from(d.data())..['id'] = d.id).toList();
+        produtos = produtosSnap.docs.map((d) => _produtoParaBackup(d)).toList();
+        for (final doc in listasSnap.docs) {
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] = doc.id;
+          final itensSnap = await _refs.itens(doc.id).get();
+          data['itens'] = itensSnap.docs.map((i) => Map<String, dynamic>.from(i.data())..['id'] = i.id).toList();
+          listas.add(data);
+        }
+        pedidos = pedidosSnap.docs.map((d) => Map<String, dynamic>.from(d.data())..['id'] = d.id).toList();
+      } catch (_) {}
+    }
 
     final notaTexto = prefs.getString('notaRapidaTexto') ?? '';
     final notaTodo = prefs.getBool('notaRapidaTodo') ?? false;
@@ -124,9 +135,20 @@ class BackupService {
 
   Future<void> salvarNaNuvem(BuildContext context) async {
     final t = _ref.read(stringsProvider);
+    String? uid;
+    try {
+      uid = _ref.read(uidProvider);
+    } catch (_) {
+      uid = null;
+    }
+    if (uid == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.entrarComGoogleBackup)));
+      }
+      return;
+    }
     try {
       final dados = await _coletar();
-      final uid = _ref.read(uidProvider);
       await _db.collection('users').doc(uid).collection('backups').add({
         'criadoEm': Timestamp.now(),
         'dados': dados,
@@ -191,73 +213,102 @@ class BackupService {
     final listas = (dados['listas'] as List?) ?? const [];
     final pedidos = (dados['pedidos'] as List?) ?? const [];
     final prefsMap = (dados['prefs'] as Map<String, dynamic>?) ?? const {};
-
-    await _limparColecao(_refs.mercados);
-    await _limparColecao(_refs.produtos);
-    await _limparColecao(_refs.pedidos);
-    final listasSnap = await _refs.listas.get();
-    for (final d in listasSnap.docs) {
-      final itens = await _refs.itens(d.id).get();
-      for (final it in itens.docs) {
-        await it.reference.delete();
-      }
-      await d.reference.delete();
+    String? uid;
+    try {
+      uid = _ref.read(uidProvider);
+    } catch (_) {
+      uid = null;
+    }
+    if (uid != null) {
+      try {
+        await _limparColecao(_refs.mercados);
+        await _limparColecao(_refs.produtos);
+        await _limparColecao(_refs.pedidos);
+        final listasSnap = await _refs.listas.get();
+        for (final d in listasSnap.docs) {
+          final itens = await _refs.itens(d.id).get();
+          for (final it in itens.docs) {
+            await it.reference.delete();
+          }
+          await d.reference.delete();
+        }
+      } catch (_) {}
     }
 
-    for (final m in mercados) {
-      final map = Map<String, dynamic>.from(m as Map);
-      final id = map.remove('id') as String?;
-      final data = _limparTimestamps(map);
-      if (id != null) await _refs.mercados.doc(id).set(data);
-    }
-
-    for (final p in produtos) {
-      final map = Map<String, dynamic>.from(p as Map);
-      final id = map.remove('id') as String?;
-      final precosRaw = map['precos'] as Map<String, dynamic>?;
-      if (precosRaw != null) {
-        final convertido = <String, dynamic>{};
-        precosRaw.forEach((k, v) {
-          final mm = Map<String, dynamic>.from(v as Map);
-          final dataIso = mm['data'] as String?;
-          convertido[k] = {'valor': mm['valor'], 'data': dataIso == null ? Timestamp.now() : Timestamp.fromDate(DateTime.parse(dataIso))};
-        });
-        map['precos'] = convertido;
+    if (uid != null) {
+      for (final m in mercados) {
+        final map = Map<String, dynamic>.from(m as Map);
+        final id = map.remove('id') as String?;
+        final data = _limparTimestamps(map);
+        if (id != null) {
+          try {
+            await _refs.mercados.doc(id).set(data);
+          } catch (_) {}
+        }
       }
-      for (final k in ['observacoesAtualizadasEm', 'updatedAt', 'createdAt']) {
-        final v = map[k];
-        if (v is String) map[k] = Timestamp.fromDate(DateTime.parse(v));
+      for (final p in produtos) {
+        final map = Map<String, dynamic>.from(p as Map);
+        final id = map.remove('id') as String?;
+        final precosRaw = map['precos'] as Map<String, dynamic>?;
+        if (precosRaw != null) {
+          final convertido = <String, dynamic>{};
+          precosRaw.forEach((k, v) {
+            final mm = Map<String, dynamic>.from(v as Map);
+            final dataIso = mm['data'] as String?;
+            convertido[k] = {
+              'valor': mm['valor'],
+              'data': dataIso == null ? Timestamp.now() : Timestamp.fromDate(DateTime.parse(dataIso))
+            };
+          });
+          map['precos'] = convertido;
+        }
+        for (final k in ['observacoesAtualizadasEm', 'updatedAt', 'createdAt']) {
+          final v = map[k];
+          if (v is String) map[k] = Timestamp.fromDate(DateTime.parse(v));
+        }
+        final data = _limparTimestamps(map);
+        if (id != null) {
+          try {
+            await _refs.produtos.doc(id).set(data);
+          } catch (_) {}
+        }
       }
-      final data = _limparTimestamps(map);
-      if (id != null) await _refs.produtos.doc(id).set(data);
-    }
-
-    for (final l in listas) {
-      final map = Map<String, dynamic>.from(l as Map);
-      final id = map.remove('id') as String?;
-      final itens = (map.remove('itens') as List?) ?? const [];
-      for (final k in ['createdAt', 'finalizadaAt']) {
-        final v = map[k];
-        if (v is String) map[k] = Timestamp.fromDate(DateTime.parse(v));
+      for (final l in listas) {
+        final map = Map<String, dynamic>.from(l as Map);
+        final id = map.remove('id') as String?;
+        final itens = (map.remove('itens') as List?) ?? const [];
+        for (final k in ['createdAt', 'finalizadaAt']) {
+          final v = map[k];
+          if (v is String) map[k] = Timestamp.fromDate(DateTime.parse(v));
+        }
+        final data = _limparTimestamps(map);
+        final listaId = id ?? _refs.listas.doc().id;
+        try {
+          await _refs.listas.doc(listaId).set(data);
+        } catch (_) {}
+        for (final it in itens) {
+          final im = Map<String, dynamic>.from(it as Map);
+          final iid = im.remove('id') as String?;
+          final cdata = _limparTimestamps(im);
+          if (iid != null) {
+            try {
+              await _refs.itens(listaId).doc(iid).set(cdata);
+            } catch (_) {}
+          }
+        }
       }
-      final data = _limparTimestamps(map);
-      final listaId = id ?? _refs.listas.doc().id;
-      await _refs.listas.doc(listaId).set(data);
-      for (final it in itens) {
-        final im = Map<String, dynamic>.from(it as Map);
-        final iid = im.remove('id') as String?;
-        final cdata = _limparTimestamps(im);
-        if (iid != null) await _refs.itens(listaId).doc(iid).set(cdata);
+      for (final ped in pedidos) {
+        final map = Map<String, dynamic>.from(ped as Map);
+        final id = map.remove('id') as String?;
+        final v = map['data'];
+        if (v is String) map['data'] = Timestamp.fromDate(DateTime.parse(v));
+        final data = _limparTimestamps(map);
+        if (id != null) {
+          try {
+            await _refs.pedidos.doc(id).set(data);
+          } catch (_) {}
+        }
       }
-    }
-
-    for (final ped in pedidos) {
-      final map = Map<String, dynamic>.from(ped as Map);
-      final id = map.remove('id') as String?;
-      final v = map['data'];
-      if (v is String) map['data'] = Timestamp.fromDate(DateTime.parse(v));
-      final data = _limparTimestamps(map);
-      if (id != null) await _refs.pedidos.doc(id).set(data);
     }
 
     final nota = prefsMap['notaRapida'] as Map<String, dynamic>?;

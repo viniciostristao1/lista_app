@@ -248,6 +248,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final atual = ref.read(fontScaleProvider);
     final idioma = ref.read(idiomaProvider);
     final temaAtual = ref.read(temaProvider);
+    bool backupExpandido = false;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -255,152 +256,169 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) => SafeArea(
-        child: Consumer(builder: (context, ref2, child) {
-          final t = ref2.watch(stringsProvider);
-          final auth = ref2.watch(authStateProvider).asData?.value;
-          final backup = ref2.read(backupServiceProvider);
-          return SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.dim2,
-                      borderRadius: BorderRadius.circular(3),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSB) => SafeArea(
+          child: Consumer(builder: (context, ref2, child) {
+            final t = ref2.watch(stringsProvider);
+            final auth = ref2.watch(authStateProvider).asData?.value;
+            final backup = ref2.read(backupServiceProvider);
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.dim2,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
                     ),
                   ),
-                ),
-                _tituloConfig(t0.tema),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < Tema.values.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 8),
-                        Expanded(
-                            child: _chipTema(
-                                Tema.values[i], Tema.values[i] == temaAtual)),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                _tituloConfig(t.tituloIdioma),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                  child: Row(
-                    children: [
-                      for (final o in [
-                        ('Português', Idioma.pt),
-                        ('English', Idioma.en),
-                        ('Español', Idioma.es),
-                      ]) ...[
-                        if (o.$2 != Idioma.pt) const SizedBox(width: 8),
-                        Expanded(
-                            child: _chipTexto(o.$1, idioma == o.$2,
-                                () => _aplicarConfig(() => ref
-                                    .read(idiomaProvider.notifier)
-                                    .definir(o.$2)))),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                  child: Row(
-                    children: [
-                      for (final o in [
-                        (t.fonteMenor, 0.93),
-                        (t.fonteNormal, 1.035),
-                        (t.fonteMaior, 1.22),
-                      ]) ...[
-                        if (o.$2 != 0.93) const SizedBox(width: 8),
-                        Expanded(
-                            child: _chipTexto(o.$1, (atual - o.$2).abs() < 0.001,
-                                () => _aplicarConfig(() => ref
-                                    .read(fontScaleProvider.notifier)
-                                    .definir(o.$2)))),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                _tituloConfig(t.backup, sub: t.backupDescricao),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.line),
-                    ),
+                  _tituloConfig(t0.tema),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
                     child: Row(
                       children: [
-                        Icon(auth != null ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
-                            size: 20, color: auth != null ? AppColors.green : AppColors.dim),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(auth != null ? t.backupNuvemAtivo : t.backupNuvemInativo,
-                                  style: TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 2),
-                              Text(auth != null ? '${t.contaConectada}: ${auth.email ?? ''}' : t.entrarComGoogleBackup,
-                                  style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
-                            ],
-                          ),
-                        ),
-                        if (auth == null)
-                          FilledButton(
-                            onPressed: () async {
-                              try {
-                                await ref.read(authServiceProvider).signInWithGoogle();
-                              } catch (_) {}
-                            },
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.green,
-                              foregroundColor: AppColors.onGreen,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            child: Text('Google', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                          ),
+                        for (var i = 0; i < Tema.values.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(
+                              child: _chipTema(
+                                  Tema.values[i], Tema.values[i] == temaAtual)),
+                        ],
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                  child: Column(
-                    children: [
-                      _tileBackup(Icons.ios_share_rounded, t.exportarJson, t.exportarJsonDescricao,
-                          () => backup.exportarJson(context)),
-                      const SizedBox(height: 8),
-                      _tileBackup(Icons.file_download_outlined, t.importarJson, t.importarJsonDescricao,
-                          () => backup.importarJson(context)),
-                      if (auth != null) ...[
-                        const SizedBox(height: 8),
-                        _tileBackup(Icons.cloud_upload_outlined, t.salvarNaNuvem, t.salvarNaNuvemDescricao,
-                            () => backup.salvarNaNuvem(context)),
+                  const SizedBox(height: 14),
+                  _tituloConfig(t.tituloIdioma),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                    child: Row(
+                      children: [
+                        for (final o in [
+                          ('Português', Idioma.pt),
+                          ('English', Idioma.en),
+                          ('Español', Idioma.es),
+                        ]) ...[
+                          if (o.$2 != Idioma.pt) const SizedBox(width: 8),
+                          Expanded(
+                              child: _chipTexto(o.$1, idioma == o.$2,
+                                  () => _aplicarConfig(() => ref
+                                      .read(idiomaProvider.notifier)
+                                      .definir(o.$2)))),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        }),
+                  const SizedBox(height: 14),
+                  _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                    child: Row(
+                      children: [
+                        for (final o in [
+                          (t.fonteMenor, 0.93),
+                          (t.fonteNormal, 1.035),
+                          (t.fonteMaior, 1.22),
+                        ]) ...[
+                          if (o.$2 != 0.93) const SizedBox(width: 8),
+                          Expanded(
+                              child: _chipTexto(o.$1, (atual - o.$2).abs() < 0.001,
+                                  () => _aplicarConfig(() => ref
+                                      .read(fontScaleProvider.notifier)
+                                      .definir(o.$2)))),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 2),
+                    child: Row(
+                      children: [
+                        Expanded(child: _tituloConfigInline(t.backup, sub: t.backupDescricao)),
+                        IconButton(
+                          onPressed: () => setSB(() => backupExpandido = !backupExpandido),
+                          icon: Icon(backupExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.dim),
+                          tooltip: t.backup,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (backupExpandido) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.line),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(auth != null ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+                                size: 20, color: auth != null ? AppColors.green : AppColors.dim),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(auth != null ? t.backupNuvemAtivo : t.backupNuvemInativo,
+                                      style: TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w600)),
+                                  const SizedBox(height: 2),
+                                  Text(auth != null ? '${t.contaConectada}: ${auth.email ?? ''}' : t.entrarComGoogleBackup,
+                                      style: TextStyle(color: AppColors.dim, fontSize: 11.5)),
+                                ],
+                              ),
+                            ),
+                            if (auth == null)
+                              FilledButton(
+                                onPressed: () async {
+                                  try {
+                                    await ref.read(authServiceProvider).signInWithGoogle();
+                                  } catch (_) {}
+                                },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.green,
+                                  foregroundColor: AppColors.onGreen,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                child: Text('Google', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                      child: Column(
+                        children: [
+                          _tileBackup(Icons.ios_share_rounded, t.exportarJson, t.exportarJsonDescricao,
+                              () => backup.exportarJson(context)),
+                          const SizedBox(height: 8),
+                          _tileBackup(Icons.file_download_outlined, t.importarJson, t.importarJsonDescricao,
+                              () => backup.importarJson(context)),
+                          if (auth != null) ...[
+                            const SizedBox(height: 8),
+                            _tileBackup(Icons.cloud_upload_outlined, t.salvarNaNuvem, t.salvarNaNuvemDescricao,
+                                () => backup.salvarNaNuvem(context)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -466,6 +484,21 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _tituloConfigInline(String titulo, {String? sub}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(titulo,
+            style: TextStyle(color: AppColors.text, fontSize: 15, fontWeight: FontWeight.w600)),
+        if (sub != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 1, bottom: 8),
+            child: Text(sub, style: TextStyle(color: AppColors.dim, fontSize: 12)),
+          ),
+      ],
     );
   }
 
