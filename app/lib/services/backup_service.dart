@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../theme/app_colors.dart';
 import 'auth_service.dart';
 import 'firestore_refs.dart';
 import 'prefs.dart';
@@ -120,6 +121,49 @@ class BackupService {
       }
       return;
     }
+    final preview = jsonStr.length > 1200 ? '${jsonStr.substring(0, 1200)}...' : jsonStr;
+    if (!context.mounted) return;
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: Text(t.exportarJson),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(t.backupExportado, style: TextStyle(color: AppColors.green, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.line)),
+                child: Text(preview, style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+              ),
+              const SizedBox(height: 8),
+              Text('${(jsonStr.length / 1024).toStringAsFixed(1)} KB', style: TextStyle(color: AppColors.dim, fontSize: 11)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx, 'copiar'),
+            child: Text(t.copiar),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dCtx, 'compartilhar'),
+            child: Text(t.exportarJson),
+          ),
+        ],
+      ),
+    );
+    if (action == null) return;
+    if (action == 'copiar') {
+      await Clipboard.setData(ClipboardData(text: jsonStr));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.backupExportado} (copiado)')));
+      }
+      return;
+    }
     try {
       final dir = await getTemporaryDirectory();
       final nome = 'savelist-backup-${DateTime.now().toIso8601String().split('T').first}.json';
@@ -127,19 +171,11 @@ class BackupService {
       await file.writeAsString(jsonStr);
       if (!context.mounted) return;
       final box = context.findRenderObject() as RenderBox?;
-      try {
-        await SharePlus.instance.share(ShareParams(
-          files: [XFile(file.path, mimeType: 'application/json')],
-          subject: 'Save List backup',
-          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-        ));
-      } catch (_) {
-        await Clipboard.setData(ClipboardData(text: jsonStr));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.backupExportado} (copiado)')));
-        }
-        return;
-      }
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path, mimeType: 'application/json')],
+        subject: 'Save List backup',
+        sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+      ));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupExportado)));
       }
@@ -172,10 +208,11 @@ class BackupService {
       return;
     }
     try {
-      final dados = await _coletar();
+      await _db.collection('users').doc(uid).set({'ultimoBackup': Timestamp.now()}, SetOptions(merge: true));
       await _db.collection('users').doc(uid).collection('backups').add({
         'criadoEm': Timestamp.now(),
-        'dados': dados,
+        'versao': 1,
+        'nota': 'snapshot manual',
       });
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupSalvoNuvem)));
