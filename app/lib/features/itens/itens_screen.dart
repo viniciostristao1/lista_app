@@ -160,11 +160,10 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 _talvezLimparOrfaos(mercados, todos);
                 final lista = _busca.isEmpty
                     ? todos
-                    : todos.where((p) => p.nomeLower.contains(_busca)).toList();
+                    : todos.where((p) => normalizarBusca(p.nomeLower).contains(normalizarBusca(_busca))).toList();
                 if (todos.isEmpty && _busca.isEmpty) return _vazio();
-                // Palavra nova (sem item igual): oferece cadastrar no topo.
-                final exato =
-                    _busca.isNotEmpty && todos.any((p) => p.nomeLower == _busca);
+                final exato = _busca.isNotEmpty &&
+                    todos.any((p) => normalizarBusca(p.nomeLower) == normalizarBusca(_busca));
                 final mostrarCadastrar = _busca.isNotEmpty && !exato;
                 final extra = mostrarCadastrar ? 1 : 0;
                 return ListView.builder(

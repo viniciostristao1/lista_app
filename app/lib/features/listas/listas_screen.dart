@@ -128,10 +128,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       List<Produto> produtos, Set<String> idsNaLista) async {
     final nome = _buscaCtrl.text.trim();
     if (nome.isEmpty) return;
-    final q = nome.toLowerCase();
+    final q = normalizarBusca(nome);
     Produto? exato;
     for (final p in produtos) {
-      if (p.nomeLower == q) {
+      if (normalizarBusca(p.nomeLower) == q) {
         exato = p;
         break;
       }
@@ -240,6 +240,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final idioma = ref.read(idiomaProvider);
     final temaAtual = ref.read(temaProvider);
     bool backupExpandido = false;
+    bool temasExpandido = false;
+    bool idiomasExpandido = false;
+    bool fonteExpandido = false;
     final outerContext = context;
     showModalBottomSheet(
       context: outerContext,
@@ -270,63 +273,96 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       ),
                     ),
                   ),
-                  _tituloConfig(t0.tema),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < Tema.values.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 8),
-                          Expanded(
-                              child: _chipTema(
-                                  Tema.values[i], Tema.values[i] == temaAtual)),
+                  InkWell(
+                    onTap: () => setSB(() => temasExpandido = !temasExpandido),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: _tituloConfigInline(t0.tema)),
+                          Icon(temasExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.dim, size: 24),
                         ],
-                      ],
+                      ),
                     ),
                   ),
+                  if (temasExpandido)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                      child: Row(
+                        children: [
+                          for (var i = 0; i < Tema.values.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 8),
+                            Expanded(child: _chipTema(Tema.values[i], Tema.values[i] == temaAtual)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () => setSB(() => idiomasExpandido = !idiomasExpandido),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: _tituloConfigInline(t.tituloIdioma)),
+                          Icon(idiomasExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.dim, size: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (idiomasExpandido)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                      child: Row(
+                        children: [
+                          for (final o in [
+                            ('Português', Idioma.pt),
+                            ('English', Idioma.en),
+                            ('Español', Idioma.es),
+                          ]) ...[
+                            if (o.$2 != Idioma.pt) const SizedBox(width: 8),
+                            Expanded(
+                                child: _chipTexto(o.$1, idioma == o.$2,
+                                    () => _aplicarConfig(() => ref.read(idiomaProvider.notifier).definir(o.$2)))),
+                          ],
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () => setSB(() => fonteExpandido = !fonteExpandido),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: _tituloConfigInline(t.tamanhoDaFonte, sub: t.valeAppInteiro)),
+                          Icon(fonteExpandido ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: AppColors.dim, size: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (fonteExpandido)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
+                      child: Row(
+                        children: [
+                          for (final o in [
+                            (t.fonteMenor, 0.93),
+                            (t.fonteNormal, 1.035),
+                            (t.fonteMaior, 1.22),
+                          ]) ...[
+                            if (o.$2 != 0.93) const SizedBox(width: 8),
+                            Expanded(
+                                child: _chipTexto(o.$1, (atual - o.$2).abs() < 0.001,
+                                    () => _aplicarConfig(() => ref.read(fontScaleProvider.notifier).definir(o.$2)))),
+                          ],
+                        ],
+                      ),
+                    ),
                   const SizedBox(height: 14),
-                  _tituloConfig(t.tituloIdioma),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                    child: Row(
-                      children: [
-                        for (final o in [
-                          ('Português', Idioma.pt),
-                          ('English', Idioma.en),
-                          ('Español', Idioma.es),
-                        ]) ...[
-                          if (o.$2 != Idioma.pt) const SizedBox(width: 8),
-                          Expanded(
-                              child: _chipTexto(o.$1, idioma == o.$2,
-                                  () => _aplicarConfig(() => ref
-                                      .read(idiomaProvider.notifier)
-                                      .definir(o.$2)))),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _tituloConfig(t.tamanhoDaFonte, sub: t.valeAppInteiro),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 2),
-                    child: Row(
-                      children: [
-                        for (final o in [
-                          (t.fonteMenor, 0.93),
-                          (t.fonteNormal, 1.035),
-                          (t.fonteMaior, 1.22),
-                        ]) ...[
-                          if (o.$2 != 0.93) const SizedBox(width: 8),
-                          Expanded(
-                              child: _chipTexto(o.$1, (atual - o.$2).abs() < 0.001,
-                                  () => _aplicarConfig(() => ref
-                                      .read(fontScaleProvider.notifier)
-                                      .definir(o.$2)))),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
                   InkWell(
                     onTap: () => setSB(() => backupExpandido = !backupExpandido),
                     borderRadius: BorderRadius.circular(12),
@@ -455,6 +491,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     acao();
   }
 
+  // ignore: unused_element
   Widget _tituloConfig(String titulo, {String? sub}) {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, sub == null ? 8 : 2),
@@ -900,10 +937,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   List<Widget> _resultadosBusca(
       List<Produto> produtos, Set<String> idsNaLista, List<Mercado> mercados) {
-    final q = _busca.trim().toLowerCase();
-    final matches =
-        produtos.where((p) => p.nomeLower.contains(q)).take(12).toList();
-    final exato = produtos.any((p) => p.nomeLower == q);
+    final q = _busca.trim();
+    final qNorm = normalizarBusca(q);
+    final matches = produtos
+        .where((p) => normalizarBusca(p.nomeLower).contains(qNorm))
+        .take(12)
+        .toList();
+    final exato = produtos.any((p) => normalizarBusca(p.nomeLower) == qNorm);
 
     return [
       for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id)),

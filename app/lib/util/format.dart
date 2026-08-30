@@ -40,13 +40,29 @@ String diaMes(DateTime d) =>
 String dataCompleta(DateTime d) =>
     '${diaMes(d)}/${d.year.toString().padLeft(4, '0')}';
 
-/// Lê um preço digitado ("18,50", "1.234,56", "18.5") -> double? (null se vazio).
 double? parsePreco(String texto) {
   var t = texto.replaceAll(RegExp(r'[^0-9.,]'), '');
   if (t.isEmpty) return null;
   if (t.contains(',')) {
-    // vírgula = decimal; pontos = milhares
     t = t.replaceAll('.', '').replaceAll(',', '.');
   }
   return double.tryParse(t);
+}
+
+String normalizarBusca(String s) {
+  final lower = s.toLowerCase();
+  const map = {
+    'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
+    'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+    'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+    'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+    'ç': 'c', 'ñ': 'n',
+  };
+  final sb = StringBuffer();
+  for (var i = 0; i < lower.length; i++) {
+    final c = lower[i];
+    sb.write(map[c] ?? c);
+  }
+  return sb.toString();
 }

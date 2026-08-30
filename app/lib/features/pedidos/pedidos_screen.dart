@@ -126,10 +126,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       total += pe.total;
     }
 
-    final buscaLower = _busca.trim().toLowerCase();
+    final buscaLower = normalizarBusca(_busca.trim());
     final temBusca = buscaLower.isNotEmpty;
     final filtradosBusca = temBusca
-        ? filtrados.where((pe) => pe.itens.any((it) => it.nome.toLowerCase().contains(buscaLower))).toList()
+        ? filtrados.where((pe) => pe.itens.any((it) => normalizarBusca(it.nome).contains(buscaLower))).toList()
         : filtrados;
     double totalBusca = 0;
     int qtdBusca = 0;
@@ -137,7 +137,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     if (temBusca) {
       for (final pe in filtradosBusca) {
         for (final it in pe.itens) {
-          if (it.nome.toLowerCase().contains(buscaLower)) {
+          if (normalizarBusca(it.nome).contains(buscaLower)) {
             totalBusca += (it.precoUnit ?? 0) * it.quantidade;
             qtdBusca += it.quantidade;
           }
@@ -539,7 +539,9 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 child: Builder(builder: (context) {
                   final busca = buscaLower;
                   final termo = _busca.trim();
-                  final itensExibir = busca.isEmpty ? pe.itens : pe.itens.where((it) => it.nome.toLowerCase().contains(busca)).toList();
+                  final itensExibir = busca.isEmpty
+                      ? pe.itens
+                      : pe.itens.where((it) => normalizarBusca(it.nome).contains(busca)).toList();
                   return ListView(
                     controller: scroll,
                     children: [
@@ -635,9 +637,9 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     if (busca.isEmpty) {
       return Text(nome, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.text, fontSize: 14));
     }
-    final lowerNome = nome.toLowerCase();
-    final lowerBusca = busca.toLowerCase();
-    final idx = lowerNome.indexOf(lowerBusca);
+    final normNome = normalizarBusca(nome);
+    final normBusca = normalizarBusca(busca);
+    final idx = normNome.indexOf(normBusca);
     if (idx == -1) {
       return Text(nome, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.text, fontSize: 14));
     }
