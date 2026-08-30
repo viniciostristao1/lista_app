@@ -52,9 +52,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   // idioma vem do ref.watch(stringsProvider) no topo do build.
   AppStrings get _t => ref.read(stringsProvider);
 
-  /// Mercado "efetivo" do item: mercado fixo → mais barato. Null = solto
-  /// (sem mercado) → cai no filtro "Sem mercado".
-  String? _mercadoEfetivo(Produto? p) => p?.mercadoFixo ?? p?.mercadoMaisBarato;
+  String? _mercadoEfetivo(ItemLista it, Produto? p) {
+    if (p != null) return p.mercadoFixo ?? p.mercadoMaisBarato;
+    return it.mercadoId;
+  }
 
   @override
   void initState() {
@@ -80,25 +81,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Future<void> _cadastrarEAdicionar(String nome) async {
-    final id = await ref
-        .read(produtosRepoProvider)
-        .criarProduto(nome: nome, categoria: Categoria.outros);
     final listaRepo = ref.read(listasRepoProvider);
     final atual = await listaRepo.obterOuCriarAtiva();
-    await listaRepo.adicionarItem(atual.id,
-        produtoId: id, nome: nome, categoria: Categoria.outros);
+    await listaRepo.adicionarItem(atual.id, nome: nome, categoria: Categoria.outros);
     _buscaCtrl.clear();
     setState(() => _busca = '');
   }
 
-  // Cadastra um item NOVO já dedicado a um mercado (sem preço) e adiciona.
   Future<void> _cadastrarEmMercado(String nome, String mercadoId) async {
-    final id = await ref.read(produtosRepoProvider).criarProduto(
-        nome: nome, categoria: Categoria.outros, mercadoFixo: mercadoId);
     final listaRepo = ref.read(listasRepoProvider);
     final atual = await listaRepo.obterOuCriarAtiva();
     await listaRepo.adicionarItem(atual.id,
-        produtoId: id, nome: nome, categoria: Categoria.outros);
+        nome: nome, categoria: Categoria.outros, mercadoId: mercadoId);
     _buscaCtrl.clear();
     setState(() => _busca = '');
   }
@@ -229,7 +223,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final selec = escolha == 'todos' ? null : escolha;
     final incluidos = itens.where((it) {
       if (selec == null) return true;
-      return _mercadoEfetivo(produtosPorId[it.produtoId]) == selec;
+      return _mercadoEfetivo(it, produtosPorId[it.produtoId]) == selec;
     }).toList();
     if (incluidos.isEmpty) return;
     final texto = incluidos
@@ -624,7 +618,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             : null;
 
     bool visivel(ItemLista it) {
-      final ef = _mercadoEfetivo(produtosPorId[it.produtoId]);
+      final ef = _mercadoEfetivo(it, produtosPorId[it.produtoId]);
       if (_filtroSemMercado) return ef == null;
       if (filtro == null) return true;
       return ef == filtro;
@@ -739,7 +733,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     }
     final contagem = <String?, int>{};
     for (final it in itens) {
-      final m = _mercadoEfetivo(produtosPorId[it.produtoId]);
+      final m = _mercadoEfetivo(it, produtosPorId[it.produtoId]);
       contagem[m] = (contagem[m] ?? 0) + 1;
     }
     final naoFavoritos = mercados.where((m) => !m.preferencia).toList()
@@ -1171,10 +1165,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     List<Mercado> mercados,
     Lista atual,
   ) {
-    final dedicado = p?.dedicado ?? false;
+    final dedicado = p?.dedicado ?? it.mercadoId != null;
     final menor =
         p?.precosOrdenados.isNotEmpty == true ? p!.precosOrdenados.first : null;
-    final mercadoEfId = p?.mercadoFixo ?? menor?.key;
+    final mercadoEfId = p?.mercadoFixo ?? menor?.key ?? it.mercadoId;
     final cor = mercadoEfId != null ? mercadosPorId[mercadoEfId]?.cor : null;
     final velho = menor?.value.desatualizado ?? false;
 
@@ -1494,7 +1488,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               grupos[filtroMercadoId] = removiveis;
             } else {
               for (final it in removiveis) {
-                final mid = _mercadoEfetivo(produtosPorId[it.produtoId]);
+                final mid = _mercadoEfetivo(it, produtosPorId[it.produtoId]);
                 grupos.putIfAbsent(mid, () => []).add(it);
               }
             }
