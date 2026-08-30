@@ -10,7 +10,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../theme/app_colors.dart';
 import 'auth_service.dart';
 import 'firestore_refs.dart';
 import 'prefs.dart';
@@ -126,49 +125,6 @@ class BackupService {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
-      }
-      return;
-    }
-    final preview = jsonStr.length > 1200 ? '${jsonStr.substring(0, 1200)}...' : jsonStr;
-    if (!context.mounted) return;
-    final action = await showDialog<String>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        title: Text(t.exportarJson),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(t.backupExportado, style: TextStyle(color: AppColors.green, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.line)),
-                child: Text(preview, style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
-              ),
-              const SizedBox(height: 8),
-              Text('${(jsonStr.length / 1024).toStringAsFixed(1)} KB', style: TextStyle(color: AppColors.dim, fontSize: 11)),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dCtx, 'copiar'),
-            child: Text(t.copiar),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dCtx, 'compartilhar'),
-            child: Text(t.exportarJson),
-          ),
-        ],
-      ),
-    );
-    if (action == null) return;
-    if (action == 'copiar') {
-      await Clipboard.setData(ClipboardData(text: jsonStr));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.backupExportado} (copiado)')));
       }
       return;
     }
