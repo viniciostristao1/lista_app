@@ -159,12 +159,23 @@ class BackupService {
     final uid = auth?.uid;
     if (uid == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.entrarComGoogleBackup)));
+        await showDialog<void>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            title: Text(t.backup),
+            content: Text(t.entrarComGoogleBackup),
+            actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: Text(t.fechar))],
+          ),
+        );
       }
       return;
     }
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salvando na nuvem...')));
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
     }
     try {
       await _db.collection('users').doc(uid).set({'ultimoBackup': Timestamp.now()}, SetOptions(merge: true));
@@ -174,13 +185,33 @@ class BackupService {
         'nota': 'snapshot manual',
       });
       if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupSalvoNuvem)));
+        await showDialog<void>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            title: Text(t.backupSalvoNuvem),
+            content: Text('${t.backupNuvemAtivo}\n${t.contaConectada}: ${auth?.email ?? ''}'),
+            actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: Text(t.fechar))],
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
+        try {
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (_) {}
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
+        await showDialog<void>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            title: Text(t.falhaBackup),
+            content: Text('$e'),
+            actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: Text(t.fechar))],
+          ),
+        );
       }
     }
   }
