@@ -6,6 +6,7 @@ import 'features/auth/login_screen.dart';
 import 'features/home/home_shell.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'services/notificacao_service.dart';
 import 'services/prefs.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificacaoService.instance.init();
   runApp(const ProviderScope(child: ListaApp()));
 }
 

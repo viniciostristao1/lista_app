@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lista_app/features/itens/produto_editor_screen.dart';
+import 'package:lista_app/features/lembretes/lembretes_sheet.dart';
 import 'package:lista_app/features/listas/widgets/nota_rapida_sheet.dart';
 import 'package:lista_app/l10n/strings.dart';
+import 'package:lista_app/services/lembretes_repository.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
@@ -692,6 +694,26 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           Text(t.appNome),
         ]),
         actions: [
+          Consumer(builder: (context, ref, _) {
+            final lembretes = ref.watch(lembretesProvider).asData?.value ?? const [];
+            final temAtivo = lembretes.any((l) => l.ativo);
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  tooltip: 'Lembretes',
+                  icon: Icon(Icons.notifications_outlined, color: AppColors.dim),
+                  onPressed: () => mostrarLembretes(context),
+                ),
+                if (temAtivo)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.green, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 1))),
+                  ),
+              ],
+            );
+          }),
           IconButton(
             tooltip: t.configuracoes,
             icon: Icon(Icons.settings_outlined, color: AppColors.dim),
