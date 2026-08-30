@@ -108,6 +108,16 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
                   const SizedBox(width: 8),
                   Text('Lembretes', style: TextStyle(color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w600)),
                   const Spacer(),
+                  IconButton(
+                    tooltip: 'Testar notificação',
+                    icon: Icon(Icons.bug_report_outlined, color: AppColors.dim),
+                    onPressed: () async {
+                      await NotificacaoService.instance.mostrarTesteImediato();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificação de teste enviada — veja o topo da tela')));
+                      }
+                    },
+                  ),
                   FilledButton.icon(
                     onPressed: () => _editar(null),
                     icon: const Icon(Icons.add, size: 18),

@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/lembrete.dart';
 
-const _channelId = 'lembretes_channel';
+const _channelId = 'lembretes_channel_v2';
 const _channelName = 'Lembretes';
 const _channelDesc = 'Lembretes gerais do Save List';
 
@@ -20,8 +21,13 @@ class NotificacaoService {
     if (_inited) return;
     tz.initializeTimeZones();
     try {
-      tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
-    } catch (_) {}
+      final locName = await FlutterNativeTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(locName));
+    } catch (_) {
+      try {
+        tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
+      } catch (_) {}
+    }
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: ios);
@@ -65,16 +71,18 @@ class NotificacaoService {
         iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true, threadIdentifier: _channelId),
       );
 
-  int _idFor(String lembreteId, [int extra = 0]) => lembreteId.hashCode + extra;
+  int _idFor(String lembreteId, [int extra = 0]) => (lembreteId.hashCode & 0x7fffffff) + extra;
 
   String _payload(Lembrete l) => jsonEncode({'id': l.id, 'titulo': l.titulo, 'descricao': l.descricao});
+
+  tz.TZDateTime _toZoned(DateTime dt) => tz.TZDateTime(tz.local, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
 
   Future<void> agendar(Lembrete l) async {
     await init();
     await cancelar(l.id);
     if (!l.ativo) return;
     final now = tz.TZDateTime.now(tz.local);
-    final base = tz.TZDateTime.from(l.dataHora, tz.local);
+    final base = _toZoned(l.dataHora);
     final payload = _payload(l);
     final details = _details(l.titulo, corpo: l.descricao);
     if (l.recorrencia == Recorrencia.nenhuma) {
@@ -84,7 +92,7 @@ class NotificacaoService {
       return;
     }
     if (l.recorrencia == Recorrencia.diaria) {
-      final t = tz.TZDateTime(tz.local, now.year, now.month, now.day, base.hour, base.minute);
+      final t = tz.TZDateTime(tz.local, now.year, now.month, now.day, base.hour, base.minute, base.second);
       final next = t.isBefore(now) ? t.add(const Duration(days: 1)) : t;
       await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: payload);
@@ -92,24 +100,30 @@ class NotificacaoService {
     }
     if (l.recorrencia == Recorrencia.semanal) {
       final weekday = l.diaSemana ?? base.weekday;
-      var next = _nextWeekly(weekday, base.hour, base.minute);
+      var next = _nextWeekly(weekday, base.hour, base.minute, base.second);
       await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, payload: payload);
       return;
     }
     if (l.recorrencia == Recorrencia.mensal) {
-      var next = tz.TZDateTime(tz.local, now.year, now.month, base.day, base.hour, base.minute);
+      var next = tz.TZDateTime(tz.local, now.year, now.month, base.day, base.hour, base.minute, base.second);
       if (next.isBefore(now)) {
-        next = tz.TZDateTime(tz.local, now.year, now.month + 1, base.day, base.hour, base.minute);
+        var y = now.year;
+        var m = now.month + 1;
+        if (m > 12) {
+          m = 1;
+          y += 1;
+        }
+        next = tz.TZDateTime(tz.local, y, m, base.day, base.hour, base.minute, base.second);
       }
       await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime, payload: payload);
     }
   }
 
-  tz.TZDateTime _nextWeekly(int weekday, int hour, int minute) {
+  tz.TZDateTime _nextWeekly(int weekday, int hour, int minute, [int second = 0]) {
     final now = tz.TZDateTime.now(tz.local);
-    var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute, second);
     while (next.weekday != weekday || next.isBefore(now)) {
       next = next.add(const Duration(days: 1));
     }
@@ -126,6 +140,11 @@ class NotificacaoService {
     for (final l in lista) {
       await agendar(l);
     }
+  }
+
+  Future<void> mostrarTesteImediato() async {
+    await init();
+    await _plugin.show(999999, 'Teste Save List', 'Notificação de teste — se você vê isso, as notificações estão funcionando!', _details('Teste Save List', corpo: 'Notificação de teste — se você vê isso, as notificações estão funcionando!'));
   }
 
   Future<void> adiar(String lembreteIdOrPayload, Duration d, {String? titulo, String? descricao}) async {
@@ -150,7 +169,7 @@ class NotificacaoService {
         priority: Priority.max,
         visibility: NotificationVisibility.public,
         category: AndroidNotificationCategory.reminder,
-        styleInformation: BigTextStyleInformation(desc, contentTitle: t, summaryText: 'Save List • Lembrete adiado'),
+        styleInformation: BigTextStyleInformation(desc, contentTitle: t, summaryText: 'Save List • Lembrete adiado ${d.inMinutes}m'),
         ticker: t,
         enableVibration: true,
         playSound: true,
