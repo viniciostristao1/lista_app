@@ -84,6 +84,30 @@ class ProdutosRepository {
 
   Future<void> excluirProduto(String id) => _refs.produtos.doc(id).delete();
 
+  Future<void> restaurarProduto(Produto p) {
+    final precosMap = <String, dynamic>{};
+    p.precos.forEach((mid, pm) {
+      precosMap[mid] = {'valor': pm.valor, 'data': Timestamp.fromDate(pm.data)};
+    });
+    return _refs.produtos.doc(p.id).set({
+      'nome': p.nome,
+      'nomeLower': p.nomeLower,
+      'categoria': p.categoria.name,
+      'marca': p.marca,
+      'tamanho': p.tamanho,
+      'unidade': p.unidade,
+      'observacoes': p.observacoes,
+      'observacoesAtualizadasEm': p.observacoesAtualizadasEm == null ? null : Timestamp.fromDate(p.observacoesAtualizadasEm!),
+      'updatedAt': p.updatedAt == null ? Timestamp.now() : Timestamp.fromDate(p.updatedAt!),
+      'fixado': p.fixado,
+      'mercadoFixo': p.mercadoFixo,
+      'ultimoPreco': p.ultimoPreco,
+      'ultimoMercadoId': p.ultimoMercadoId,
+      'vezesComprado': p.vezesComprado,
+      'precos': precosMap,
+    }, SetOptions(merge: true));
+  }
+
   /// Define/atualiza o preço de um mercado, carimbando a data de hoje, e
   /// guarda no histórico (para a evolução de preço).
   Future<void> definirPreco(

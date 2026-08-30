@@ -44,6 +44,29 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
         () => ref.read(produtosRepoProvider).limparPrecosOrfaos(validos));
   }
 
+  Future<void> _excluirComDesfazer(Produto p) async {
+    final repo = ref.read(produtosRepoProvider);
+    await repo.excluirProduto(p.id);
+    if (!mounted) return;
+    final t = ref.read(stringsProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    final ctrl = messenger.showSnackBar(SnackBar(
+      content: Text(t.itemRemovido(p.nome)),
+      duration: const Duration(seconds: 30),
+      action: SnackBarAction(
+        label: t.desfazer,
+        textColor: AppColors.green,
+        onPressed: () async => await repo.restaurarProduto(p),
+      ),
+    ));
+    Future.delayed(const Duration(seconds: 3), () {
+      try {
+        ctrl.close();
+      } catch (_) {}
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = ref.watch(stringsProvider);
@@ -151,8 +174,22 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                     if (mostrarCadastrar && i == 0) {
                       return _cardCadastrarNovo(mercados);
                     }
-                    return _cardProduto(
-                        lista[i - extra], mercados, mercadosPorId);
+                    final p = lista[i - extra];
+                    return Dismissible(
+                      key: ValueKey(p.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Icon(Icons.delete_outline, color: AppColors.danger),
+                      ),
+                      onDismissed: (_) => _excluirComDesfazer(p),
+                      child: _cardProduto(p, mercados, mercadosPorId),
+                    );
                   },
                 );
               },
