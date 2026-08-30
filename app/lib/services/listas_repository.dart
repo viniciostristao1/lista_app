@@ -89,6 +89,9 @@ class ListasRepository {
   Future<void> setQuantidade(String listaId, String itemId, int quantidade) =>
       _refs.itens(listaId).doc(itemId).update({'quantidade': quantidade});
 
+  Future<void> vincularProduto(String listaId, String itemId, String produtoId) =>
+      _refs.itens(listaId).doc(itemId).update({'produtoId': produtoId});
+
   /// Adiciona o produto à lista só se ainda não estiver (usado pelo "fixar").
   Future<void> adicionarProdutoSeAusente(
     String listaId, {

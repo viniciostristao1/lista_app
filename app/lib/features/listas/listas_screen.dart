@@ -119,6 +119,25 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     await mostrarEditorProduto(context, p, mercados);
   }
 
+  Future<void> _cadastrarLembrete(ItemLista it, Lista atual) async {
+    final mercados = ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
+    final id = await ref.read(produtosRepoProvider).criarProduto(
+          nome: it.nome,
+          categoria: it.categoria,
+          mercadoFixo: it.mercadoId,
+        );
+    await ref.read(listasRepoProvider).vincularProduto(atual.id, it.id, id);
+    if (!mounted) return;
+    final p = Produto(
+      id: id,
+      nome: it.nome,
+      nomeLower: it.nome.toLowerCase(),
+      categoria: it.categoria,
+      mercadoFixo: it.mercadoId,
+    );
+    await mostrarEditorProduto(context, p, mercados);
+  }
+
   // Mercados com o ⭐ preferido primeiro.
   List<Mercado> _mercadosOrdenados(List<Mercado> mercados) => [
         ...mercados.where((m) => m.preferencia),
@@ -1231,7 +1250,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 Icon(Icons.push_pin, size: 13, color: AppColors.green),
                 const SizedBox(width: 4),
               ],
-              // atalho: abre o editor do item (preços/mercado) sem ir à aba Itens
               if (p != null)
                 IconButton(
                   visualDensity: VisualDensity.compact,
@@ -1242,6 +1260,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   icon: Icon(Icons.sell_outlined,
                       size: 18, color: AppColors.dim),
                   onPressed: () => mostrarEditorProduto(context, p, mercados),
+                )
+              else
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 22),
+                  tooltip: _t.cadastrarItem(it.nome),
+                  icon: Icon(Icons.sell_outlined,
+                      size: 18, color: AppColors.dim2),
+                  onPressed: () => _cadastrarLembrete(it, atual),
                 ),
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
