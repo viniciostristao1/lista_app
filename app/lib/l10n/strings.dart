@@ -304,6 +304,20 @@ class AppStrings {
       };
 
   // ---------- pedidos ----------
+  String get buscarNosPedidos => _s('Buscar produto nos pedidos…', 'Search product in orders…', 'Buscar producto en pedidos…');
+  String get nenhumPedidoComProduto => _s('Nenhum pedido com esse produto.', 'No orders with this product.', 'Ningún pedido con este producto.');
+  String gastoComProduto(String qtd, String produto, String valor) => switch (idioma) {
+        Idioma.pt => '$qtd× $produto · gasto $valor',
+        Idioma.en => '$qtd× $produto · spent $valor',
+        Idioma.es => '$qtd× $produto · gastado $valor',
+      };
+  String resumoBuscaPedidos(String produto, String valor, int qtdPedidos) => switch (idioma) {
+        Idioma.pt => '"$produto" em $qtdPedidos pedido(s) · $valor',
+        Idioma.en => '"$produto" in $qtdPedidos order(s) · $valor',
+        Idioma.es => '"$produto" en $qtdPedidos pedido(s) · $valor',
+      };
+  String get limparBusca => _s('Limpar busca', 'Clear search', 'Limpiar búsqueda');
+
   String get pedidoDesfeito => _s('Pedido desfeito — itens voltaram pra lista 🔄',
       'Order undone — items are back on the list 🔄',
       'Pedido deshecho — los artículos volvieron a la lista 🔄');

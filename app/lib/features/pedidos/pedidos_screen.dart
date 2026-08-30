@@ -24,10 +24,16 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
   String? _filtroMercado; // null = "Todos"
   late int _ano;
   late int _mes;
+  final _buscaCtrl = TextEditingController();
+  String _busca = '';
 
-  // read (não watch): usado tanto no build quanto em callbacks; a reatividade
-  // vem do ref.watch(stringsProvider) no topo do build.
   AppStrings get _t => ref.read(stringsProvider);
+
+  @override
+  void dispose() {
+    _buscaCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -120,6 +126,25 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       total += pe.total;
     }
 
+    final buscaLower = _busca.trim().toLowerCase();
+    final temBusca = buscaLower.isNotEmpty;
+    final filtradosBusca = temBusca
+        ? filtrados.where((pe) => pe.itens.any((it) => it.nome.toLowerCase().contains(buscaLower))).toList()
+        : filtrados;
+    double totalBusca = 0;
+    int qtdBusca = 0;
+    int qtdPedidosBusca = filtradosBusca.length;
+    if (temBusca) {
+      for (final pe in filtradosBusca) {
+        for (final it in pe.itens) {
+          if (it.nome.toLowerCase().contains(buscaLower)) {
+            totalBusca += (it.precoUnit ?? 0) * it.quantidade;
+            qtdBusca += it.quantidade;
+          }
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -137,17 +162,48 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
               child: _barraMercados(mercados, filtroMercado),
             ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+            child: TextField(
+              controller: _buscaCtrl,
+              onChanged: (v) => setState(() => _busca = v),
+              style: TextStyle(color: AppColors.text, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: t.buscarNosPedidos,
+                hintStyle: TextStyle(color: AppColors.dim2, fontSize: 13),
+                prefixIcon: Icon(Icons.search, color: AppColors.dim, size: 19),
+                suffixIcon: _busca.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: Icon(Icons.close, color: AppColors.dim, size: 18),
+                        tooltip: t.limparBusca,
+                        onPressed: () {
+                          _buscaCtrl.clear();
+                          setState(() => _busca = '');
+                        },
+                      ),
+                isDense: true,
+                filled: true,
+                fillColor: AppColors.surface,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+          ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
               children: [
-                _cardResumo(econ, total, t.mesNome(_mes),
-                    mercadosPorId[filtroMercado]?.nome),
+                _cardResumo(econ, total, t.mesNome(_mes), mercadosPorId[filtroMercado]?.nome),
+                if (temBusca) ...[
+                  const SizedBox(height: 10),
+                  _cardBuscaResumo(_busca.trim(), totalBusca, qtdBusca, qtdPedidosBusca),
+                ],
                 const SizedBox(height: 14),
-                if (filtrados.isEmpty)
-                  _vazio()
+                if (filtradosBusca.isEmpty)
+                  temBusca ? _vazioBusca() : _vazio()
                 else
-                  ...filtrados.map((pe) => _cardPedido(pe, mercadosPorId)),
+                  ...filtradosBusca.map((pe) => _cardPedido(pe, mercadosPorId, buscaLower)),
               ],
             ),
           ),
@@ -329,8 +385,45 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     );
   }
 
-  Widget _cardPedido(Pedido pe, Map<String, Mercado> mercadosPorId) {
+  Widget _cardBuscaResumo(String termo, double total, int qtd, int qtdPedidos) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppColors.green.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.green.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 18, color: AppColors.green),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_t.resumoBuscaPedidos(termo, reais(total), qtdPedidos),
+                style: TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: AppColors.green, borderRadius: BorderRadius.circular(8)),
+            child: Text('$qtd×', style: TextStyle(color: AppColors.onGreen, fontSize: 11, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardPedido(Pedido pe, Map<String, Mercado> mercadosPorId, [String buscaLower = '']) {
     final mercado = pe.mercadoId == null ? null : mercadosPorId[pe.mercadoId];
+    final temBusca = buscaLower.isNotEmpty;
+    int qtdMatch = 0;
+    double totalMatch = 0;
+    if (temBusca) {
+      for (final it in pe.itens) {
+        if (it.nome.toLowerCase().contains(buscaLower)) {
+          qtdMatch += it.quantidade;
+          totalMatch += (it.precoUnit ?? 0) * it.quantidade;
+        }
+      }
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -338,7 +431,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: () => _detalhe(pe, mercado),
+          onTap: () => _detalhe(pe, mercado, buscaLower),
           child: Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -370,9 +463,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${pe.data == null ? '' : '${diaMes(pe.data!)} · '}'
-                        '${_t.nItens(pe.itens.length)}',
-                        style: TextStyle(color: AppColors.dim, fontSize: 12.5),
+                        temBusca
+                            ? '$qtdMatch× "${_busca.trim()}" · ${reais(totalMatch)}'
+                            : '${pe.data == null ? '' : '${diaMes(pe.data!)} · '}${_t.nItens(pe.itens.length)}',
+                        style: TextStyle(color: temBusca ? AppColors.green : AppColors.dim, fontSize: 12.5, fontWeight: temBusca ? FontWeight.w600 : FontWeight.w400),
                       ),
                     ],
                   ),
@@ -380,15 +474,14 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(reais(pe.total),
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w700)),
-                    if (pe.economia > 0)
+                    Text(temBusca ? reais(totalMatch) : reais(pe.total),
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w700, color: temBusca ? AppColors.green : AppColors.text)),
+                    if (temBusca)
+                      Text(reais(pe.total), style: TextStyle(color: AppColors.dim2, fontSize: 11))
+                    else if (pe.economia > 0)
                       Text('−${reais(pe.economia)}',
-                          style: TextStyle(
-                              color: AppColors.green,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: AppColors.green, fontSize: 12, fontWeight: FontWeight.w600)),
                   ],
                 ),
                 const SizedBox(width: 4),
@@ -401,7 +494,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     );
   }
 
-  void _detalhe(Pedido pe, Mercado? mercado) {
+  void _detalhe(Pedido pe, Mercado? mercado, [String buscaLower = '']) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -443,45 +536,61 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
               const SizedBox(height: 12),
               Divider(color: AppColors.line, height: 1),
               Expanded(
-                child: ListView(
-                  controller: scroll,
-                  children: [
-                    for (final it in pe.itens)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(it.nome,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(color: AppColors.text, fontSize: 14)),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
-                                    child: Text('×${it.quantidade}',
-                                        style: TextStyle(color: AppColors.dim, fontSize: 11, fontWeight: FontWeight.w600)),
-                                  ),
-                                  if (it.precoUnit != null) ...[
-                                    const SizedBox(width: 6),
-                                    Text('${reais(it.precoUnit!)} un',
-                                        style: TextStyle(color: AppColors.dim2, fontSize: 11)),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(it.precoUnit == null ? '—' : reais(it.subtotal),
-                                style: TextStyle(color: AppColors.text, fontSize: 13.5, fontWeight: FontWeight.w600)),
-                          ],
+                child: Builder(builder: (context) {
+                  final busca = buscaLower;
+                  final termo = _busca.trim();
+                  final itensExibir = busca.isEmpty ? pe.itens : pe.itens.where((it) => it.nome.toLowerCase().contains(busca)).toList();
+                  return ListView(
+                    controller: scroll,
+                    children: [
+                      if (busca.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            decoration: BoxDecoration(color: AppColors.green.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(8)),
+                            child: Text('"$termo" · ${itensExibir.length} ${itensExibir.length == 1 ? 'item' : 'itens'}',
+                                style: TextStyle(color: AppColors.green, fontSize: 12, fontWeight: FontWeight.w600)),
+                          ),
                         ),
-                      ),
-                  ],
-                ),
+                      for (final it in itensExibir)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(child: _textoComDestaque(it.nome, busca)),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
+                                      child: Text('×${it.quantidade}',
+                                          style: TextStyle(color: AppColors.dim, fontSize: 11, fontWeight: FontWeight.w600)),
+                                    ),
+                                    if (it.precoUnit != null) ...[
+                                      const SizedBox(width: 6),
+                                      Text('${reais(it.precoUnit!)} un',
+                                          style: TextStyle(color: AppColors.dim2, fontSize: 11)),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(it.precoUnit == null ? '—' : reais(it.subtotal),
+                                  style: TextStyle(color: AppColors.text, fontSize: 13.5, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      if (busca.isNotEmpty && itensExibir.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Center(child: Text(_t.nenhumPedidoComProduto, style: TextStyle(color: AppColors.dim))),
+                        ),
+                    ],
+                  );
+                }),
               ),
               SizedBox(
                 width: double.infinity,
@@ -518,6 +627,42 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _textoComDestaque(String nome, String busca) {
+    if (busca.isEmpty) {
+      return Text(nome, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.text, fontSize: 14));
+    }
+    final lowerNome = nome.toLowerCase();
+    final lowerBusca = busca.toLowerCase();
+    final idx = lowerNome.indexOf(lowerBusca);
+    if (idx == -1) {
+      return Text(nome, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.text, fontSize: 14));
+    }
+    final antes = nome.substring(0, idx);
+    final meio = nome.substring(idx, idx + busca.length);
+    final depois = nome.substring(idx + busca.length);
+    return Text.rich(
+      TextSpan(children: [
+        if (antes.isNotEmpty) TextSpan(text: antes, style: TextStyle(color: AppColors.text, fontSize: 14)),
+        TextSpan(text: meio, style: TextStyle(color: AppColors.green, fontSize: 14, fontWeight: FontWeight.w700)),
+        if (depois.isNotEmpty) TextSpan(text: depois, style: TextStyle(color: AppColors.text, fontSize: 14)),
+      ]),
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _vazioBusca() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, size: 44, color: AppColors.dim2),
+          const SizedBox(height: 12),
+          Text(_t.nenhumPedidoComProduto, textAlign: TextAlign.center, style: TextStyle(color: AppColors.dim, fontSize: 13)),
+        ],
       ),
     );
   }
