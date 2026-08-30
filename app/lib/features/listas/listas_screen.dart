@@ -737,18 +737,27 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             style: TextStyle(color: AppColors.dim, fontSize: 12.5)),
       );
     }
-    // quantos itens caem em cada mercado (pelo mercado efetivo) + total.
     final contagem = <String?, int>{};
     for (final it in itens) {
       final m = _mercadoEfetivo(produtosPorId[it.produtoId]);
       contagem[m] = (contagem[m] ?? 0) + 1;
     }
+    final naoFavoritos = mercados.where((m) => !m.preferencia).toList()
+      ..sort((a, b) {
+        final ca = contagem[a.id] ?? 0;
+        final cb = contagem[b.id] ?? 0;
+        final aVazio = ca == 0;
+        final bVazio = cb == 0;
+        if (aVazio && bVazio) return a.nome.compareTo(b.nome);
+        if (aVazio) return 1;
+        if (bVazio) return -1;
+        return cb.compareTo(ca);
+      });
     return SizedBox(
       height: 38,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          // ⭐ mercado favorito primeiro — é onde o app abre por padrão
           for (final m in mercados.where((m) => m.preferencia))
             _chipFiltro(
               label: m.nome,
@@ -770,7 +779,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               _filtroSemMercado = false;
             }),
           ),
-          // itens soltos (sem mercado) — pra rever e ajustar
           _chipFiltro(
             label: _t.semMercado,
             count: contagem[null] ?? 0,
@@ -780,7 +788,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               _filtroMercado = null;
             }),
           ),
-          for (final m in mercados.where((m) => !m.preferencia))
+          for (final m in naoFavoritos)
             _chipFiltro(
               label: m.nome,
               cor: m.cor,
