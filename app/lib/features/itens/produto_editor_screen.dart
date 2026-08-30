@@ -338,8 +338,6 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             children: [
               _label(t.observacoesOpcional),
               const Spacer(),
-              // Data da última observação gravada — mostra só quando há uma
-              // observação salva (produtos antigos caem no updatedAt).
               if (_p?.observacoes != null && _p!.observacoesData != null)
                 Text(
                   '${t.atualizadasEm} '
@@ -352,12 +350,32 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: _obs,
-            minLines: 2,
-            maxLines: 4,
-            style: TextStyle(color: AppColors.text, fontSize: 15),
-            decoration: _dec(t.exObservacoes),
+          Stack(
+            children: [
+              TextField(
+                controller: _obs,
+                minLines: 2,
+                maxLines: 4,
+                style: TextStyle(color: AppColors.text, fontSize: 15),
+                decoration: _dec(t.exObservacoes),
+                onChanged: (_) => setState(() {}),
+              ),
+              Positioned(
+                top: 6,
+                right: 6,
+                child: _obs.text.isEmpty
+                    ? const SizedBox.shrink()
+                    : GestureDetector(
+                        onTap: () => setState(() => _obs.clear()),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              color: AppColors.surface, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.line)),
+                          child: Icon(Icons.cleaning_services_rounded, size: 16, color: AppColors.dim),
+                        ),
+                      ),
+              ),
+            ],
           ),
           const SizedBox(height: 26),
           SizedBox(
