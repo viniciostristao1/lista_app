@@ -97,45 +97,23 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
-  // Adiciona à lista E abre o editor pra cadastrar preço/mercado/detalhes.
   Future<void> _adicionarECadastrar(String nome) async {
-    final id = await ref
-        .read(produtosRepoProvider)
-        .criarProduto(nome: nome, categoria: Categoria.outros);
+    final mercados = ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
+    final id = await mostrarEditorProduto(context, null, mercados, nomeInicial: nome);
+    if (id == null) return;
     final listaRepo = ref.read(listasRepoProvider);
     final atual = await listaRepo.obterOuCriarAtiva();
-    await listaRepo.adicionarItem(atual.id,
-        produtoId: id, nome: nome, categoria: Categoria.outros);
+    await listaRepo.adicionarItem(atual.id, produtoId: id, nome: nome, categoria: Categoria.outros);
     _buscaCtrl.clear();
     setState(() => _busca = '');
-    if (!mounted) return;
-    final mercados =
-        ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
-    final p = Produto(
-        id: id,
-        nome: nome,
-        nomeLower: nome.toLowerCase(),
-        categoria: Categoria.outros);
-    await mostrarEditorProduto(context, p, mercados);
   }
 
   Future<void> _cadastrarLembrete(ItemLista it, Lista atual) async {
     final mercados = ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
-    final id = await ref.read(produtosRepoProvider).criarProduto(
-          nome: it.nome,
-          categoria: it.categoria,
-          mercadoFixo: it.mercadoId,
-        );
+    final id = await mostrarEditorProduto(context, null, mercados,
+        nomeInicial: it.nome, mercadoFixoInicial: it.mercadoId);
+    if (id == null) return;
     await ref.read(listasRepoProvider).vincularProduto(atual.id, it.id, id);
-    if (!mounted) return;
-    final p = Produto(
-      id: id,
-      nome: it.nome,
-      nomeLower: it.nome.toLowerCase(),
-      categoria: it.categoria,
-      mercadoFixo: it.mercadoId,
-    );
-    await mostrarEditorProduto(context, p, mercados);
   }
 
   // Mercados com o ⭐ preferido primeiro.

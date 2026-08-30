@@ -11,32 +11,38 @@ import 'package:lista_app/services/produtos_repository.dart';
 import 'package:lista_app/theme/app_colors.dart';
 import 'package:lista_app/util/format.dart';
 
-/// Abre a tela de cadastrar/editar um produto (campos + preços por mercado).
-Future<void> mostrarEditorProduto(
+Future<String?> mostrarEditorProduto(
   BuildContext context,
   Produto? produto,
   List<Mercado> mercados, {
   String? nomeInicial,
+  String? mercadoFixoInicial,
 }) {
-  return Navigator.push<void>(
+  return Navigator.push<String?>(
     context,
     MaterialPageRoute(
       fullscreenDialog: true,
       builder: (_) => ProdutoEditorScreen(
-          produto: produto, mercados: mercados, nomeInicial: nomeInicial),
+          produto: produto,
+          mercados: mercados,
+          nomeInicial: nomeInicial,
+          mercadoFixoInicial: mercadoFixoInicial),
     ),
   );
 }
 
 class ProdutoEditorScreen extends ConsumerStatefulWidget {
   const ProdutoEditorScreen(
-      {super.key, this.produto, required this.mercados, this.nomeInicial});
+      {super.key,
+      this.produto,
+      required this.mercados,
+      this.nomeInicial,
+      this.mercadoFixoInicial});
 
   final Produto? produto;
   final List<Mercado> mercados;
-
-  /// Nome pré-preenchido ao cadastrar um item NOVO (produto == null).
   final String? nomeInicial;
+  final String? mercadoFixoInicial;
 
   @override
   ConsumerState<ProdutoEditorScreen> createState() =>
@@ -73,7 +79,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     _obs = TextEditingController(text: _p?.observacoes ?? '');
     _categoria = _p?.categoria ?? Categoria.mercearia;
     _recorrente = _p?.fixado ?? false;
-    _mercadoFixo = _p?.mercadoFixo;
+    _mercadoFixo = _p?.mercadoFixo ?? widget.mercadoFixoInicial;
     _abrirMercadoFixo = _mercadoFixo != null;
     _precoCtrls = {
       for (final m in widget.mercados)
@@ -179,7 +185,6 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
         }
       }
 
-      // Recorrente entra na lista; deixar de ser recorrente sai da lista.
       if (_recorrente != eraRecorrente) {
         final listaRepo = ref.read(listasRepoProvider);
         final atual = await listaRepo.obterOuCriarAtiva();
@@ -191,7 +196,7 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
         }
       }
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context, id);
     } finally {
       if (mounted) setState(() => _salvando = false);
     }
