@@ -109,13 +109,27 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
                   Text('Lembretes', style: TextStyle(color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w600)),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Testar notificação',
+                    tooltip: 'Testar notificação (segurar = ver agendadas)',
                     icon: Icon(Icons.bug_report_outlined, color: AppColors.dim),
                     onPressed: () async {
                       await NotificacaoService.instance.mostrarTesteImediato();
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificação de teste enviada — veja o topo da tela')));
                       }
+                    },
+                    onLongPress: () async {
+                      final pend = await NotificacaoService.instance.pendentes();
+                      if (!context.mounted) return;
+                      showDialog<void>(
+                        context: context,
+                        builder: (dCtx) => AlertDialog(
+                          title: Text('Notificações agendadas (${pend.length})'),
+                          content: pend.isEmpty
+                              ? const Text('Nenhum alarme pendente no sistema.\nCrie um lembrete ativo e volte aqui.')
+                              : SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final p in pend) Text('• $p')])),
+                          actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Ok'))],
+                        ),
+                      );
                     },
                   ),
                   FilledButton.icon(
@@ -269,15 +283,37 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => _EditarLembreteSheet(lembrete: l),
     );
-    if (res != null) {
-      if (l == null) {
-        final id = await ref.read(lembretesRepoProvider).criar(res);
-        await NotificacaoService.instance.agendar(res.copyWith(id: id));
-      } else {
-        await ref.read(lembretesRepoProvider).salvar(res);
-        await NotificacaoService.instance.agendar(res);
+    if (res == null) return;
+    // O fluxo (escolher data → hora → salvar) pode consumir a margem: se o
+    // horário escolhido passou há pouco, empurra p/ daqui 1 min para o teste
+    // rápido disparar de verdade (antes, "uma vez" era descartado em silêncio
+    // e semanal/mensal caíam p/ semana/mês seguinte).
+    final agora = DateTime.now();
+    var alvo = res;
+    String? aviso;
+    if (alvo.dataHora.isBefore(agora)) {
+      final atraso = agora.difference(alvo.dataHora);
+      if (atraso <= const Duration(minutes: 5)) {
+        alvo = alvo.copyWith(dataHora: agora.add(const Duration(minutes: 1)));
+        aviso = 'O horário escolhido já passou — disparei daqui 1 minuto';
+      } else if (alvo.recorrencia == Recorrencia.nenhuma) {
+        aviso = 'O horário já passou — esse lembrete não vai disparar';
       }
     }
+    if (l == null) {
+      final id = await ref.read(lembretesRepoProvider).criar(alvo);
+      alvo = alvo.copyWith(id: id);
+    } else {
+      await ref.read(lembretesRepoProvider).salvar(alvo);
+    }
+    final quando = await NotificacaoService.instance.agendar(alvo);
+    if (!mounted) return;
+    final hh = quando?.hour.toString().padLeft(2, '0');
+    final mm = quando?.minute.toString().padLeft(2, '0');
+    final msg = quando != null
+        ? (aviso ?? 'Lembrete agendado para ${diaMes(quando)} às $hh:$mm')
+        : (aviso ?? 'Lembrete salvo (sem disparo agendado)');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }
 

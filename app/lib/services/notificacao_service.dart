@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -71,33 +72,55 @@ class NotificacaoService {
 
   tz.TZDateTime _toZoned(DateTime dt) => tz.TZDateTime(tz.local, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
 
-  Future<void> agendar(Lembrete l) async {
+  /// Agenda de fato e devolve o instante em que vai disparar (null = falhou).
+  /// Usa alarme exato e, se a permissão exata não estiver disponível (algumas
+  /// ROMs/Androids), cai para inexactAllowWhileIdle em vez de morrer em erro.
+  /// Garante também uma folga mínima de 5s (o plugin exige data no futuro).
+  Future<DateTime?> _zoned(int id, String titulo, String? corpo, tz.TZDateTime at, NotificationDetails details, String payload, {DateTimeComponents? match}) async {
+    final minAt = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+    final when = at.isBefore(minAt) ? minAt : at;
+    Future<void> tentar(AndroidScheduleMode mode) => _plugin.zonedSchedule(id, titulo, corpo, when, details,
+        androidScheduleMode: mode, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: payload, matchDateTimeComponents: match);
+    try {
+      await tentar(AndroidScheduleMode.exactAllowWhileIdle);
+    } catch (e) {
+      debugPrint('SaveList/notif: exato falhou ($e), tentando inexact');
+      try {
+        await tentar(AndroidScheduleMode.inexactAllowWhileIdle);
+      } catch (e2) {
+        debugPrint('SaveList/notif: agendamento falhou de vez: $e2');
+        return null;
+      }
+    }
+    return when;
+  }
+
+  /// Agenda o lembrete e devolve quando ele vai disparar (null = não agendado,
+  /// ex.: "uma vez" com horário já passado ou agendamento falhou).
+  Future<DateTime?> agendar(Lembrete l) async {
     await init();
     await cancelar(l.id);
-    if (!l.ativo) return;
+    if (!l.ativo) return null;
     final now = tz.TZDateTime.now(tz.local);
     final base = _toZoned(l.dataHora);
     final payload = _payload(l);
     final details = _details(l.titulo, corpo: l.descricao);
     if (l.recorrencia == Recorrencia.nenhuma) {
-      if (base.isBefore(now)) return;
-      await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', base, details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: payload);
-      return;
+      if (base.isBefore(now)) {
+        debugPrint('SaveList/notif: "${l.titulo}" com horário no passado, não agenda');
+        return null;
+      }
+      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', base, details, payload);
     }
     if (l.recorrencia == Recorrencia.diaria) {
       final t = tz.TZDateTime(tz.local, now.year, now.month, now.day, base.hour, base.minute, base.second);
       final next = t.isBefore(now) ? t.add(const Duration(days: 1)) : t;
-      await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.time, payload: payload);
-      return;
+      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.time);
     }
     if (l.recorrencia == Recorrencia.semanal) {
       final weekday = l.diaSemana ?? base.weekday;
-      var next = _nextWeekly(weekday, base.hour, base.minute, base.second);
-      await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime, payload: payload);
-      return;
+      final next = _nextWeekly(weekday, base.hour, base.minute, base.second);
+      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.dayOfWeekAndTime);
     }
     if (l.recorrencia == Recorrencia.mensal) {
       var next = tz.TZDateTime(tz.local, now.year, now.month, base.day, base.hour, base.minute, base.second);
@@ -110,9 +133,9 @@ class NotificacaoService {
         }
         next = tz.TZDateTime(tz.local, y, m, base.day, base.hour, base.minute, base.second);
       }
-      await _plugin.zonedSchedule(_idFor(l.id), l.titulo, l.descricao ?? '', next, details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime, payload: payload);
+      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.dayOfMonthAndTime);
     }
+    return null;
   }
 
   tz.TZDateTime _nextWeekly(int weekday, int hour, int minute, [int second = 0]) {
@@ -132,8 +155,19 @@ class NotificacaoService {
 
   Future<void> reagendarTodos(List<Lembrete> lista) async {
     for (final l in lista) {
-      await agendar(l);
+      try {
+        await agendar(l);
+      } catch (e) {
+        debugPrint('SaveList/notif: erro reagendando "${l.titulo}": $e');
+      }
     }
+  }
+
+  /// Lista resumida das notificações com alarme pendente (diagnóstico).
+  Future<List<String>> pendentes() async {
+    await init();
+    final reqs = await _plugin.pendingNotificationRequests();
+    return [for (final r in reqs) r.title ?? '(sem título)']..sort();
   }
 
   Future<void> mostrarTesteImediato() async {
