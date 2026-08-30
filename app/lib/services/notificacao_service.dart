@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -21,13 +20,8 @@ class NotificacaoService {
     if (_inited) return;
     tz.initializeTimeZones();
     try {
-      final locName = await FlutterNativeTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(locName));
-    } catch (_) {
-      try {
-        tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
-      } catch (_) {}
-    }
+      tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
+    } catch (_) {}
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: ios);
