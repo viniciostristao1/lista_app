@@ -448,42 +448,35 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                   children: [
                     for (final it in pe.itens)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 children: [
-                                  Text(
-                                    it.nome,
-                                    style: TextStyle(color: AppColors.text, fontSize: 14),
+                                  Flexible(
+                                    child: Text(it.nome,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(color: AppColors.text, fontSize: 14)),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
-                                        child: Text('×${it.quantidade}',
-                                            style: TextStyle(color: AppColors.dim, fontSize: 11, fontWeight: FontWeight.w600)),
-                                      ),
-                                      if (it.precoUnit != null) ...[
-                                        const SizedBox(width: 6),
-                                        Text('${reais(it.precoUnit!)} un',
-                                            style: TextStyle(color: AppColors.dim2, fontSize: 11)),
-                                      ],
-                                    ],
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
+                                    child: Text('×${it.quantidade}',
+                                        style: TextStyle(color: AppColors.dim, fontSize: 11, fontWeight: FontWeight.w600)),
                                   ),
+                                  if (it.precoUnit != null) ...[
+                                    const SizedBox(width: 6),
+                                    Text('${reais(it.precoUnit!)} un',
+                                        style: TextStyle(color: AppColors.dim2, fontSize: 11)),
+                                  ],
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              it.precoUnit == null ? '—' : reais(it.subtotal),
-                              style: TextStyle(color: AppColors.text, fontSize: 13.5, fontWeight: FontWeight.w600),
-                            ),
+                            const SizedBox(width: 10),
+                            Text(it.precoUnit == null ? '—' : reais(it.subtotal),
+                                style: TextStyle(color: AppColors.text, fontSize: 13.5, fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
