@@ -249,8 +249,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final idioma = ref.read(idiomaProvider);
     final temaAtual = ref.read(temaProvider);
     bool backupExpandido = false;
+    final outerContext = context;
     showModalBottomSheet(
-      context: context,
+      context: outerContext,
       backgroundColor: AppColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -400,14 +401,14 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                       child: Column(
                         children: [
                           _tileBackup(Icons.ios_share_rounded, t.exportarJson, t.exportarJsonDescricao,
-                              () => backup.exportarJson(context)),
+                              () => backup.exportarJson(outerContext)),
                           const SizedBox(height: 8),
                           _tileBackup(Icons.file_download_outlined, t.importarJson, t.importarJsonDescricao,
-                              () => backup.importarJson(context)),
+                              () => backup.importarJson(outerContext)),
                           if (auth != null) ...[
                             const SizedBox(height: 8),
                             _tileBackup(Icons.cloud_upload_outlined, t.salvarNaNuvem, t.salvarNaNuvemDescricao,
-                                () => backup.salvarNaNuvem(context)),
+                                () => backup.salvarNaNuvem(outerContext)),
                           ],
                         ],
                       ),
