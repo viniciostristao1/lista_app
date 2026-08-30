@@ -459,10 +459,8 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  // Aplica uma mudança de config e fecha a folha (a árvore repinta atrás).
   void _aplicarConfig(VoidCallback acao) {
     acao();
-    Navigator.pop(context);
   }
 
   Widget _tituloConfig(String titulo, {String? sub}) {

@@ -23,12 +23,8 @@ class BackupService {
 
   Future<Map<String, dynamic>> _coletar() async {
     final prefs = await SharedPreferences.getInstance();
-    String? uid;
-    try {
-      uid = _ref.read(uidProvider);
-    } catch (_) {
-      uid = null;
-    }
+    final auth = _ref.read(authStateProvider).asData?.value;
+    final uid = auth?.uid;
     List<Map<String, dynamic>> mercados = [];
     List<Map<String, dynamic>> produtos = [];
     List<Map<String, dynamic>> listas = [];
@@ -159,49 +155,31 @@ class BackupService {
 
   Future<void> salvarNaNuvem(BuildContext context) async {
     final t = _ref.read(stringsProvider);
-    String? uid;
-    try {
-      uid = _ref.read(uidProvider);
-    } catch (_) {
-      uid = null;
-    }
+    final auth = _ref.read(authStateProvider).asData?.value;
+    final uid = auth?.uid;
     if (uid == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.entrarComGoogleBackup)));
       }
       return;
     }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salvando na nuvem...')));
+    }
     try {
       await _db.collection('users').doc(uid).set({'ultimoBackup': Timestamp.now()}, SetOptions(merge: true));
-      try {
-        final dados = await _coletar();
-        final encodable = _toEncodable(dados);
-        final jsonLen = jsonEncode(encodable).length;
-        if (jsonLen < 900000) {
-          await _db.collection('users').doc(uid).collection('backups').add({
-            'criadoEm': Timestamp.now(),
-            'versao': 1,
-            'dados': encodable,
-          });
-        } else {
-          await _db.collection('users').doc(uid).collection('backups').add({
-            'criadoEm': Timestamp.now(),
-            'versao': 1,
-            'nota': 'snapshot manual (dados grandes, ver export JSON)',
-          });
-        }
-      } catch (_) {
-        await _db.collection('users').doc(uid).collection('backups').add({
-          'criadoEm': Timestamp.now(),
-          'versao': 1,
-          'nota': 'snapshot manual',
-        });
-      }
+      await _db.collection('users').doc(uid).collection('backups').add({
+        'criadoEm': Timestamp.now(),
+        'versao': 1,
+        'nota': 'snapshot manual',
+      });
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.backupSalvoNuvem)));
       }
     } catch (e) {
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${t.falhaBackup}: $e')));
       }
     }
@@ -257,12 +235,8 @@ class BackupService {
     final listas = (dados['listas'] as List?) ?? const [];
     final pedidos = (dados['pedidos'] as List?) ?? const [];
     final prefsMap = (dados['prefs'] as Map<String, dynamic>?) ?? const {};
-    String? uid;
-    try {
-      uid = _ref.read(uidProvider);
-    } catch (_) {
-      uid = null;
-    }
+    final auth = _ref.read(authStateProvider).asData?.value;
+    final uid = auth?.uid;
     if (uid != null) {
       try {
         await _limparColecao(_refs.mercados);
