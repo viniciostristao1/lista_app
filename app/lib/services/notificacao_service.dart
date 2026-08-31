@@ -205,6 +205,20 @@ class NotificacaoService {
     return _plugin.pendingNotificationRequests();
   }
 
+  Future<int> qtdAtivas() async {
+    try {
+      await init();
+      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final ativas = await android?.getActiveNotifications();
+      if (ativas == null) return 0;
+      return ativas.where((n) => n.channelId == _channelId).length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<bool> temAtiva() async => (await qtdAtivas()) > 0;
+
   static const _battery = MethodChannel('savelist/battery');
 
   Future<bool?> bateriaOtimizada() async {
