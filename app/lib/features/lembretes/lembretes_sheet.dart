@@ -6,7 +6,6 @@ import '../../models/lembrete.dart';
 import '../../services/auth_service.dart';
 import '../../services/lembretes_repository.dart';
 import '../../services/notificacao_service.dart';
-import '../../services/prefs.dart';
 import '../../theme/app_colors.dart';
 import '../../util/format.dart';
 
@@ -35,7 +34,6 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final t = ref.watch(stringsProvider);
     final auth = ref.watch(authStateProvider).asData?.value;
     if (auth == null) {
       return SafeArea(
@@ -109,65 +107,10 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
                   const SizedBox(width: 8),
                   Text('Lembretes', style: TextStyle(color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w600)),
                   const Spacer(),
-                  IconButton(
-                    tooltip: 'Testar notificação (segurar = ver agendadas)',
-                    icon: Icon(Icons.bug_report_outlined, color: AppColors.dim),
-                    onPressed: () async {
-                      await NotificacaoService.instance.mostrarTesteImediato();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificação de teste enviada — veja o topo da tela')));
-                      }
-                    },
-                    onLongPress: () async {
-                      final pend = await NotificacaoService.instance.pendentes();
-                      final bateria = await NotificacaoService.instance.bateriaOtimizada();
-                      if (!context.mounted) return;
-                      showDialog<void>(
-                        context: context,
-                        builder: (dCtx) => AlertDialog(
-                          title: Text('Notificações agendadas (${pend.length})'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (pend.isEmpty)
-                                const Text('Nenhum alarme pendente no sistema.\nCrie um lembrete ativo e volte aqui.')
-                              else
-                                Flexible(child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final p in pend) Text('• $p')]))),
-                              if (bateria == true) ...[
-                                const SizedBox(height: 12),
-                                Text('⚠ Otimização de bateria ativa — o sistema pode atrasar/cancelar os alarmes deste app.', style: TextStyle(color: AppColors.danger, fontSize: 12)),
-                              ],
-                            ],
-                          ),
-                          actions: [
-                            if (bateria == true)
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(dCtx);
-                                  NotificacaoService.instance.pedirIgnorarBateria();
-                                },
-                                child: const Text('Ignorar otimização'),
-                              ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(dCtx);
-                                final r = await NotificacaoService.instance.testeAlarme10s();
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r != null ? 'Alarme de teste disparando em ~10s (feche o app pra testar!)' : 'Falhou ao agendar o alarme de teste')));
-                              },
-                              child: const Text('Testar alarme em 10s'),
-                            ),
-                            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Ok')),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
                   FilledButton.icon(
                     onPressed: () => _editar(null),
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text(t.novoItem),
+                    label: const Text('Novo lembrete'),
                     style: FilledButton.styleFrom(backgroundColor: AppColors.green, foregroundColor: AppColors.onGreen, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                   ),
                 ],
