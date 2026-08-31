@@ -8,9 +8,6 @@ import 'package:lista_app/features/itens/produto_editor_screen.dart';
 import 'package:lista_app/features/lembretes/lembretes_sheet.dart';
 import 'package:lista_app/features/listas/widgets/nota_rapida_sheet.dart';
 import 'package:lista_app/l10n/strings.dart';
-import 'package:lista_app/services/lembretes_repository.dart';
-import 'package:lista_app/services/notificacao_service.dart';
-import 'package:lista_app/models/lembrete.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
@@ -696,7 +693,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           Text(t.appNome),
         ]),
         actions: [
-          _BotaoLembretesComPontinho(onTap: () => mostrarLembretes(context)),
+          IconButton(
+            tooltip: 'Lembretes',
+            icon: Icon(Icons.notifications_outlined, color: AppColors.dim),
+            onPressed: () => mostrarLembretes(context),
+          ),
           IconButton(
             tooltip: t.configuracoes,
             icon: Icon(Icons.settings_outlined, color: AppColors.dim),
@@ -1576,80 +1577,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _BotaoLembretesComPontinho extends ConsumerStatefulWidget {
-  const _BotaoLembretesComPontinho({required this.onTap});
-  final VoidCallback onTap;
-  @override
-  ConsumerState<_BotaoLembretesComPontinho> createState() => _BotaoLembretesComPontinhoState();
-}
-
-class _BotaoLembretesComPontinhoState extends ConsumerState<_BotaoLembretesComPontinho> with WidgetsBindingObserver {
-  bool _temAtiva = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _check();
-    _timer = Timer.periodic(const Duration(seconds: 2), (_) => _check());
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _check();
-  }
-
-  Future<void> _check() async {
-    try {
-      final ativas = await NotificacaoService.instance.qtdAtivas();
-      bool mostrar = ativas > 0;
-      if (!mostrar) {
-        final lembretes = ref.read(lembretesProvider).asData?.value;
-        if (lembretes != null) {
-          final agora = DateTime.now();
-          for (final l in lembretes) {
-            if (!l.ativo) continue;
-            if (l.recorrencia == Recorrencia.nenhuma && l.dataHora.isBefore(agora)) {
-              mostrar = true;
-              break;
-            }
-          }
-        }
-      }
-      if (mounted && mostrar != _temAtiva) setState(() => _temAtiva = mostrar);
-    } catch (_) {}
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen(lembretesProvider, (prev, next) => _check());
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        IconButton(
-          tooltip: 'Lembretes',
-          icon: Icon(Icons.notifications_outlined, color: AppColors.dim),
-          onPressed: widget.onTap,
-        ),
-        if (_temAtiva)
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.green, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 1))),
-          ),
-      ],
     );
   }
 }
