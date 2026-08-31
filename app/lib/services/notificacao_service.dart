@@ -61,7 +61,6 @@ class NotificacaoService {
   static const _actions = [
     AndroidNotificationAction('snooze_30m', '30m', showsUserInterface: false, cancelNotification: true),
     AndroidNotificationAction('snooze_2h', '2h', showsUserInterface: false, cancelNotification: true),
-    AndroidNotificationAction('snooze_4h', '4h', showsUserInterface: false, cancelNotification: true),
     AndroidNotificationAction('snooze_24h', '24h', showsUserInterface: false, cancelNotification: true),
   ];
 
