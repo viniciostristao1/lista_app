@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/lembrete.dart';
 import '../../services/auth_service.dart';
@@ -119,15 +120,46 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
                     },
                     onLongPress: () async {
                       final pend = await NotificacaoService.instance.pendentes();
+                      final bateria = await NotificacaoService.instance.bateriaOtimizada();
                       if (!context.mounted) return;
                       showDialog<void>(
                         context: context,
                         builder: (dCtx) => AlertDialog(
                           title: Text('Notificações agendadas (${pend.length})'),
-                          content: pend.isEmpty
-                              ? const Text('Nenhum alarme pendente no sistema.\nCrie um lembrete ativo e volte aqui.')
-                              : SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final p in pend) Text('• $p')])),
-                          actions: [TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Ok'))],
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (pend.isEmpty)
+                                const Text('Nenhum alarme pendente no sistema.\nCrie um lembrete ativo e volte aqui.')
+                              else
+                                Flexible(child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final p in pend) Text('• $p')]))),
+                              if (bateria == true) ...[
+                                const SizedBox(height: 12),
+                                Text('⚠ Otimização de bateria ativa — o sistema pode atrasar/cancelar os alarmes deste app.', style: TextStyle(color: AppColors.danger, fontSize: 12)),
+                              ],
+                            ],
+                          ),
+                          actions: [
+                            if (bateria == true)
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(dCtx);
+                                  NotificacaoService.instance.pedirIgnorarBateria();
+                                },
+                                child: const Text('Ignorar otimização'),
+                              ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(dCtx);
+                                final r = await NotificacaoService.instance.testeAlarme10s();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r != null ? 'Alarme de teste disparando em ~10s (feche o app pra testar!)' : 'Falhou ao agendar o alarme de teste')));
+                              },
+                              child: const Text('Testar alarme em 10s'),
+                            ),
+                            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Ok')),
+                          ],
                         ),
                       );
                     },
@@ -314,6 +346,29 @@ class _LembretesSheetState extends ConsumerState<_LembretesSheet> {
         ? (aviso ?? 'Lembrete agendado para ${diaMes(quando)} às $hh:$mm')
         : (aviso ?? 'Lembrete salvo (sem disparo agendado)');
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    if (quando != null) await _pedirBateriaSePreciso();
+  }
+
+  /// Uma única vez: se o sistema está otimizando a bateria do app, os
+  /// lembretes podem ser atrasados/cancelados — pede a isenção.
+  Future<void> _pedirBateriaSePreciso() async {
+    final p = await SharedPreferences.getInstance();
+    if (p.getBool('pediuBateria') ?? false) return;
+    final otimizada = await NotificacaoService.instance.bateriaOtimizada();
+    if (otimizada != true || !mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('Lembretes na hora certa'),
+        content: const Text('Para os lembretes tocarem mesmo com o app fechado, permita que o Save List ignore a otimização de bateria.\n\nSem isso, alguns aparelhos (Samsung, Xiaomi etc.) seguram ou cancelam o alarme.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dCtx, false), child: const Text('Agora não')),
+          FilledButton(onPressed: () => Navigator.pop(dCtx, true), style: FilledButton.styleFrom(backgroundColor: AppColors.green, foregroundColor: AppColors.onGreen), child: const Text('Permitir')),
+        ],
+      ),
+    );
+    await p.setBool('pediuBateria', true);
+    if (ok == true) await NotificacaoService.instance.pedirIgnorarBateria();
   }
 }
 

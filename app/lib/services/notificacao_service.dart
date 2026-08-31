@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -73,26 +74,27 @@ class NotificacaoService {
   tz.TZDateTime _toZoned(DateTime dt) => tz.TZDateTime(tz.local, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
 
   /// Agenda de fato e devolve o instante em que vai disparar (null = falhou).
-  /// Usa alarme exato e, se a permissão exata não estiver disponível (algumas
-  /// ROMs/Androids), cai para inexactAllowWhileIdle em vez de morrer em erro.
-  /// Garante também uma folga mínima de 5s (o plugin exige data no futuro).
+  /// Preferência de modos:
+  /// 1. alarmClock (setAlarmClock) — tratado como despertador pelo Android,
+  ///    não é bloqueado/atrasado por otimização de bateria, Doze, buckets nem
+  ///    por "sleeping apps" de fabricantes (Samsung/Xiaomi) — é o modo que os
+  ///    apps de lembrete usam;
+  /// 2. exactAllowWhileIdle — preciso, mas sujeito a bloqueio de fabricante;
+  /// 3. inexactAllowWhileIdle — último recurso (pode atrasar alguns minutos).
   Future<DateTime?> _zoned(int id, String titulo, String? corpo, tz.TZDateTime at, NotificationDetails details, String payload, {DateTimeComponents? match}) async {
     final minAt = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
     final when = at.isBefore(minAt) ? minAt : at;
     Future<void> tentar(AndroidScheduleMode mode) => _plugin.zonedSchedule(id, titulo, corpo, when, details,
         androidScheduleMode: mode, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: payload, matchDateTimeComponents: match);
-    try {
-      await tentar(AndroidScheduleMode.exactAllowWhileIdle);
-    } catch (e) {
-      debugPrint('SaveList/notif: exato falhou ($e), tentando inexact');
+    for (final modo in [AndroidScheduleMode.alarmClock, AndroidScheduleMode.exactAllowWhileIdle, AndroidScheduleMode.inexactAllowWhileIdle]) {
       try {
-        await tentar(AndroidScheduleMode.inexactAllowWhileIdle);
-      } catch (e2) {
-        debugPrint('SaveList/notif: agendamento falhou de vez: $e2');
-        return null;
+        await tentar(modo);
+        return when;
+      } catch (e) {
+        debugPrint('SaveList/notif: modo $modo falhou: $e');
       }
     }
-    return when;
+    return null;
   }
 
   /// Agenda o lembrete e devolve quando ele vai disparar (null = não agendado,
@@ -170,9 +172,43 @@ class NotificacaoService {
     return [for (final r in reqs) r.title ?? '(sem título)']..sort();
   }
 
+  static const _battery = MethodChannel('savelist/battery');
+
+  /// true = app está na lista de otimização de bateria (o sistema pode
+  /// atrasar/cancelar os alarmes); null = plataforma sem suporte.
+  Future<bool?> bateriaOtimizada() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return null;
+    try {
+      final ignorando = await _battery.invokeMethod<bool>('isIgnoring');
+      return ignorando == false;
+    } catch (e) {
+      debugPrint('SaveList/notif: bateriaOtimizada falhou: $e');
+      return null;
+    }
+  }
+
+  /// Abre o diálogo do sistema pedindo para ignorar a otimização de bateria.
+  Future<void> pedirIgnorarBateria() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await _battery.invokeMethod('requestIgnore');
+    } catch (e) {
+      debugPrint('SaveList/notif: pedirIgnorarBateria falhou: $e');
+    }
+  }
+
   Future<void> mostrarTesteImediato() async {
     await init();
     await _plugin.show(999999, 'Teste Save List', 'Notificação de teste — se você vê isso, as notificações estão funcionando!', _details('Teste Save List', corpo: 'Notificação de teste — se você vê isso, as notificações estão funcionando!'));
+  }
+
+  /// Teste que passa pelo MESMO caminho dos lembretes (alarme agendado no
+  /// AlarmManager), mas disparando em ~10s. Se o teste imediato chega e este
+  /// não, o aparelho está segurando alarmes (otimização de bateria/fabricante).
+  Future<DateTime?> testeAlarme10s() async {
+    await init();
+    final at = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+    return _zoned(999998, 'Teste alarme Save List', 'Se esta notificação chegou (~10s), o alarme agendado funciona no seu aparelho!', at, _details('Teste alarme Save List', corpo: 'Se esta notificação chegou (~10s), o alarme agendado funciona no seu aparelho!'), '');
   }
 
   Future<void> adiar(String lembreteIdOrPayload, Duration d, {String? titulo, String? descricao}) async {
