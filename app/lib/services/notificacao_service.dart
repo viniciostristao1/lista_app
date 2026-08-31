@@ -5,15 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/lembrete.dart';
 
-const _channelId = 'lembretes_channel_v2';
+const _channelId = 'lembretes_channel_v3';
 const _channelName = 'Lembretes';
 const _channelDesc = 'Lembretes gerais do Save List';
-const _channelIdAntigo = 'lembretes_channel';
+const _chanAntigoV2 = 'lembretes_channel_v2';
+const _chanAntigoV1 = 'lembretes_channel';
 
 class NotificacaoService {
   NotificacaoService._();
@@ -21,9 +23,21 @@ class NotificacaoService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _inited = false;
 
+  Future<void> _initTimezone() async {
+    tz.initializeTimeZones();
+    try {
+      final name = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(name));
+    } catch (_) {
+      try {
+        tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
+      } catch (_) {}
+    }
+  }
+
   Future<void> init() async {
     if (_inited) return;
-    tz.initializeTimeZones();
+    await _initTimezone();
     const android = AndroidInitializationSettings('ic_notif');
     const ios = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: ios);
@@ -32,10 +46,12 @@ class NotificacaoService {
       onDidReceiveNotificationResponse: _onResponse,
       onDidReceiveBackgroundNotificationResponse: _onResponseBackground,
     );
-    const channel = AndroidNotificationChannel(_channelId, _channelName, description: _channelDesc, importance: Importance.max, playSound: true, enableVibration: true);
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    const channel = AndroidNotificationChannel(_channelId, _channelName, description: _channelDesc, importance: Importance.max, playSound: true, enableVibration: true);
     await androidImpl?.createNotificationChannel(channel);
-    await androidImpl?.deleteNotificationChannel(_channelIdAntigo);
+    await androidImpl?.deleteNotificationChannel(_chanAntigoV2);
+    await androidImpl?.deleteNotificationChannel(_chanAntigoV1);
+    await androidImpl?.deleteNotificationChannel('lembretes');
     await androidImpl?.requestNotificationsPermission();
     await androidImpl?.requestExactAlarmsPermission();
     await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
@@ -74,19 +90,33 @@ class NotificacaoService {
 
   String _payload(Lembrete l) => jsonEncode({'id': l.id, 'titulo': l.titulo, 'descricao': l.descricao});
 
-  tz.TZDateTime _toZoned(DateTime dt) {
-    final wall = DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
-    return tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, wall.millisecondsSinceEpoch);
+  tz.TZDateTime _toZonedLocal(DateTime dt) => tz.TZDateTime(tz.local, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+
+  Future<bool> _canExact() async {
+    try {
+      final impl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final ok = await impl?.canScheduleExactNotifications();
+      if (ok != null) return ok;
+    } catch (_) {}
+    return true;
   }
 
   Future<DateTime?> _zoned(int id, String titulo, String? corpo, tz.TZDateTime at, NotificationDetails details, String payload, {DateTimeComponents? match}) async {
-    final minAt = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, DateTime.now().add(const Duration(seconds: 5)).millisecondsSinceEpoch);
+    final minAt = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
     final when = at.isBefore(minAt) ? minAt : at;
-    Future<void> tentar(AndroidScheduleMode mode) => _plugin.zonedSchedule(id, titulo, corpo, when, details,
-        androidScheduleMode: mode, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: payload, matchDateTimeComponents: match);
-    for (final modo in [AndroidScheduleMode.exactAllowWhileIdle, AndroidScheduleMode.alarmClock, AndroidScheduleMode.inexactAllowWhileIdle]) {
+    final canExact = await _canExact();
+    final modos = <AndroidScheduleMode>[];
+    if (canExact) {
+      modos.add(AndroidScheduleMode.exactAllowWhileIdle);
+      modos.add(AndroidScheduleMode.alarmClock);
+    } else {
+      modos.add(AndroidScheduleMode.alarmClock);
+      modos.add(AndroidScheduleMode.exactAllowWhileIdle);
+    }
+    modos.add(AndroidScheduleMode.inexactAllowWhileIdle);
+    for (final modo in modos) {
       try {
-        await tentar(modo);
+        await _plugin.zonedSchedule(id, titulo, corpo, when, details, androidScheduleMode: modo, payload: payload, matchDateTimeComponents: match);
         return DateTime(when.year, when.month, when.day, when.hour, when.minute, when.second);
       } catch (e) {
         debugPrint('SaveList/notif: modo $modo falhou: $e');
@@ -99,52 +129,50 @@ class NotificacaoService {
     await init();
     await cancelar(l.id);
     if (!l.ativo) return null;
-    final nowWall = DateTime.now();
-    final now = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, nowWall.millisecondsSinceEpoch);
-    final base = _toZoned(l.dataHora);
+    final now = tz.TZDateTime.now(tz.local);
     final payload = _payload(l);
     final details = _details(l.titulo, corpo: l.descricao);
     if (l.recorrencia == Recorrencia.nenhuma) {
-      if (base.isBefore(now)) {
-        debugPrint('SaveList/notif: "${l.titulo}" com horário no passado, não agenda');
+      final baseLocal = _toZonedLocal(l.dataHora);
+      if (baseLocal.isBefore(now) && l.dataHora.isBefore(DateTime.now())) {
+        debugPrint('SaveList/notif: "${l.titulo}" no passado local, não agenda');
         return null;
       }
-      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', base, details, payload);
+      return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', baseLocal, details, payload);
     }
     if (l.recorrencia == Recorrencia.diaria) {
-      final todayWall = DateTime(nowWall.year, nowWall.month, nowWall.day, base.hour, base.minute, base.second);
-      var nextWall = todayWall;
-      if (nextWall.isBefore(nowWall)) nextWall = nextWall.add(const Duration(days: 1));
-      final next = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, nextWall.millisecondsSinceEpoch);
+      final baseHour = l.dataHora.hour;
+      final baseMin = l.dataHora.minute;
+      final baseSec = l.dataHora.second;
+      var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, baseHour, baseMin, baseSec);
+      if (next.isBefore(now)) next = next.add(const Duration(days: 1));
       return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.time);
     }
     if (l.recorrencia == Recorrencia.semanal) {
       final weekday = l.diaSemana ?? l.dataHora.weekday;
-      final nextWall = _nextWeeklyWall(weekday, base.hour, base.minute, base.second);
-      final next = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, nextWall.millisecondsSinceEpoch);
+      final next = _nextWeekly(weekday, l.dataHora.hour, l.dataHora.minute, l.dataHora.second);
       return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.dayOfWeekAndTime);
     }
     if (l.recorrencia == Recorrencia.mensal) {
-      var nextWall = DateTime(nowWall.year, nowWall.month, base.day, base.hour, base.minute, base.second);
-      if (nextWall.isBefore(nowWall)) {
-        var y = nowWall.year;
-        var m = nowWall.month + 1;
+      var next = tz.TZDateTime(tz.local, now.year, now.month, l.dataHora.day, l.dataHora.hour, l.dataHora.minute, l.dataHora.second);
+      if (next.isBefore(now)) {
+        var y = now.year;
+        var m = now.month + 1;
         if (m > 12) {
           m = 1;
           y += 1;
         }
-        nextWall = DateTime(y, m, base.day, base.hour, base.minute, base.second);
+        next = tz.TZDateTime(tz.local, y, m, l.dataHora.day, l.dataHora.hour, l.dataHora.minute, l.dataHora.second);
       }
-      final next = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, nextWall.millisecondsSinceEpoch);
       return _zoned(_idFor(l.id), l.titulo, l.descricao ?? '', next, details, payload, match: DateTimeComponents.dayOfMonthAndTime);
     }
     return null;
   }
 
-  DateTime _nextWeeklyWall(int weekday, int hour, int minute, [int second = 0]) {
-    final now = DateTime.now();
-    var next = DateTime(now.year, now.month, now.day, hour, minute, second);
-    while (next.weekday != weekday || next.isBefore(now)) {
+  tz.TZDateTime _nextWeekly(int weekday, int hour, int minute, [int second = 0]) {
+    final now = tz.TZDateTime.now(tz.local);
+    var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute, second);
+    while (next.weekday != weekday || next.isBefore(now.add(const Duration(seconds: 1)))) {
       next = next.add(const Duration(days: 1));
     }
     return next;
@@ -170,6 +198,11 @@ class NotificacaoService {
     await init();
     final reqs = await _plugin.pendingNotificationRequests();
     return [for (final r in reqs) r.title ?? '(sem título)']..sort();
+  }
+
+  Future<List<PendingNotificationRequest>> pendentesDetalhe() async {
+    await init();
+    return _plugin.pendingNotificationRequests();
   }
 
   static const _battery = MethodChannel('savelist/battery');
@@ -201,12 +234,14 @@ class NotificacaoService {
 
   Future<DateTime?> testeAlarme10s() async {
     await init();
-    final wall = DateTime.now().add(const Duration(seconds: 10));
-    final at = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, wall.millisecondsSinceEpoch);
+    final at = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
     return _zoned(999998, 'Teste alarme Save List', 'Se esta notificação chegou (~10s), o alarme agendado funciona no seu aparelho!', at, _details('Teste alarme Save List', corpo: 'Se esta notificação chegou (~10s), o alarme agendado funciona no seu aparelho!'), '');
   }
 
   Future<void> adiar(String lembreteIdOrPayload, Duration d, {String? titulo, String? descricao}) async {
+    try {
+      await _initTimezone();
+    } catch (_) {}
     await init();
     String id = lembreteIdOrPayload;
     String t = titulo ?? 'Lembrete';
@@ -219,9 +254,7 @@ class NotificacaoService {
         desc = descricao ?? (m['descricao'] as String? ?? '');
       }
     } catch (_) {}
-    final wall = DateTime.now().add(d);
-    final local = DateTime(wall.year, wall.month, wall.day, wall.hour, wall.minute, wall.second);
-    final at = tz.TZDateTime.fromMillisecondsSinceEpoch(tz.UTC, local.millisecondsSinceEpoch);
+    final at = tz.TZDateTime.now(tz.local).add(d);
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId, _channelName,
@@ -240,14 +273,13 @@ class NotificacaoService {
       ),
       iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
     );
-    final zonedId = _idFor(id, d.inMinutes + DateTime.now().millisecondsSinceEpoch % 1000);
+    final zonedId = _idFor(id, d.inMinutes + DateTime.now().millisecondsSinceEpoch % 10000);
+    final canExact = await _canExact();
+    final modo = canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.alarmClock;
     try {
-      await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: lembreteIdOrPayload);
+      await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: modo, payload: lembreteIdOrPayload);
     } catch (_) {
-      WidgetsFlutterBinding.ensureInitialized();
-      DartPluginRegistrant.ensureInitialized();
-      tz.initializeTimeZones();
-      await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: AndroidScheduleMode.alarmClock, uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime, payload: lembreteIdOrPayload);
+      await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, payload: lembreteIdOrPayload);
     }
   }
 
@@ -286,14 +318,7 @@ class NotificacaoService {
       WidgetsFlutterBinding.ensureInitialized();
       DartPluginRegistrant.ensureInitialized();
       tz.initializeTimeZones();
-      String t = 'Lembrete';
-      String desc = '';
-      try {
-        final m = jsonDecode(payload) as Map<String, dynamic>;
-        t = m['titulo'] as String? ?? t;
-        desc = m['descricao'] as String? ?? desc;
-      } catch (_) {}
-      NotificacaoService.instance.adiar(payload, d, titulo: t, descricao: desc);
+      NotificacaoService.instance.adiar(payload, d, titulo: 'Lembrete', descricao: '');
     }
   }
 }
