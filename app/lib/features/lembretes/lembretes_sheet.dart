@@ -329,7 +329,6 @@ class _EditarLembreteSheet extends StatefulWidget {
 
 class _EditarLembreteSheetState extends State<_EditarLembreteSheet> {
   late final TextEditingController _titulo;
-  late final TextEditingController _desc;
   late DateTime _dataHora;
   late Recorrencia _recorrencia;
   int? _diaSemana;
@@ -339,7 +338,6 @@ class _EditarLembreteSheetState extends State<_EditarLembreteSheet> {
     super.initState();
     final l = widget.lembrete;
     _titulo = TextEditingController(text: l?.titulo ?? '');
-    _desc = TextEditingController(text: l?.descricao ?? '');
     _dataHora = l?.dataHora ?? DateTime.now().add(const Duration(hours: 1));
     _recorrencia = l?.recorrencia ?? Recorrencia.semanal;
     _diaSemana = l?.diaSemana ?? _dataHora.weekday;
@@ -348,7 +346,6 @@ class _EditarLembreteSheetState extends State<_EditarLembreteSheet> {
   @override
   void dispose() {
     _titulo.dispose();
-    _desc.dispose();
     super.dispose();
   }
 
@@ -378,8 +375,6 @@ class _EditarLembreteSheetState extends State<_EditarLembreteSheet> {
               Text(editando ? 'Editar lembrete' : 'Novo lembrete', style: TextStyle(color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 14),
               TextField(controller: _titulo, textCapitalization: TextCapitalization.sentences, decoration: InputDecoration(labelText: 'Título *', hintText: 'Ex: Ver folheto Atacadão', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, filled: true, fillColor: AppColors.bg), style: TextStyle(color: AppColors.text)),
-              const SizedBox(height: 12),
-              TextField(controller: _desc, decoration: InputDecoration(labelText: 'Descrição (opcional)', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, filled: true, fillColor: AppColors.bg), style: TextStyle(color: AppColors.text)),
               const SizedBox(height: 12),
               InkWell(
                 onTap: _escolherDataHora,
@@ -446,7 +441,7 @@ class _EditarLembreteSheetState extends State<_EditarLembreteSheet> {
                     final novo = Lembrete(
                       id: l?.id ?? '',
                       titulo: _titulo.text.trim(),
-                      descricao: _desc.text.trim().isEmpty ? null : _desc.text.trim(),
+                      descricao: null,
                       dataHora: _dataHora,
                       recorrencia: _recorrencia,
                       diaSemana: _recorrencia == Recorrencia.semanal ? _diaSemana : null,
