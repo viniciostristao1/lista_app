@@ -1501,26 +1501,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  (double, double, List<PedidoItem>) _montarPedido(
-      List<ItemLista> itens, Map<String, Produto> produtosPorId) {
-    var total = 0.0, economia = 0.0;
-    final pItens = <PedidoItem>[];
-    for (final it in itens) {
-      final p = produtosPorId[it.produtoId];
-      final menor = p?.menorPreco;
-      if (menor != null) total += menor * it.quantidade;
-      if (p?.segundoMenorPreco != null) economia += p!.economia * it.quantidade;
-      pItens.add(PedidoItem(
-        produtoId: it.produtoId,
-        nome: p?.nome ?? it.nome,
-        categoria: p?.categoria ?? it.categoria,
-        quantidade: it.quantidade,
-        precoUnit: menor,
-      ));
-    }
-    return (total, economia, pItens);
-  }
-
   Widget _botaoFinalizar(
     Lista atual,
     List<ItemLista> removiveis,
@@ -1528,55 +1508,12 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     String? filtroMercadoId,
     String? mercadoNome,
   ) {
-    return SafeArea(
-      minimum: const EdgeInsets.all(16),
-      child: SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: () async {
-            final pedidosRepo = ref.read(pedidosRepoProvider);
-            // filtro específico = 1 pedido; "Todos" = separa por mercado mais barato
-            final grupos = <String?, List<ItemLista>>{};
-            if (filtroMercadoId != null) {
-              grupos[filtroMercadoId] = removiveis;
-            } else {
-              for (final it in removiveis) {
-                final mid = _mercadoEfetivo(it, produtosPorId[it.produtoId]);
-                grupos.putIfAbsent(mid, () => []).add(it);
-              }
-            }
-            for (final entry in grupos.entries) {
-              final (total, economia, pItens) =
-                  _montarPedido(entry.value, produtosPorId);
-              await pedidosRepo.criar(
-                mercadoId: entry.key,
-                total: total,
-                economia: economia,
-                itens: pItens,
-              );
-            }
-            await ref
-                .read(listasRepoProvider)
-                .removerItens(atual.id, removiveis.map((e) => e.id).toList());
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(_t.compraFinalizada)),
-              );
-            }
-          },
-          icon: const Icon(Icons.check_circle_outline, size: 20),
-          label: Text(mercadoNome == null
-              ? _t.finalizarCompra
-              : _t.finalizarMercado(mercadoNome)),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.green,
-            foregroundColor: AppColors.onGreen,
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-      ),
+    return _BotaoFinalizar(
+      atual: atual,
+      removiveis: removiveis,
+      produtosPorId: produtosPorId,
+      filtroMercadoId: filtroMercadoId,
+      mercadoNome: mercadoNome,
     );
   }
 }
@@ -1638,6 +1575,91 @@ class _SheetExportar extends StatelessWidget {
             Text(label,
                 style: TextStyle(color: AppColors.text, fontSize: 14.5)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BotaoFinalizar extends ConsumerStatefulWidget {
+  const _BotaoFinalizar({
+    required this.atual,
+    required this.removiveis,
+    required this.produtosPorId,
+    required this.filtroMercadoId,
+    required this.mercadoNome,
+  });
+  final Lista atual;
+  final List<ItemLista> removiveis;
+  final Map<String, Produto> produtosPorId;
+  final String? filtroMercadoId;
+  final String? mercadoNome;
+  @override
+  ConsumerState<_BotaoFinalizar> createState() => _BotaoFinalizarState();
+}
+
+class _BotaoFinalizarState extends ConsumerState<_BotaoFinalizar> {
+  bool _processando = false;
+
+  String? _mercadoEfetivo(ItemLista it, Produto? p) {
+    if (p?.mercadoFixo != null) return p!.mercadoFixo;
+    if (p?.precosOrdenados.isNotEmpty == true) return p!.precosOrdenados.first.key;
+    return it.mercadoId;
+  }
+
+  (double, double, List<PedidoItem>) _montarPedido(List<ItemLista> itens, Map<String, Produto> produtosPorId) {
+    var total = 0.0, economia = 0.0;
+    final pItens = <PedidoItem>[];
+    for (final it in itens) {
+      final p = produtosPorId[it.produtoId];
+      final menor = p?.menorPreco;
+      if (menor != null) total += menor * it.quantidade;
+      if (p?.segundoMenorPreco != null) economia += p!.economia * it.quantidade;
+      pItens.add(PedidoItem(produtoId: it.produtoId, nome: p?.nome ?? it.nome, categoria: p?.categoria ?? it.categoria, quantidade: it.quantidade, precoUnit: menor));
+    }
+    return (total, economia, pItens);
+  }
+
+  Future<void> _finalizar() async {
+    if (_processando) return;
+    setState(() => _processando = true);
+    try {
+      final t = ref.read(stringsProvider);
+      final pedidosRepo = ref.read(pedidosRepoProvider);
+      final grupos = <String?, List<ItemLista>>{};
+      if (widget.filtroMercadoId != null) {
+        grupos[widget.filtroMercadoId] = widget.removiveis;
+      } else {
+        for (final it in widget.removiveis) {
+          final mid = _mercadoEfetivo(it, widget.produtosPorId[it.produtoId]);
+          grupos.putIfAbsent(mid, () => []).add(it);
+        }
+      }
+      for (final entry in grupos.entries) {
+        final (total, economia, pItens) = _montarPedido(entry.value, widget.produtosPorId);
+        await pedidosRepo.criar(mercadoId: entry.key, total: total, economia: economia, itens: pItens);
+      }
+      await ref.read(listasRepoProvider).removerItens(widget.atual.id, widget.removiveis.map((e) => e.id).toList());
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.compraFinalizada)));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao finalizar: $e')));
+    } finally {
+      if (mounted) setState(() => _processando = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = ref.watch(stringsProvider);
+    return SafeArea(
+      minimum: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: _processando ? null : _finalizar,
+          icon: _processando ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onGreen)) : const Icon(Icons.check_circle_outline, size: 20),
+          label: Text(widget.mercadoNome == null ? t.finalizarCompra : t.finalizarMercado(widget.mercadoNome!)),
+          style: FilledButton.styleFrom(backgroundColor: AppColors.green, foregroundColor: AppColors.onGreen, padding: const EdgeInsets.symmetric(vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
       ),
     );
