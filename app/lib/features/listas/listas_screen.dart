@@ -1622,29 +1622,32 @@ class _BotaoFinalizarState extends ConsumerState<_BotaoFinalizar> {
 
   Future<void> _finalizar() async {
     if (_processando) return;
-    setState(() => _processando = true);
-    try {
-      final t = ref.read(stringsProvider);
-      final pedidosRepo = ref.read(pedidosRepoProvider);
-      final grupos = <String?, List<ItemLista>>{};
-      if (widget.filtroMercadoId != null) {
-        grupos[widget.filtroMercadoId] = widget.removiveis;
-      } else {
-        for (final it in widget.removiveis) {
-          final mid = _mercadoEfetivo(it, widget.produtosPorId[it.produtoId]);
-          grupos.putIfAbsent(mid, () => []).add(it);
-        }
+    final t = ref.read(stringsProvider);
+    final ids = widget.removiveis.map((e) => e.id).toList();
+    final grupos = <String?, List<ItemLista>>{};
+    if (widget.filtroMercadoId != null) {
+      grupos[widget.filtroMercadoId] = widget.removiveis;
+    } else {
+      for (final it in widget.removiveis) {
+        final mid = _mercadoEfetivo(it, widget.produtosPorId[it.produtoId]);
+        grupos.putIfAbsent(mid, () => []).add(it);
       }
+    }
+    setState(() => _processando = true);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.compraFinalizada)));
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (mounted) setState(() => _processando = false);
+    });
+    try {
+      final pedidosRepo = ref.read(pedidosRepoProvider);
+      final listasRepo = ref.read(listasRepoProvider);
       for (final entry in grupos.entries) {
         final (total, economia, pItens) = _montarPedido(entry.value, widget.produtosPorId);
         await pedidosRepo.criar(mercadoId: entry.key, total: total, economia: economia, itens: pItens);
       }
-      await ref.read(listasRepoProvider).removerItens(widget.atual.id, widget.removiveis.map((e) => e.id).toList());
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.compraFinalizada)));
+      await listasRepo.removerItens(widget.atual.id, ids);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao finalizar: $e')));
-    } finally {
-      if (mounted) setState(() => _processando = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao sincronizar: $e')));
     }
   }
 
