@@ -81,6 +81,53 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     setState(() => _busca = '');
   }
 
+  Future<void> _adicionarProdutoEmMercado(Produto p, String mercadoId) async {
+    final repo = ref.read(listasRepoProvider);
+    final atual = await repo.obterOuCriarAtiva();
+    await repo.adicionarItem(atual.id,
+        produtoId: p.id, nome: p.nome, categoria: p.categoria, mercadoId: mercadoId);
+    _buscaCtrl.clear();
+    setState(() => _busca = '');
+  }
+
+  Future<void> _escolherMercadoParaProduto(Produto p, List<Mercado> mercados) async {
+    final escolhido = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 5, margin: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: AppColors.dim2, borderRadius: BorderRadius.circular(3))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Row(children: [Icon(Icons.storefront_rounded, size: 18, color: AppColors.green), const SizedBox(width: 8), Text('Escolher mercado para ${p.nome}', style: TextStyle(color: AppColors.text, fontSize: 14, fontWeight: FontWeight.w600))]),
+            ),
+            Divider(color: AppColors.line, height: 1),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final m in mercados)
+                    ListTile(
+                      leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: m.cor, shape: BoxShape.circle)),
+                      title: Text(m.nome, style: TextStyle(color: AppColors.text, fontSize: 14.5)),
+                      trailing: m.preferencia ? Icon(Icons.star, size: 14, color: AppColors.green) : null,
+                      onTap: () => Navigator.pop(context, m.id),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (escolhido == null) return;
+    await _adicionarProdutoEmMercado(p, escolhido);
+  }
+
   Future<void> _cadastrarEAdicionar(String nome) async {
     final listaRepo = ref.read(listasRepoProvider);
     final atual = await listaRepo.obterOuCriarAtiva();
@@ -952,7 +999,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final exato = produtos.any((p) => normalizarBusca(p.nomeLower) == qNorm);
 
     return [
-      for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id)),
+      for (final p in matches) _linhaBusca(p, idsNaLista.contains(p.id), mercados),
       // Item novo (não existe ainda): duas ações + já num mercado.
       if (q.isNotEmpty && !exato) ...[
         // 1) adiciona rápido à lista (item solto, aparece em "Todos")
@@ -1045,7 +1092,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  Widget _linhaBusca(Produto p, bool naLista) {
+  Widget _linhaBusca(Produto p, bool naLista, List<Mercado> mercados) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
@@ -1091,6 +1138,18 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                           color: AppColors.green,
                           fontSize: 14,
                           fontWeight: FontWeight.w600)),
+                if (!naLista && mercados.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _escolherMercadoParaProduto(p, mercados),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.line)),
+                      child: Icon(Icons.storefront_outlined, size: 16, color: AppColors.dim),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
