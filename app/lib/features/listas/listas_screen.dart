@@ -54,8 +54,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   AppStrings get _t => ref.read(stringsProvider);
 
   String? _mercadoEfetivo(ItemLista it, Produto? p) {
+    if (it.mercadoId != null) return it.mercadoId;
     if (p != null) return p.mercadoFixo ?? p.mercadoMaisBarato;
-    return it.mercadoId;
+    return null;
   }
 
   @override
@@ -1270,7 +1271,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final dedicado = p?.dedicado ?? it.mercadoId != null;
     final menor =
         p?.precosOrdenados.isNotEmpty == true ? p!.precosOrdenados.first : null;
-    final mercadoEfId = p?.mercadoFixo ?? menor?.key ?? it.mercadoId;
+    final mercadoEfId = it.mercadoId ?? p?.mercadoFixo ?? menor?.key;
     final cor = mercadoEfId != null ? mercadosPorId[mercadoEfId]?.cor : null;
     final velho = menor?.value.desatualizado ?? false;
 
@@ -1661,9 +1662,10 @@ class _BotaoFinalizarState extends ConsumerState<_BotaoFinalizar> {
   bool _processando = false;
 
   String? _mercadoEfetivo(ItemLista it, Produto? p) {
+    if (it.mercadoId != null) return it.mercadoId;
     if (p?.mercadoFixo != null) return p!.mercadoFixo;
     if (p?.precosOrdenados.isNotEmpty == true) return p!.precosOrdenados.first.key;
-    return it.mercadoId;
+    return null;
   }
 
   (double, double, List<PedidoItem>) _montarPedido(List<ItemLista> itens, Map<String, Produto> produtosPorId) {
