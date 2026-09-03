@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,23 +46,23 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
   }
 
   Future<void> _desfazer(Pedido pe) async {
-    final listaRepo = ref.read(listasRepoProvider);
-    final atual = await listaRepo.obterOuCriarAtiva();
-    for (final it in pe.itens) {
-      await listaRepo.adicionarItem(
-        atual.id,
-        produtoId: it.produtoId,
-        nome: it.nome,
-        categoria: it.categoria,
-        quantidade: it.quantidade,
-      );
-    }
-    await ref.read(pedidosRepoProvider).excluir(pe.id);
+    if (mounted) Navigator.pop(context);
     if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_t.pedidoDesfeito)),
-      );
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.pedidoDesfeito)));
+    }
+    try {
+      final listaRepo = ref.read(listasRepoProvider);
+      final atual = await listaRepo.obterOuCriarAtiva();
+      for (final it in pe.itens) {
+        await listaRepo.adicionarItem(atual.id, produtoId: it.produtoId, nome: it.nome, categoria: it.categoria, quantidade: it.quantidade);
+      }
+      await ref.read(pedidosRepoProvider).excluir(pe.id);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      }
     }
   }
 
@@ -72,24 +74,23 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
         title: Text(_t.excluirPedidoTitulo),
         content: Text(_t.excluirPedidoMsg),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(_t.cancelar)),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(_t.excluir,
-                  style: TextStyle(color: AppColors.danger))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t.cancelar)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(_t.excluir, style: TextStyle(color: AppColors.danger))),
         ],
       ),
     );
     if (ok != true) return;
-    await ref.read(pedidosRepoProvider).excluir(pe.id);
+    if (mounted) Navigator.pop(context);
     if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_t.pedidoExcluido)),
-      );
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.pedidoExcluido)));
     }
+    unawaited(ref.read(pedidosRepoProvider).excluir(pe.id).catchError((e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao excluir: $e')));
+      }
+    }));
   }
 
   @override
