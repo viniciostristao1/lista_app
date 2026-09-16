@@ -45,9 +45,9 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   /// mercados carregam) — depois disso o filtro segue o que o usuário tocar.
   bool _iniciouFiltro = false;
 
-  /// Itens cujo preço está revelado (usuário tocou no "$"). Por padrão o preço
-  /// fica escondido atrás do ícone, deixando a coluna alinhada.
-  final Set<String> _precoVisivel = {};
+  /// Itens com o preço oculto (usuário tocou no valor). Por padrão o preço fica
+  /// visível; tocar oculta e mostra o "$" no lugar.
+  final Set<String> _precoOculto = {};
 
   // read (não watch): usado no build e em callbacks; a reatividade ao trocar de
   // idioma vem do ref.watch(stringsProvider) no topo do build.
@@ -786,9 +786,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                   _vazio()
                 else if (itensVisiveis.isEmpty)
                   _filtroVazio(mercadosPorId[filtro]?.nome)
-                else
+                else ...[
                   ..._itensAgrupados(itensVisiveis, produtosPorId,
                       mercadosPorId, mercados, ordemCategorias, atual!),
+                  _botaoTodosPrecos(itensVisiveis, produtosPorId, mercadosPorId),
+                ],
               ],
             ),
           ),
@@ -1359,10 +1361,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               const SizedBox(width: 4),
               _stepperQtd(atual.id, it),
               const SizedBox(width: 3),
-              // Slot de preço enxuto: SEMPRE um "$" estreito (deixa espaço pro
-              // nome). Tocar expande e revela o preço (item comparado) ou o
-              // nome do mercado (item de um mercado só). "+" e bolinha colados.
-              _slotPreco(it, dedicado, menor, mercadoEfId, mercadosPorId),
+              // Slot de preço: mostra o preço (item comparado) ou o nome do
+              // mercado (item de um mercado só). Tocar oculta e deixa um "$"
+              // estreito no lugar. "+" e bolinha colados.
+              _slotPreco(it, _precoRevelado(it, p, mercadosPorId), dedicado),
               const SizedBox(width: 3),
               // bolinha do mercado — slot fixo p/ alinhar mesmo quando não há cor
               SizedBox(
@@ -1381,22 +1383,27 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  // Slot de preço enxuto: por padrão SEMPRE um "$" estreito (deixa mais espaço
-  // pro nome do item). Ao tocar, expande e revela o texto — o preço (item
-  // comparado) ou o nome do mercado (item de um mercado só). Toca de novo esconde.
-  Widget _slotPreco(
+  /// O que o slot de preço mostra: o menor preço (item comparado) ou o nome do
+  /// mercado (item de um mercado só). Null = nada cadastrado ainda.
+  String? _precoRevelado(
     ItemLista it,
-    bool dedicado,
-    MapEntry<String, PrecoMercado>? menor,
-    String? mercadoEfId,
+    Produto? p,
     Map<String, Mercado> mercadosPorId,
   ) {
-    // O que o "$" revela: o nome do mercado (dedicado) ou o preço (comparado).
-    final String? revelado = dedicado
-        ? mercadosPorId[mercadoEfId]?.nome
-        : (menor == null ? null : reais(menor.value.valor));
+    final dedicado = p?.dedicado ?? it.mercadoId != null;
+    if (dedicado) {
+      final id = it.mercadoId ?? p?.mercadoFixo;
+      return id == null ? null : mercadosPorId[id]?.nome;
+    }
+    final ord = p?.precosOrdenados;
+    return (ord == null || ord.isEmpty) ? null : reais(ord.first.value.valor);
+  }
 
-    // Nada cadastrado ainda: "$" apagado, só avisa (não expande).
+  // Slot de preço: por padrão mostra o texto — o preço (item comparado) ou o
+  // nome do mercado (item de um mercado só). Tocar oculta e deixa um "$"
+  // estreito no lugar; tocar no "$" mostra de novo.
+  Widget _slotPreco(ItemLista it, String? revelado, bool dedicado) {
+    // Nada cadastrado ainda: "$" apagado, só avisa (não oculta).
     if (revelado == null) {
       return _botaoDollar(
         cor: AppColors.dim2,
@@ -1406,10 +1413,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       );
     }
 
-    // Revelado: expande e "empurra" o nome (Expanded) pra caber o texto.
-    if (_precoVisivel.contains(it.id)) {
+    // Visível (padrão): o texto fica no lugar do "$" e "empurra" o nome do
+    // item (Expanded) pra caber.
+    if (!_precoOculto.contains(it.id)) {
       return GestureDetector(
-        onTap: () => setState(() => _precoVisivel.remove(it.id)),
+        onTap: () => setState(() => _precoOculto.add(it.id)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 150),
           child: Text(
@@ -1426,10 +1434,10 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       );
     }
 
-    // Colapsado: "$" estreito.
+    // Oculto: "$" estreito.
     return _botaoDollar(
       cor: it.comprado ? AppColors.dim2 : AppColors.dim,
-      onTap: () => setState(() => _precoVisivel.add(it.id)),
+      onTap: () => setState(() => _precoOculto.remove(it.id)),
     );
   }
 
@@ -1450,6 +1458,62 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
             child: Icon(Icons.attach_money, size: 15, color: cor),
           ),
         ),
+      ),
+    );
+  }
+
+  // Botão único no fim da lista: oculta/mostra TODOS os preços de uma vez.
+  // Fica alinhado à direita com a coluna dos preços, no mesmo fundo claro dos
+  // chips de mercado ("prateleira" da barra de filtro).
+  Widget _botaoTodosPrecos(
+    List<ItemLista> itens,
+    Map<String, Produto> produtosPorId,
+    Map<String, Mercado> mercadosPorId,
+  ) {
+    final ids = [
+      for (final it in itens)
+        if (_precoRevelado(it, produtosPorId[it.produtoId], mercadosPorId) !=
+            null)
+          it.id,
+    ];
+    if (ids.isEmpty) return const SizedBox.shrink();
+    // Qualquer preço oculto → o toque mostra todos; nenhum → oculta todos.
+    final algumOculto = ids.any(_precoOculto.contains);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
+      child: Row(
+        children: [
+          const Spacer(),
+          Tooltip(
+            message:
+                algumOculto ? _t.mostrarTodosPrecos : _t.ocultarTodosPrecos,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() {
+                if (algumOculto) {
+                  _precoOculto.removeAll(ids);
+                } else {
+                  _precoOculto.addAll(ids);
+                }
+              }),
+              child: Container(
+                width: 38,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Center(
+                  child: Icon(Icons.attach_money,
+                      size: 16, color: AppColors.dim),
+                ),
+              ),
+            ),
+          ),
+          // Alinha a borda direita do botão com a coluna dos preços (o mesmo
+          // recuo do pontinho de mercado + respiro).
+          const SizedBox(width: 12),
+        ],
       ),
     );
   }

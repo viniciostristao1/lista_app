@@ -142,6 +142,10 @@ class AppStrings {
       'já está na lista', 'already on list', 'ya está en la lista');
   String get verPrecoMercado =>
       _s('Ver preço/mercado', 'Show price/store', 'Ver precio/tienda');
+  String get mostrarTodosPrecos => _s(
+      'Mostrar todos os preços', 'Show all prices', 'Mostrar todos los precios');
+  String get ocultarTodosPrecos => _s(
+      'Ocultar todos os preços', 'Hide all prices', 'Ocultar todos los precios');
   String get itemSemPreco => _s(
       'Esse item ainda não tem preço.', 'This item has no price yet.',
       'Este artículo aún no tiene precio.');
