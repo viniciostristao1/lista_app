@@ -244,7 +244,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
 
   void _alternarTodo() {
     _pushImediato();
-    final indoParaLivre = _todo;
     final textoPreservado = _textoAtual;
     setState(() {
       if (_todo) {
@@ -265,12 +264,6 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
       _prevTexto = _textoAtual;
     });
     _persistir();
-    if (_todo && _linhas.isNotEmpty) {
-      _focarLinha(_linhas.length - 1);
-    } else if (indoParaLivre) {
-      _focoLivre.requestFocus();
-      _ctrl.selection = TextSelection.collapsed(offset: _ctrl.text.length);
-    }
     setState(() {});
   }
 
@@ -421,7 +414,7 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
     return TextField(
       controller: _ctrl,
       focusNode: _focoLivre,
-      autofocus: !_todo,
+      // Sem autofocus: a nota abre sem o teclado; ele só sobe ao tocar no campo.
       minLines: 2,
       maxLines: null,
       keyboardType: TextInputType.multiline,
@@ -464,7 +457,8 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
               child: TextField(
                 controller: l.ctrl,
                 focusNode: l.foco,
-                autofocus: i == 0 && l.texto.isEmpty,
+                // Sem autofocus: o checklist abre sem o teclado; ele só sobe ao
+                // tocar numa linha (marcar/desmarcar não abre o teclado).
                 maxLines: 1,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
