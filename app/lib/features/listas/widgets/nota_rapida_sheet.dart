@@ -245,6 +245,11 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
   void _alternarTodo() {
     _pushImediato();
     final textoPreservado = _textoAtual;
+    // O campo em edição sai da árvore ao trocar de modo. Se o teclado estava
+    // aberto (algum campo focado), re-foca o campo novo pra mantê-lo; se estava
+    // fechado, continua fechado até o usuário tocar.
+    final linhaFocada = _linhas.indexWhere((l) => l.foco.hasFocus);
+    final manterFoco = _focoLivre.hasFocus || linhaFocada >= 0;
     setState(() {
       if (_todo) {
         _ctrl.removeListener(_onTextoBurst);
@@ -264,6 +269,18 @@ class _NotaRapidaSheetState extends ConsumerState<_NotaRapidaSheet> {
       _prevTexto = _textoAtual;
     });
     _persistir();
+    if (manterFoco) {
+      if (_todo && _linhas.isNotEmpty) {
+        // Volta pro mesmo item que estava em edição (ou o último).
+        _focarLinha(
+            linhaFocada >= 0 && linhaFocada < _linhas.length
+                ? linhaFocada
+                : _linhas.length - 1);
+      } else if (!_todo) {
+        _focoLivre.requestFocus();
+        _ctrl.selection = TextSelection.collapsed(offset: _ctrl.text.length);
+      }
+    }
     setState(() {});
   }
 
