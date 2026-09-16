@@ -146,6 +146,14 @@ class AppStrings {
       'Mostrar todos os preços', 'Show all prices', 'Mostrar todos los precios');
   String get ocultarTodosPrecos => _s(
       'Ocultar todos os preços', 'Hide all prices', 'Ocultar todos los precios');
+  String get mostrarQuantidades => _s(
+      'Mostrar quantidades', 'Show quantities', 'Mostrar cantidades');
+  String get ocultarQuantidades => _s(
+      'Ocultar quantidades', 'Hide quantities', 'Ocultar cantidades');
+  String get mostrarEtiquetas =>
+      _s('Mostrar etiquetas', 'Show labels', 'Mostrar etiquetas');
+  String get ocultarEtiquetas =>
+      _s('Ocultar etiquetas', 'Hide labels', 'Ocultar etiquetas');
   String get itemSemPreco => _s(
       'Esse item ainda não tem preço.', 'This item has no price yet.',
       'Este artículo aún no tiene precio.');

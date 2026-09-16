@@ -49,6 +49,11 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   /// visível; tocar oculta e mostra o "$" no lugar.
   final Set<String> _precoOculto = {};
 
+  /// Quantidade (− 1 +) e etiqueta (🏷️) aparecem por padrão na lista; os
+  /// botões no fim da lista ocultam/mostram todos de uma vez.
+  bool _quantidadesVisiveis = true;
+  bool _etiquetasVisiveis = true;
+
   // read (não watch): usado no build e em callbacks; a reatividade ao trocar de
   // idioma vem do ref.watch(stringsProvider) no topo do build.
   AppStrings get _t => ref.read(stringsProvider);
@@ -789,7 +794,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 else ...[
                   ..._itensAgrupados(itensVisiveis, produtosPorId,
                       mercadosPorId, mercados, ordemCategorias, atual!),
-                  _botaoTodosPrecos(itensVisiveis, produtosPorId, mercadosPorId),
+                  _botoesControle(itensVisiveis, produtosPorId, mercadosPorId),
                 ],
               ],
             ),
@@ -1336,31 +1341,37 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 Icon(Icons.push_pin, size: 13, color: AppColors.green),
                 const SizedBox(width: 4),
               ],
-              if (p != null)
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 22),
-                  tooltip: _t.editarPrecosMercado,
-                  icon: Icon(Icons.sell_outlined,
-                      size: 18, color: AppColors.dim),
-                  onPressed: () => mostrarEditorProduto(context, p, mercados),
-                )
-              else
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 22),
-                  tooltip: _t.cadastrarItem(it.nome),
-                  icon: Icon(Icons.sell_outlined,
-                      size: 18, color: AppColors.dim2),
-                  onPressed: () => _cadastrarLembrete(it, atual),
-                ),
-              const SizedBox(width: 4),
-              _stepperQtd(atual.id, it),
-              const SizedBox(width: 3),
+              // Etiqueta (🏷️) e quantidade (− 1 +) podem ser ocultadas pelos
+              // botões no fim da lista; o espaço volta pro nome do item.
+              if (_etiquetasVisiveis) ...[
+                if (p != null)
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 22),
+                    tooltip: _t.editarPrecosMercado,
+                    icon: Icon(Icons.sell_outlined,
+                        size: 18, color: AppColors.dim),
+                    onPressed: () => mostrarEditorProduto(context, p, mercados),
+                  )
+                else
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 22),
+                    tooltip: _t.cadastrarItem(it.nome),
+                    icon: Icon(Icons.sell_outlined,
+                        size: 18, color: AppColors.dim2),
+                    onPressed: () => _cadastrarLembrete(it, atual),
+                  ),
+                const SizedBox(width: 4),
+              ],
+              if (_quantidadesVisiveis) ...[
+                _stepperQtd(atual.id, it),
+                const SizedBox(width: 3),
+              ],
               // Slot de preço: mostra o preço (item comparado) ou o nome do
               // mercado (item de um mercado só). Tocar oculta e deixa um "$"
               // estreito no lugar. "+" e bolinha colados.
@@ -1462,58 +1473,119 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     );
   }
 
-  // Botão único no fim da lista: oculta/mostra TODOS os preços de uma vez.
-  // Fica alinhado à direita com a coluna dos preços, no mesmo fundo claro dos
-  // chips de mercado ("prateleira" da barra de filtro).
-  Widget _botaoTodosPrecos(
+  // Botões no fim da lista: mostram/ocultam todos os preços ($), as
+  // quantidades (− 1 +) e as etiquetas (🏷️) de uma vez. Ficam alinhados à
+  // direita com a coluna dos preços e marcam o estado — fundo do tema quando o
+  // elemento está sendo exibido, como os chips de mercado da barra de filtro.
+  Widget _botoesControle(
     List<ItemLista> itens,
     Map<String, Produto> produtosPorId,
     Map<String, Mercado> mercadosPorId,
   ) {
+    if (itens.isEmpty) return const SizedBox.shrink();
     final ids = [
       for (final it in itens)
         if (_precoRevelado(it, produtosPorId[it.produtoId], mercadosPorId) !=
             null)
           it.id,
     ];
-    if (ids.isEmpty) return const SizedBox.shrink();
     // Qualquer preço oculto → o toque mostra todos; nenhum → oculta todos.
-    final algumOculto = ids.any(_precoOculto.contains);
+    final algumPrecoOculto = ids.any(_precoOculto.contains);
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
       child: Row(
         children: [
           const Spacer(),
-          Tooltip(
-            message:
-                algumOculto ? _t.mostrarTodosPrecos : _t.ocultarTodosPrecos,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+          _botaoControle(
+            marcado: _etiquetasVisiveis,
+            tooltip:
+                _etiquetasVisiveis ? _t.ocultarEtiquetas : _t.mostrarEtiquetas,
+            onTap: () =>
+                setState(() => _etiquetasVisiveis = !_etiquetasVisiveis),
+            child: Icon(Icons.sell_outlined,
+                size: 18,
+                color:
+                    _etiquetasVisiveis ? AppColors.onGreen : AppColors.dim),
+          ),
+          const SizedBox(width: 8),
+          _botaoControle(
+            marcado: _quantidadesVisiveis,
+            tooltip: _quantidadesVisiveis
+                ? _t.ocultarQuantidades
+                : _t.mostrarQuantidades,
+            onTap: () =>
+                setState(() => _quantidadesVisiveis = !_quantidadesVisiveis),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.remove,
+                    size: 12,
+                    color: _quantidadesVisiveis
+                        ? AppColors.onGreen
+                        : AppColors.dim),
+                const SizedBox(width: 2),
+                Text('1',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _quantidadesVisiveis
+                            ? AppColors.onGreen
+                            : AppColors.dim)),
+                const SizedBox(width: 2),
+                Icon(Icons.add,
+                    size: 12,
+                    color: _quantidadesVisiveis
+                        ? AppColors.onGreen
+                        : AppColors.dim),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (ids.isNotEmpty)
+            _botaoControle(
+              marcado: !algumPrecoOculto,
+              tooltip: algumPrecoOculto
+                  ? _t.mostrarTodosPrecos
+                  : _t.ocultarTodosPrecos,
               onTap: () => setState(() {
-                if (algumOculto) {
+                if (algumPrecoOculto) {
                   _precoOculto.removeAll(ids);
                 } else {
                   _precoOculto.addAll(ids);
                 }
               }),
-              child: Container(
-                width: 38,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Center(
-                  child: Icon(Icons.attach_money,
-                      size: 16, color: AppColors.dim),
-                ),
-              ),
+              child: Icon(Icons.attach_money,
+                  size: 18,
+                  color: algumPrecoOculto ? AppColors.dim : AppColors.onGreen),
             ),
-          ),
-          // Alinha a borda direita do botão com a coluna dos preços (o mesmo
+          // Alinha a borda direita do grupo com a coluna dos preços (o mesmo
           // recuo do pontinho de mercado + respiro).
           const SizedBox(width: 12),
         ],
+      ),
+    );
+  }
+
+  Widget _botaoControle({
+    required bool marcado,
+    required String tooltip,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: 44,
+          height: 32,
+          decoration: BoxDecoration(
+            color: marcado ? AppColors.green : AppColors.surface,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(child: child),
+        ),
       ),
     );
   }
