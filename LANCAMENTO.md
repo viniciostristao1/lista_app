@@ -1,102 +1,181 @@
-# Pacote de lançamento — Play Store
+# Pacote de lançamento — Play Store (Save List)
 
-Tudo pronto pra preencher o Google Play Console. Copie e cole daqui.
+Tudo pronto pra preencher o Google Play Console. **Copie e cole daqui.**
+Atualizado em **2026-09-16** para o nome novo **"Save List"** (v0.44 / `1.0.0`).
 
-## ⭐ Build canônico a subir (qual AAB usar)
-> **Fonte de verdade do "app correto": o release mais recente no GitHub.**
-> Todo push em `app/**` gera APK **e** AAB do mesmo commit (CI `build-apk.yml`).
+> **Como ler este arquivo:** a parte de cima é **material** (textos e respostas prontos
+> pra colar). A parte de baixo (**"② No Play Console — passo a passo"**) é o **roteiro do
+> que só você consegue fazer** logado na sua conta. Eu (Claude) não tenho acesso ao Console;
+> preparo os arquivos, você faz os cliques.
 
-**Duas versões em jogo (registro de 2026-07-30):**
+---
 
-- **B — `v0.13.0-teste16`** (commit `05b09b6`) → asset `lista-app-v0.13.0.aab`.
-  **TESTADA pelo usuário ✅.** É o **fallback seguro** (última boa conhecida), guardada
-  (release + tag + APK/AAB). Se A der problema, lança-se B.
-  - Download: https://github.com/viniciostristao1/lista_app/releases/tag/v0.13.0-teste16
-- **A — `v0.32.0-teste37`** (commit `f514bf1`) → asset `lista-app-v0.32.0.aab` — feature
-  **"mercado dedicado"** + **âmbar** + **ícone do desenho do usuário** (âmbar degradê, maior) +
-  títulos c/ símbolo + **estilo Flat** (Listas enxuta/alinhada; Itens compacta) + nome com
-  **maiúscula** + **ajuste de fonte** (Menor ~13,5 / Normal ~15 / Maior ~17,7). É o **ALVO de
-  lançamento**, **a verificar pelo usuário**.
-  - APK+AAB: https://github.com/viniciostristao1/lista_app/releases/tag/v0.32.0-teste37
-  - *(supera `v0.31.0-teste36`.)*
+## ⭐ Build a subir (o AAB)
 
-**Oficial de lançamento pretendida = A** (assim que o usuário testar e aprovar). Enquanto
-A não é validada, o pronto-e-testado é **B** — e é o que se sobe se precisar publicar já.
+O que a Play Store recebe é um **AAB** (Android App Bundle), não o APK.
 
-- **NÃO usar** o AAB antigo do release `playstore-pacote-1` (26/07).
-- **Regra:** ao cortar o build de A, preencher aqui o release/tag dele; o AAB a subir é o
-  do **release mais recente aprovado**.
+- **Arquivo:** `app-release.aab` (renomeei a cópia entregue como `SaveList-v1.0.0.aab`).
+- **Versão embutida:** `versionName 1.0.0`, `versionCode 1` (primeira subida — o Google só
+  exige que **cada nova subida tenha um número maior**; 1 é válido pra estrear).
+- **Assinatura:** já vem assinado com a **chave de upload** oficial
+  (SHA-1 `FB:02:95:85:16:45:D3:05:16:BA:58:08:38:EB:FD:2F:9E:23:C0:F0`, expira em 2053) —
+  a mesma registrada no Firebase, então o **Login Google continua funcionando**.
+- **De onde sai (sempre a versão mais nova do código):** o CI gera o AAB a cada push e
+  publica no release rolling **`ci-latest`**:
+  `https://github.com/viniciostristao1/lista_app/releases/download/ci-latest/app-release.aab`
+  (repo privado → precisa estar logado no GitHub). Eu também **te entrego o arquivo direto**
+  no chat pra você só arrastar pro Console.
 
-## Identidade
-- **Título da loja (≤30):** `Lista e comparador de mercado`
-- **Nome no ícone:** `Lista`
-- **Package (permanente):** `com.vinyapps.lista_app`
-- **Categoria sugerida:** Compras (Shopping)
-- **Monetização:** Grátis, sem anúncios, sem compras no app.
-- **E-mail de contato:** viniciostristao@gmail.com
-- **Idiomas:** PT no lançamento; Inglês (internacionalização) depois, como atualização.
+> ⚠️ **Não** use AABs antigos (`playstore-pacote-1`, `lista-app-v0.13.0.aab`, `v0.32.0`) —
+> são de antes do nome "Save List" e de dezenas de melhorias.
+
+---
+
+## Identidade da ficha
+
+| Campo | Valor |
+|---|---|
+| **Nome do app (≤30):** | `Save List: lista de compras` |
+| **Nome no ícone (launcher):** | `Save List` |
+| **Package (permanente):** | `com.vinyapps.lista_app` |
+| **Categoria:** | Compras (Shopping) |
+| **Tags:** | lista de compras, supermercado, comparar preços |
+| **Monetização:** | Grátis · sem anúncios · sem compras no app |
+| **E-mail de contato:** | viniciostristao@gmail.com |
+| **Idioma do lançamento:** | Português (Brasil). Inglês/Espanhol já existem no app; dá pra
+adicionar as fichas traduzidas depois, como atualização. |
 
 ## Descrição curta (≤80 caracteres)
 ```
 Lista de compras com comparador de preços entre mercados. Economize de verdade.
 ```
 
-## Descrição completa
+## Descrição completa (≤4000 caracteres)
 ```
-Lista organiza suas compras de supermercado e mostra onde cada item sai mais barato.
+Save List organiza suas compras de supermercado e mostra onde cada item sai mais barato.
 
-Cadastre seus produtos uma vez, registre o preço em cada mercado que você frequenta, e o app faz o resto: destaca o menor preço, calcula quanto você economiza e monta sua lista de compras em segundos.
+Cadastre seus produtos uma vez, registre o preço em cada mercado que você frequenta, e o app faz o resto: destaca o menor preço, calcula quanto você economiza e monta sua lista em segundos.
 
 O que você pode fazer:
 • Montar sua lista de compras rapidinho, buscando itens que você já cadastrou.
-• Comparar o preço do mesmo produto entre seus mercados favoritos.
+• Comparar o preço do mesmo produto entre até 8 mercados favoritos.
 • Ver quanto economiza pegando cada item no lugar mais barato.
-• Filtrar a lista por mercado — saiba o que comprar em cada lugar.
+• Abrir o app já no seu mercado favorito e filtrar a lista por mercado.
 • Fixar itens que você sempre compra (leite, pão…) pra eles não sumirem.
+• Anotar recados numa Nota rápida — que também vira uma lista de tarefas (to-do) marcável.
 • Acompanhar o histórico de compras e quanto gastou/economizou por mês.
-• Alerta quando um preço está desatualizado (mais de 30 dias), pra não confiar em preço velho.
-• Calculadora para comparar produtos de pesos diferentes.
+• Receber alerta quando um preço está desatualizado (mais de 30 dias).
+• Comparar produtos de pesos diferentes na calculadora (preço por unidade).
 • Copiar a lista pra compartilhar no WhatsApp.
+• Escolher entre 4 temas (claro e escuro) e 3 idiomas (Português, Inglês, Espanhol).
 
 Seus dados ficam só com você, sincronizados na nuvem com login pelo Google. Sem anúncios.
 ```
 
-## Data Safety (Segurança dos dados) — respostas
-**O app coleta ou compartilha dados de usuário?** Sim, coleta (não compartilha com terceiros).
+---
+
+## Materiais gráficos
+
+| Item | Especificação | Status |
+|---|---|---|
+| **Ícone** | 512×512 PNG, ≤1 MB | ✅ `store/icon_512.png` |
+| **Feature graphic** | 1024×500 PNG/JPG | ✅ `store/feature_graphic.png` |
+| **Screenshots (telefone)** | 2 a 8, lado 320–3840px | ⚠️ **DESATUALIZADOS** (ver abaixo) |
+
+> ⚠️ **Screenshots precisam ser refeitos.** Os que estão em `store/screenshots/` são de
+> 01/ago (app na v0.27) e não mostram temas, Nota rápida/To-do, mercado favorito etc.
+> **O jeito mais simples e bonito:** abrir o app **atual no seu celular** e tirar 3–5 prints.
+> Sugestão de telas: **(1)** aba Listas com itens e a caixa "Economia/Total"; **(2)** aba Itens
+> mostrando o comparador de preço entre mercados; **(3)** aba Pedidos com o resumo do mês;
+> **(4)** a Nota rápida / To-do aberta; **(5)** Configurações com os temas. Me manda os prints
+> que eu ajusto pro formato da loja (padding pra ficar ≤2:1) e reponho em `store/screenshots/`.
+> *(Não dá pra gerar print bonito na VPS: sem emulador, o texto sai como quadradinhos.)*
+
+---
+
+## Data Safety (Segurança dos dados) — respostas prontas
+
+**O app coleta ou compartilha dados?** Coleta (não compartilha com terceiros).
 
 Dados coletados:
-- **E-mail** — obrigatório · finalidade: gerenciamento da conta / login. (via Login Google)
-- **Nome** — obrigatório · finalidade: gerenciamento da conta. (via Login Google)
-- **Conteúdo do app** (as listas, itens, mercados, preços e histórico que o usuário cria)
-  — obrigatório · finalidade: funcionalidade do app.
+| Dado | Obrigatório? | Finalidade | Origem |
+|---|---|---|---|
+| **E-mail** | Sim | Gerenciar conta / login | Login Google |
+| **Nome** | Sim | Gerenciar conta | Login Google |
+| **Conteúdo do app** (listas, itens, mercados, preços, histórico) | Sim | Funcionalidade do app | Criado pelo usuário |
 
 Perguntas do formulário:
 - Dados **criptografados em trânsito**? **Sim** (Firebase usa HTTPS).
 - Usuário pode **pedir exclusão** dos dados? **Sim** (por e-mail).
-- Dados **compartilhados com terceiros**? **Não** (o Firebase/Google é provedor de
-  infraestrutura, processa em nome do app; não é venda/compartilhamento).
+- Dados **compartilhados com terceiros**? **Não** (Firebase/Google é só infraestrutura, processa
+  em nome do app; não é venda nem compartilhamento).
 - Coleta para **publicidade**? **Não.** Sem anúncios.
 - App direcionado a **crianças**? **Não.**
 
-## Política de privacidade
-- **URL:** https://viniciostristao1.github.io/lista-privacidade/
-- Hospedada no GitHub Pages (repo público `viniciostristao1/lista-privacidade`).
+## Classificação de conteúdo (questionário IARC) — respostas prontas
 
-## Materiais gráficos
-- **Ícone 512×512:** gerado (a partir de `assets/icon/icon_full.png`).
-- **Feature graphic 1024×500:** gerado (`scratchpad/feature.png`).
-- **Screenshots:** ✅ em `store/screenshots/` (01-listas, 02-itens, 03-pedidos, 04-busca).
-  Usar 01, 02 e 03 (a 04 tem teclado na tela).
+Categoria do app no questionário: **Utilitário / Produtividade / Comunicação** (não é jogo).
+Responda **NÃO** para: violência, conteúdo sexual, linguagem imprópria, drogas/álcool/tabaco,
+jogos de azar/apostas, medo/terror. O app **não** compartilha localização, **não** tem
+compras digitais, **não** tem conteúdo gerado por usuários exibido publicamente (cada um vê só
+o seu). → Resultado esperado: **Livre / Classificação L (todos)**.
 
-## Checklist do Play Console
-- [x] Conta de desenvolvedor (US$25, CPF) — **paga + documentos enviados; AGUARDANDO
-  verificação de identidade do Google** (situação em 2026-07-28).
-- [ ] Criar app → preencher ficha (título/descrições/ícone/feature/screenshots).
-- [ ] Data Safety (respostas acima).
-- [ ] Classificação de conteúdo (questionário → "Livre").
-- [ ] Política de privacidade (URL).
-- [ ] Subir o **AAB** assinado → usar o **build canônico** do topo (`v0.13.0-teste16`
-  → `lista-app-v0.13.0.aab`), NÃO o `playstore-pacote-1` antigo.
-- [ ] Teste fechado: 20 testadores por 14 dias.
-- [ ] Liberar produção.
-```
+## Política de privacidade e Termos
+- **Política de privacidade (obrigatória):** https://viniciostristao1.github.io/lista-privacidade/
+- **Termos de uso (opcional na Play, mas já criados):** https://viniciostristao1.github.io/lista-privacidade/termos.html
+- Hospedadas no GitHub Pages (repo público `viniciostristao1/lista-privacidade`).
+
+---
+
+## ② No Play Console — passo a passo (o que só VOCÊ faz)
+
+Pré-requisito ✅: conta de desenvolvedor paga **e aprovada** (verificação de identidade OK).
+
+1. **Criar o app** — Play Console → **Criar app** → nome `Save List: lista de compras`,
+   idioma padrão Português (Brasil), tipo **App**, **Grátis**. Aceitar as declarações.
+
+2. **Ficha da Play Store** (menu *Presença na loja → Ficha principal da Store*):
+   colar **nome**, **descrição curta**, **descrição completa** (acima); subir **ícone 512**,
+   **feature graphic** e **screenshots** (os novos). Salvar.
+
+3. **Configuração do app** (menu *Política → App content*): preencher, um por um:
+   - **Política de privacidade:** colar a URL.
+   - **Anúncios:** *Não contém anúncios.*
+   - **Acesso ao app:** *Todas as funções ficam disponíveis sem restrição* — **mas** o login é
+     Google; forneça um **login de teste** OU explique que basta entrar com qualquer conta
+     Google (o revisor precisa conseguir usar o app).
+   - **Classificação de conteúdo:** responder o questionário (respostas acima) → gera "Livre".
+   - **Público-alvo:** faixa etária **18+** ou **13+** (não é infantil) → responder que **não**
+     é direcionado a crianças.
+   - **Data safety:** preencher com a tabela acima.
+   - **Apps de governo / finanças / saúde / COVID:** **Não** a todos.
+
+4. **Teste fechado (obrigatório p/ contas novas)** — menu *Testes → Teste fechado*:
+   - Criar uma faixa (track) de teste fechado, **subir o AAB** (`SaveList-v1.0.0.aab`).
+   - Criar uma **lista de e-mails** com **pelo menos 12 testadores** (podem ser amigos/família;
+     precisam **aceitar o convite** e **manter instalado**).
+   - Compartilhar o **link de opt-in** com eles.
+   - ⏳ **Regra do Google:** manter o teste rodando com ≥12 testadores por **14 dias seguidos**.
+   - Depois dos 14 dias, aparece o botão **"Solicitar acesso à produção"**.
+
+5. **Produção** — depois de aprovado o acesso: menu *Produção* → criar release → subir o mesmo
+   (ou novo) AAB → escrever as **notas da versão** → enviar para revisão. A revisão do Google
+   costuma levar de algumas horas a alguns dias.
+
+> 💡 Ao subir o AAB pela 1ª vez, o Google vai oferecer o **Play App Signing** (recomendado,
+> aceite): o Google guarda a chave de **assinatura do app** e você usa a de **upload**. Isso
+> significa que, se um dia você perder a chave de upload, dá pra resetar — mas **guarde mesmo
+> assim** o backup que te enviei (`upload-keystore.jks` + senha).
+
+---
+
+## Backup da chave (guardar em lugar seguro)
+- `upload-keystore.jks` (alias `upload`) + **senha** — te enviei no chat. É o que assina os
+  updates; sem ela (e sem Play App Signing) você não consegue atualizar o app. Guarde fora do
+  celular (e-mail pra você mesmo, gerenciador de senhas, pendrive).
+
+## Futuro — App Store (iOS)
+- Precisa de: **conta Apple Developer** (US$99/ano), um **Mac** (ou serviço de build em nuvem,
+  ex. Codemagic) pra compilar e assinar, ícones/screenshots no padrão da Apple e a mesma
+  política de privacidade. O código Flutter já é multiplataforma; o trabalho é de
+  build/assinatura/ficha. Fica pra uma fase própria depois do Android no ar.

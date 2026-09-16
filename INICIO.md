@@ -97,22 +97,28 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
   aí sim avaliar tornar o repo público (decisão do usuário — não há segredo no repo, só nos secrets).
   ⚠️ NÃO subir o `playstore-pacote-1` antigo.
 
-**Lançamento — onde paramos:**
-- Conta de desenvolvedor Google Play **criada + paga (US$25) + documentos enviados**
-  → **AGUARDANDO verificação de identidade do Google** (horas a dias).
-- **Pacote pronto** (tudo em `LANCAMENTO.md` + `store/`): AAB, feature graphic 1024×500,
-  ícone 512, 3-4 screenshots (`store/screenshots/`), política no ar
-  (https://viniciostristao1.github.io/lista-privacidade/), textos + Data Safety.
-- **Decisão:** lançar em **PT agora**; **Inglês (i18n) depois** como atualização.
+**Lançamento — onde paramos (2026-09-16):**
+- Conta de desenvolvedor Google Play **paga + APROVADA** (verificação de identidade OK). ✅
+- **Pacote de material PRONTO e ATUALIZADO p/ "Save List"** (tudo colável em `LANCAMENTO.md`):
+  - **AAB** = `ci-latest/app-release.aab` (v0.44 / `1.0.0+1`, assinado c/ upload key,
+    entregue ao usuário como `SaveList-v1.0.0.aab`). ✅
+  - **Ícone 512** + **feature graphic 1024×500** em `store/`. ✅
+  - **Política de privacidade** + **Termos de uso** no ar, já com nome "Save List":
+    …/lista-privacidade/ e …/lista-privacidade/termos.html. ✅
+  - Textos da ficha (nome `Save List: lista de compras`, descrições), **Data Safety** e
+    **classificação de conteúdo** = respostas prontas em `LANCAMENTO.md`. ✅
+  - **Keystore de upload** entregue ao usuário como backup (SHA-1 `FB:02:95:…:C0:F0`,
+    senha no `key.properties`; existe local em `app/android/app/upload-keystore.jks`). ✅
+  - ⚠️ **Screenshots DESATUALIZADOS** (`store/screenshots/` = 01/ago, app v0.27) → o usuário
+    vai tirar prints novos do app atual no celular; eu formato p/ a loja e reponho.
+- **Decisão:** lançar em **PT agora**; EN/ES (já no app) como fichas traduzidas depois.
 - **Monetização:** grátis, sem anúncios (decisão do usuário).
 
-**O que falta (para o próximo passo):**
-1. Google aprovar a verificação → então **Marco ②**: criar o app no Play Console,
-   preencher a ficha (colar de `LANCAMENTO.md`), subir AAB + gráficos + screenshots,
-   Data Safety, classificação, link da política.
-2. **Teste fechado: 20 testadores / 14 dias.** 3. Produção.
-4. **Pendência prometida:** dar ao usuário uma **cópia da keystore** (upload key) pra
-   backup pessoal (está em `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD` nos secrets do repo).
+**O que falta (Marco ② — só o usuário faz, logado no Play Console; roteiro em `LANCAMENTO.md`):**
+1. Criar o app no Console + colar a ficha + subir AAB, gráficos e **screenshots novos**.
+2. App content: política/termos, Data Safety, classificação, público-alvo.
+3. **Teste fechado: ≥12 testadores por 14 dias seguidos** (regra p/ conta nova) → só então
+   libera "Solicitar acesso à produção". 4. Produção (subir AAB + notas → revisão).
 
 **Ideias & planos futuros → [`IDEIAS.md`](IDEIAS.md)** (fila pós-lançamento, datada e com
 status). Hoje lá: **mercado dedicado a um item** (Q1+Q2, `[EM DISCUSSÃO]` — formato a
