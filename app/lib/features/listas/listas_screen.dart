@@ -1296,9 +1296,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         onTap: () => ref
             .read(listasRepoProvider)
             .setComprado(atual.id, it.id, !it.comprado),
-        // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo
+        // FLAT: item sem caixinha — fundo do app, separado por linha fina embaixo.
+        // minHeight 40 = altura do IconButton da etiqueta (48 do tap target − 8
+        // do VisualDensity.compact): mantém a mesma proporção de altura mesmo
+        // com etiqueta, quantidade ou preço ocultos.
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+          constraints: const BoxConstraints(minHeight: 40),
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.lineStrong)),
           ),
