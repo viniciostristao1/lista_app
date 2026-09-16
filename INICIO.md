@@ -109,8 +109,9 @@ release (assets não contam cota). Ver `APRENDIZADOS.md`.
     **classificação de conteúdo** = respostas prontas em `LANCAMENTO.md`. ✅
   - **Keystore de upload** entregue ao usuário como backup (SHA-1 `FB:02:95:…:C0:F0`,
     senha no `key.properties`; existe local em `app/android/app/upload-keystore.jks`). ✅
-  - ⚠️ **Screenshots DESATUALIZADOS** (`store/screenshots/` = 01/ago, app v0.27) → o usuário
-    vai tirar prints novos do app atual no celular; eu formato p/ a loja e reponho.
+  - **Screenshots NOVOS (16/09)** em `store/screenshots/` (01-listas, 02-comparador,
+    03-precos-por-mercado, 04-pedidos), formatados p/ loja (1,98:1, RGB); crus em
+    `store/screenshots/originais/` p/ artes caprichadas futuras. ✅
 - **Decisão:** lançar em **PT agora**; EN/ES (já no app) como fichas traduzidas depois.
 - **Monetização:** grátis, sem anúncios (decisão do usuário).
 

@@ -80,16 +80,18 @@ Seus dados ficam só com você, sincronizados na nuvem com login pelo Google. Se
 |---|---|---|
 | **Ícone** | 512×512 PNG, ≤1 MB | ✅ `store/icon_512.png` |
 | **Feature graphic** | 1024×500 PNG/JPG | ✅ `store/feature_graphic.png` |
-| **Screenshots (telefone)** | 2 a 8, lado 320–3840px | ⚠️ **DESATUALIZADOS** (ver abaixo) |
+| **Screenshots (telefone)** | 2 a 8, lado 320–3840px, PNG 24-bit s/ alpha, ≤2:1 | ✅ 4 novos (16/09) |
 
-> ⚠️ **Screenshots precisam ser refeitos.** Os que estão em `store/screenshots/` são de
-> 01/ago (app na v0.27) e não mostram temas, Nota rápida/To-do, mercado favorito etc.
-> **O jeito mais simples e bonito:** abrir o app **atual no seu celular** e tirar 3–5 prints.
-> Sugestão de telas: **(1)** aba Listas com itens e a caixa "Economia/Total"; **(2)** aba Itens
-> mostrando o comparador de preço entre mercados; **(3)** aba Pedidos com o resumo do mês;
-> **(4)** a Nota rápida / To-do aberta; **(5)** Configurações com os temas. Me manda os prints
-> que eu ajusto pro formato da loja (padding pra ficar ≤2:1) e reponho em `store/screenshots/`.
-> *(Não dá pra gerar print bonito na VPS: sem emulador, o texto sai como quadradinhos.)*
+**Screenshots prontos em `store/screenshots/`** (app atual "Save List", formatados p/ a loja —
+proporção 1,98:1, RGB sem alpha):
+1. `01-listas.png` — aba Listas (título "Save List", mercado favorito ⭐, "Economia 43%")
+2. `02-comparador.png` — aba Itens: comparador de preço entre mercados ("economiza vs …")
+3. `03-precos-por-mercado.png` — editar item: preço por mercado (a base do comparador)
+4. `04-pedidos.png` — Pedidos: resumo do mês ("Em Agosto economizou R$ 153,64")
+
+> Os PNGs **crus** do celular ficam em `store/screenshots/originais/` — servem de base pras
+> **artes caprichadas** (moldura de celular + legendas) que dá pra fazer depois. Trocar
+> screenshots na loja é edição de ficha: **não** exige novo AAB nem reinicia o teste de 14 dias.
 
 ---
 
