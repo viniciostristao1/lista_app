@@ -9,3 +9,11 @@ Quando o usuário pedir uma melhoria/feature/bugfix e o trabalho for concluído 
 3. Informe o commit e o link do run do Actions.
 
 Não omita o link — o usuário espera o APK direto para instalar.
+
+## Lançamento na Play Store (AAB) — NÃO é o fluxo normal de melhoria
+> Melhoria/bugfix do dia a dia = fluxo acima (push → APK). O AAB só importa quando se quer
+> **publicar na Play Store**. Aqui o CI (`build-apk.yml`) **já compila o AAB junto** a cada push
+> e publica em `ci-latest/app-release.aab` — então o AAB está sempre atualizado; o que é **manual**
+> é fazer o **upload no Play Console** (o usuário faz; Play revisa). Cada upload novo na Play exige
+> `versionCode` (o `+N` do `pubspec`) maior. Pacote de loja (ficha/Data Safety/screenshots/política)
+> em [`LANCAMENTO.md`](LANCAMENTO.md). Uma IA **não** publica na loja; no máximo gera/aponta o AAB.
