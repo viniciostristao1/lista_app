@@ -13,6 +13,36 @@ esquecer. Evita re-discutir do zero e serve de fila pós-lançamento.
 
 ---
 
+## 0. Monetização — Premium (desbloqueio único)  — `[FUTURO]` · decidido 2026-09-16 (sai na **v1.1**, pós-lançamento)
+
+**Decisão do usuário:** modelo **freemium com desbloqueio ÚNICO vitalício** (não assinatura).
+- **Preço:** **R$ 24,90** vitalício · **promo de lançamento R$ 14,90**.
+- **Taxa do Google:** 15% (programa de pequenos negócios — inscrever) → sobra ~R$ 21.
+
+**Sequência (importante):** lançar **v1.0 grátis** primeiro (listing já diz "sem compras");
+o Play Billing **só é testável depois** que o app está numa trilha do Play + o produto criado
+no Console. Então: teste fechado 14d rodando → implementar Premium → **v1.1** já com compra +
+atualizar Data Safety/listing p/ "contém compras no app".
+
+**Split grátis × Premium** (Premium *adiciona* valor, não remove o que o grátis já tem):
+| Grátis | 🔓 Premium |
+|---|---|
+| Listas ilimitadas, catálogo, marcar/finalizar | Mercados **ilimitados** (grátis = até 3) |
+| Comparar até 3 mercados | **Histórico + gráfico** de evolução de preço |
+| Nota rápida / To-do · sync na nuvem | Aba **Pedidos completa** (resumos/análises) |
+| Tema Âmbar · histórico do mês atual | **Exportar/Backup** (PDF/CSV) · **todos os 4 temas** |
+| | *(futuro)* compartilhar lista com a família |
+
+**Implementação (quando for a hora):**
+- **RevenueCat** (camada sobre o Play Billing; grátis até ~US$2,5k/mês) — poupa dor de cabeça
+  e já adianta o iOS. Alternativa: Play Billing nativo.
+- Criar o **in-app product** (não-consumível) no Play Console.
+- `premiumProvider` (Riverpod, persistido) + `PremiumGate` nas features acima; **restaurar
+  compra** por login (o direito segue o usuário, como os dados no Firebase).
+- Tela de upsell curta ("compare mais mercados e veja o histórico → economize mais").
+
+---
+
 ## 1. Mercado dedicado a um item (perguntas 1 + 2)  — `[EM TESTE]` · **implementado 2026-07-30 (release A `v0.14.1-teste18`)**
 *(implementado; move pra `[FEITO]` quando o usuário validar. O que foi feito: `APRENDIZADOS.md` 2026-07-30.)*
 
