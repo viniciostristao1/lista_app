@@ -108,7 +108,7 @@ Dados coletados:
 
 Perguntas do formulário:
 - Dados **criptografados em trânsito**? **Sim** (Firebase usa HTTPS).
-- Usuário pode **pedir exclusão** dos dados? **Sim** (por e-mail).
+- Usuário pode **pedir exclusão** dos dados? **Sim** — página dedicada: https://viniciostristao1.github.io/lista-privacidade/exclusao.html (colar em Data Safety → "URL para exclusão de contas").
 - Dados **compartilhados com terceiros**? **Não** (Firebase/Google é só infraestrutura, processa
   em nome do app; não é venda nem compartilhamento).
 - Coleta para **publicidade**? **Não.** Sem anúncios.
@@ -125,6 +125,7 @@ o seu). → Resultado esperado: **Livre / Classificação L (todos)**.
 ## Política de privacidade e Termos
 - **Política de privacidade (obrigatória):** https://viniciostristao1.github.io/lista-privacidade/
 - **Termos de uso (opcional na Play, mas já criados):** https://viniciostristao1.github.io/lista-privacidade/termos.html
+- **Exclusão de conta e dados (Data Safety):** https://viniciostristao1.github.io/lista-privacidade/exclusao.html
 - Hospedadas no GitHub Pages (repo público `viniciostristao1/lista-privacidade`).
 
 ---
