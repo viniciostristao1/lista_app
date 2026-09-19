@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -219,23 +221,35 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     final t = _t;
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
+    final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> ctrl;
     if (!adicionado) {
-      messenger.showSnackBar(SnackBar(content: Text(t.itemJaNaLista)));
-      return;
+      ctrl = messenger.showSnackBar(SnackBar(
+        content: Text(t.itemJaNaLista),
+        duration: const Duration(seconds: 30), // fallback; fechamos manualmente
+      ));
+    } else {
+      ctrl = messenger.showSnackBar(SnackBar(
+        content: Text(t.itemAdicionadoLista),
+        duration: const Duration(seconds: 30), // fallback; fechamos manualmente
+        action: SnackBarAction(
+          label: t.verLista,
+          textColor: AppColors.green,
+          onPressed: () {
+            if (!mounted) return;
+            messenger.hideCurrentSnackBar();
+            ref.read(homeIndexProvider.notifier).definir(0);
+            Navigator.of(context).pop();
+          },
+        ),
+      ));
     }
-    messenger.showSnackBar(SnackBar(
-      content: Text(t.itemAdicionadoLista),
-      action: SnackBarAction(
-        label: t.verLista,
-        textColor: AppColors.green,
-        onPressed: () {
-          if (!mounted) return;
-          messenger.hideCurrentSnackBar();
-          ref.read(homeIndexProvider.notifier).definir(0);
-          Navigator.of(context).pop();
-        },
-      ),
-    ));
+    // Fecha em ~3s de forma confiável: o timer interno do SnackBar não dispara
+    // quando as animações do sistema estão desativadas (bug conhecido do Flutter).
+    Timer(const Duration(seconds: 3), () {
+      try {
+        ctrl.close();
+      } catch (_) {}
+    });
   }
 
   /// Abre a calculadora numa folha arrastável sobre o cadastro (dá pra ver os
