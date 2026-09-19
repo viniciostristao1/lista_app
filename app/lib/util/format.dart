@@ -49,6 +49,31 @@ double? parsePreco(String texto) {
   return double.tryParse(t);
 }
 
+/// Converte peso/volume/unidades num número para a calculadora.
+/// "500" + "g" -> 500 · "1,5" + "kg" -> 1500 · "500g" (sem unidade) -> 500.
+/// Unidade desconhecida/ausente vale 1 (o número puro). Null se não houver
+/// número.
+double? parseQuantidade(String? tamanho, String? unidade) {
+  final tam = (tamanho ?? '').trim();
+  if (tam.isEmpty) return null;
+  final n = parsePreco(tam);
+  if (n == null) return null;
+
+  // Sem unidade no campo "Unidade": tenta o sufixo do peso ("500g" -> "g").
+  final u = normalizarBusca(
+          (unidade ?? '').trim().isEmpty ? tam : (unidade ?? '').trim())
+      .replaceAll(RegExp(r'[^a-z]'), '');
+
+  final fator = switch (u) {
+    'kg' || 'quilo' || 'quilos' || 'quilograma' || 'quilogramas' => 1000.0,
+    'mg' || 'miligrama' || 'miligramas' => 0.001,
+    'l' || 'lt' || 'litro' || 'litros' => 1000.0,
+    'cl' => 10.0,
+    _ => 1.0,
+  };
+  return n * fator;
+}
+
 String normalizarBusca(String s) {
   final lower = s.toLowerCase();
   const map = {

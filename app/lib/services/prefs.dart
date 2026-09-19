@@ -130,6 +130,19 @@ final idiomaProvider = NotifierProvider<IdiomaNotifier, Idioma>(IdiomaNotifier.n
 final stringsProvider =
     Provider<AppStrings>((ref) => AppStrings(ref.watch(idiomaProvider)));
 
+/// Aba ativa da casca principal (0 = Listas, 1 = Itens, 2 = Pedidos).
+/// Não é persistida: serve pra telas de fora (ex.: o carrinho no editor de
+/// item) conseguirem pular pra aba Listas.
+class HomeIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void definir(int i) => state = i;
+}
+
+final homeIndexProvider =
+    NotifierProvider<HomeIndexNotifier, int>(HomeIndexNotifier.new);
+
 /// Tema escolhido pelo usuário (cores do app). Guardado no aparelho.
 class TemaNotifier extends Notifier<Tema> {
   static const _key = 'tema';

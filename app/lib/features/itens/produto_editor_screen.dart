@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lista_app/features/itens/calculadora_screen.dart';
 import 'package:lista_app/l10n/strings.dart';
 import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/mercado.dart';
@@ -202,6 +203,67 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
     }
   }
 
+  /// Adiciona o item (já salvo) à lista ativa. Mostra "Ver lista" pra pular
+  /// pra aba Listas; se o item já estiver na lista, só avisa.
+  Future<void> _adicionarALista() async {
+    final p = _p!;
+    final listaRepo = ref.read(listasRepoProvider);
+    final atual = await listaRepo.obterOuCriarAtiva();
+    final adicionado = await listaRepo.adicionarProdutoSeAusente(
+      atual.id,
+      produtoId: p.id,
+      nome: p.nome,
+      categoria: p.categoria,
+    );
+    if (!mounted) return;
+    final t = _t;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    if (!adicionado) {
+      messenger.showSnackBar(SnackBar(content: Text(t.itemJaNaLista)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(
+      content: Text(t.itemAdicionadoLista),
+      action: SnackBarAction(
+        label: t.verLista,
+        textColor: AppColors.green,
+        onPressed: () {
+          if (!mounted) return;
+          messenger.hideCurrentSnackBar();
+          ref.read(homeIndexProvider.notifier).definir(0);
+          Navigator.of(context).pop();
+        },
+      ),
+    ));
+  }
+
+  /// Abre a calculadora numa folha arrastável sobre o cadastro (dá pra ver os
+  /// preços atrás), já preenchida com os 2 menores preços do item e a
+  /// quantidade vinda do peso/unidade.
+  Future<void> _abrirCalculadora() async {
+    final precos = <double>[];
+    for (final m in widget.mercados) {
+      final digitado = parsePreco(_precoCtrls[m.id]!.text);
+      final valor = digitado ?? _p?.precos[m.id]?.valor;
+      if (valor != null) precos.add(valor);
+    }
+    precos.sort();
+    final tamanho =
+        _tamanho.text.trim().isEmpty ? _p?.tamanho : _tamanho.text;
+    final unidade =
+        _unidade.text.trim().isEmpty ? _p?.unidade : _unidade.text;
+    final qtd = parseQuantidade(tamanho, unidade);
+    if (!mounted) return;
+    await mostrarCalculadoraSobreCadastro(
+      context,
+      precoA: precos.isNotEmpty ? precos[0] : null,
+      qtdA: qtd,
+      precoB: precos.length > 1 ? precos[1] : null,
+      qtdB: qtd,
+    );
+  }
+
   Future<void> _excluir() async {
     final ok = await showDialog<bool>(
       context: context,
@@ -233,6 +295,17 @@ class _ProdutoEditorScreenState extends ConsumerState<ProdutoEditorScreen> {
       appBar: AppBar(
         title: Text(_editando ? t.editarItem : t.novoItem),
         actions: [
+          IconButton(
+            tooltip: t.calculadora,
+            icon: Icon(Icons.calculate_outlined, color: AppColors.dim),
+            onPressed: _abrirCalculadora,
+          ),
+          if (_editando)
+            IconButton(
+              tooltip: t.adicionarALista,
+              icon: Icon(Icons.shopping_cart_outlined, color: AppColors.green),
+              onPressed: _adicionarALista,
+            ),
           if (_editando)
             IconButton(
               tooltip: t.excluir,

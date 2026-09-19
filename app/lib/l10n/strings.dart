@@ -369,6 +369,15 @@ class AppStrings {
   // ---------- editor de produto ----------
   String get editarItem => _s('Editar item', 'Edit item', 'Editar artículo');
   String get novoItem => _s('Novo item', 'New item', 'Nuevo artículo');
+  String get adicionarALista =>
+      _s('Adicionar à lista', 'Add to list', 'Agregar a la lista');
+  String get itemAdicionadoLista => _s(
+      'Adicionado à lista 🛒', 'Added to the list 🛒', 'Agregado a la lista 🛒');
+  String get verLista => _s('Ver lista', 'View list', 'Ver lista');
+  String get calculadoraArrasteParaVerPrecos => _s(
+      'Arraste para baixo para ver os preços do cadastro.',
+      'Drag down to see the registered prices.',
+      'Arrastra hacia abajo para ver los precios del registro.');
   String get deUmNomeProduto => _s('Dá um nome pro produto 🙂',
       'Give the product a name 🙂', 'Ponle un nombre al producto 🙂');
   String get escolhaMercadoOuVoltar => _s(

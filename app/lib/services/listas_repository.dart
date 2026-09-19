@@ -92,8 +92,9 @@ class ListasRepository {
   Future<void> vincularProduto(String listaId, String itemId, String produtoId) =>
       _refs.itens(listaId).doc(itemId).update({'produtoId': produtoId});
 
-  /// Adiciona o produto à lista só se ainda não estiver (usado pelo "fixar").
-  Future<void> adicionarProdutoSeAusente(
+  /// Adiciona o produto à lista só se ainda não estiver (usado pelo "fixar" e
+  /// pelo carrinho no editor). Retorna `true` se adicionou, `false` se já havia.
+  Future<bool> adicionarProdutoSeAusente(
     String listaId, {
     required String produtoId,
     required String nome,
@@ -104,9 +105,10 @@ class ListasRepository {
         .where('produtoId', isEqualTo: produtoId)
         .limit(1)
         .get();
-    if (existentes.docs.isNotEmpty) return;
+    if (existentes.docs.isNotEmpty) return false;
     await adicionarItem(listaId,
         produtoId: produtoId, nome: nome, categoria: categoria);
+    return true;
   }
 
   /// Remove da lista os itens de um produto (usado ao "desfixar").

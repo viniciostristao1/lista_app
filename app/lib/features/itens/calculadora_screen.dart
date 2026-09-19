@@ -16,18 +16,93 @@ Future<void> mostrarCalculadora(BuildContext context) {
   );
 }
 
-class CalculadoraScreen extends ConsumerStatefulWidget {
+/// Abre a calculadora SOBRE a tela atual (ex.: cadastro do item) numa folha
+/// arrastável com fundo transparente: o cadastro continua visível atrás, pra
+/// conferir os preços cadastrados e comparar. Aceita valores iniciais (os
+/// preços/quantidades do item aberto).
+Future<void> mostrarCalculadoraSobreCadastro(
+  BuildContext context, {
+  double? precoA,
+  double? qtdA,
+  double? precoB,
+  double? qtdB,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.transparent,
+    builder: (_) => DraggableScrollableSheet(
+      initialChildSize: 0.58,
+      minChildSize: 0.24,
+      maxChildSize: 0.92,
+      expand: false,
+      builder: (context, scrollCtrl) => _FolhaCalculadora(
+        controleScroll: scrollCtrl,
+        precoA: precoA,
+        qtdA: qtdA,
+        precoB: precoB,
+        qtdB: qtdB,
+      ),
+    ),
+  );
+}
+
+class CalculadoraScreen extends ConsumerWidget {
   const CalculadoraScreen({super.key});
 
   @override
-  ConsumerState<CalculadoraScreen> createState() => _CalculadoraScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(stringsProvider);
+    return Scaffold(
+      appBar: AppBar(title: Text(t.calculadoraPreco)),
+      body: const CalculadoraConteudo(),
+    );
+  }
 }
 
-class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
-  final _precoA = TextEditingController();
-  final _qtdA = TextEditingController();
-  final _precoB = TextEditingController();
-  final _qtdB = TextEditingController();
+/// Corpo da calculadora (campos + resultado). Reutilizado na tela cheia
+/// (aba Itens) e na folha sobre o cadastro do item.
+class CalculadoraConteudo extends ConsumerStatefulWidget {
+  const CalculadoraConteudo({
+    super.key,
+    this.precoA,
+    this.qtdA,
+    this.precoB,
+    this.qtdB,
+    this.controleScroll,
+    this.cabecalho,
+    this.mostrarIntro = true,
+    this.padding = const EdgeInsets.fromLTRB(18, 12, 18, 40),
+  });
+
+  final double? precoA;
+  final double? qtdA;
+  final double? precoB;
+  final double? qtdB;
+  final ScrollController? controleScroll;
+  final Widget? cabecalho;
+  final bool mostrarIntro;
+  final EdgeInsets padding;
+
+  @override
+  ConsumerState<CalculadoraConteudo> createState() =>
+      _CalculadoraConteudoState();
+}
+
+class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
+  late final _precoA = TextEditingController(text: _textoPreco(widget.precoA));
+  late final _qtdA = TextEditingController(text: _textoQtd(widget.qtdA));
+  late final _precoB = TextEditingController(text: _textoPreco(widget.precoB));
+  late final _qtdB = TextEditingController(text: _textoQtd(widget.qtdB));
+
+  static String _textoPreco(double? v) => v == null ? '' : valorEditavel(v);
+
+  static String _textoQtd(double? v) {
+    if (v == null) return '';
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(2).replaceAll('.', ',');
+  }
 
   @override
   void dispose() {
@@ -64,30 +139,43 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(t.calculadoraPreco)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 40),
-        children: [
+    // Teclado aberto dentro da folha: sobe o conteúdo o suficiente pra não
+    // cobrir os campos (a folha arrastável continua no lugar). Na tela cheia
+    // quem cuida disso é o Scaffold (resizeToAvoidBottomInset), então só
+    // aplica o inset no modo folha (quando há um scroll controller externo).
+    final insets = widget.controleScroll == null
+        ? 0.0
+        : MediaQuery.of(context).viewInsets.bottom;
+    return ListView(
+      controller: widget.controleScroll,
+      padding: EdgeInsets.fromLTRB(
+        widget.padding.left,
+        widget.padding.top,
+        widget.padding.right,
+        widget.padding.bottom + insets,
+      ),
+      children: [
+        if (widget.cabecalho != null) widget.cabecalho!,
+        if (widget.mostrarIntro) ...[
           Text(
             t.calculadoraIntro,
             style: TextStyle(color: AppColors.dim, fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 18),
-          _blocoProduto(t.produtoA, _precoA, _qtdA),
-          const SizedBox(height: 14),
-          _blocoProduto(t.produtoB, _precoB, _qtdB),
-          const SizedBox(height: 20),
-          if (resultado != null)
-            resultado
-          else
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(t.preenchaOsDois,
-                  style: TextStyle(color: AppColors.dim2, fontSize: 13)),
-            ),
         ],
-      ),
+        _blocoProduto(t.produtoA, _precoA, _qtdA),
+        const SizedBox(height: 14),
+        _blocoProduto(t.produtoB, _precoB, _qtdB),
+        const SizedBox(height: 20),
+        if (resultado != null)
+          resultado
+        else
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(t.preenchaOsDois,
+                style: TextStyle(color: AppColors.dim2, fontSize: 13)),
+          ),
+      ],
     );
   }
 
@@ -271,6 +359,87 @@ class _CalculadoraScreenState extends ConsumerState<CalculadoraScreen> {
           Text(t.oBCusta(reais(precoB)),
               style: TextStyle(color: AppColors.dim, fontSize: 13.5)),
         ],
+      ),
+    );
+  }
+}
+
+/// Folha arrastável da calculadora sobre o cadastro. O fundo é transparente:
+/// dá pra arrastar pra baixo e conferir os preços cadastrados atrás.
+class _FolhaCalculadora extends ConsumerWidget {
+  const _FolhaCalculadora({
+    required this.controleScroll,
+    this.precoA,
+    this.qtdA,
+    this.precoB,
+    this.qtdB,
+  });
+
+  final ScrollController controleScroll;
+  final double? precoA;
+  final double? qtdA;
+  final double? precoB;
+  final double? qtdB;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(stringsProvider);
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: CalculadoraConteudo(
+        controleScroll: controleScroll,
+        mostrarIntro: false,
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+        precoA: precoA,
+        qtdA: qtdA,
+        precoB: precoB,
+        qtdB: qtdB,
+        cabecalho: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 5,
+                margin: const EdgeInsets.only(top: 4, bottom: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.dim2,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Icon(Icons.calculate_outlined,
+                    size: 20, color: AppColors.green),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    t.calculadoraPreco,
+                    style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+                IconButton(
+                  tooltip: t.fechar,
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close, size: 20, color: AppColors.dim),
+                ),
+              ],
+            ),
+            Text(
+              t.calculadoraArrasteParaVerPrecos,
+              style: TextStyle(color: AppColors.dim2, fontSize: 11.5),
+            ),
+            const SizedBox(height: 14),
+          ],
+        ),
       ),
     );
   }

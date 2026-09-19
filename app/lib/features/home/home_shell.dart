@@ -7,22 +7,16 @@ import 'package:lista_app/features/pedidos/pedidos_screen.dart';
 import 'package:lista_app/services/prefs.dart';
 
 /// Casca principal do app: as 3 abas (Listas, Itens, Pedidos).
-class HomeShell extends ConsumerStatefulWidget {
+class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
 
   @override
-  ConsumerState<HomeShell> createState() => _HomeShellState();
-}
-
-class _HomeShellState extends ConsumerState<HomeShell> {
-  int _index = 0;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = ref.watch(stringsProvider);
+    final index = ref.watch(homeIndexProvider);
     return Scaffold(
       body: IndexedStack(
-        index: _index,
+        index: index,
         children: const [
           ListasScreen(),
           ItensScreen(),
@@ -30,12 +24,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        selectedIndex: index,
+        onDestinationSelected: (i) =>
+            ref.read(homeIndexProvider.notifier).definir(i),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.checklist_outlined),
-            selectedIcon: const Icon(Icons.checklist_rounded),
+            icon: const Icon(Icons.shopping_cart_outlined),
+            selectedIcon: const Icon(Icons.shopping_cart_rounded),
             label: t.abaListas,
           ),
           NavigationDestination(
