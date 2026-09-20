@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/strings.dart';
 import '../models/categoria.dart';
+import '../models/ordem_lista.dart';
 import '../theme/palette.dart';
 
 /// Escala de fonte do app, escolhida pelo usuário e guardada no aparelho.
@@ -75,6 +76,42 @@ class CategoriaOrdemNotifier extends Notifier<List<Categoria>> {
 final categoriaOrdemProvider =
     NotifierProvider<CategoriaOrdemNotifier, List<Categoria>>(
         CategoriaOrdemNotifier.new);
+
+/// Modo de ordenação da lista (botão dinâmico no fim da lista: setor,
+/// alfabética, recentes ou preço). Guardado no aparelho.
+class OrdemListaNotifier extends Notifier<OrdemLista> {
+  static const _key = 'ordemLista';
+
+  @override
+  OrdemLista build() {
+    _restaurar();
+    return OrdemLista.setor;
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    final nome = p.getString(_key);
+    if (nome == null) return;
+    for (final o in OrdemLista.values) {
+      if (o.name == nome) {
+        state = o;
+        return;
+      }
+    }
+  }
+
+  Future<void> definir(OrdemLista ordem) async {
+    state = ordem;
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_key, ordem.name);
+  }
+
+  /// Avança pro próximo modo do ciclo (cada toque no botão).
+  Future<void> proxima() => definir(state.proxima);
+}
+
+final ordemListaProvider =
+    NotifierProvider<OrdemListaNotifier, OrdemLista>(OrdemListaNotifier.new);
 
 /// Idioma do app. Guardado no aparelho. Padrão na 1ª vez: segue o idioma do
 /// aparelho (pt → português, es → espanhol; senão inglês).

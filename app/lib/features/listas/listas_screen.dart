@@ -12,6 +12,7 @@ import 'package:lista_app/models/categoria.dart';
 import 'package:lista_app/models/item_lista.dart';
 import 'package:lista_app/models/lista.dart';
 import 'package:lista_app/models/mercado.dart';
+import 'package:lista_app/models/ordem_lista.dart';
 import 'package:lista_app/models/pedido.dart';
 import 'package:lista_app/models/produto.dart';
 import 'package:lista_app/services/auth_service.dart';
@@ -792,7 +793,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 else if (itensVisiveis.isEmpty)
                   _filtroVazio(mercadosPorId[filtro]?.nome)
                 else ...[
-                  ..._itensAgrupados(itensVisiveis, produtosPorId,
+                  ..._itensOrdenados(itensVisiveis, produtosPorId,
                       mercadosPorId, mercados, ordemCategorias, atual!),
                   _botoesControle(itensVisiveis, produtosPorId, mercadosPorId),
                 ],
@@ -868,15 +869,6 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
               _filtroSemMercado = false;
             }),
           ),
-          _chipFiltro(
-            label: _t.semMercado,
-            count: contagem[null] ?? 0,
-            selecionado: _filtroSemMercado,
-            onTap: () => setState(() {
-              _filtroSemMercado = true;
-              _filtroMercado = null;
-            }),
-          ),
           for (final m in naoFavoritos)
             _chipFiltro(
               label: m.nome,
@@ -888,6 +880,16 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
                 _filtroSemMercado = false;
               }),
             ),
+          // "Sem mercado" fica por último na prateleira.
+          _chipFiltro(
+            label: _t.semMercado,
+            count: contagem[null] ?? 0,
+            selecionado: _filtroSemMercado,
+            onTap: () => setState(() {
+              _filtroSemMercado = true;
+              _filtroMercado = null;
+            }),
+          ),
         ],
       ),
     );
@@ -1229,7 +1231,33 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
 
   // ---------- itens da lista ----------
 
-  List<Widget> _itensAgrupados(
+  /// Monta as linhas dos itens conforme o modo escolhido no botão dinâmico:
+  /// setor (agrupado, como sempre foi), alfabética, recentes ou preço.
+  List<Widget> _itensOrdenados(
+    List<ItemLista> itens,
+    Map<String, Produto> produtosPorId,
+    Map<String, Mercado> mercadosPorId,
+    List<Mercado> mercados,
+    List<Categoria> ordemCategorias,
+    Lista atual,
+  ) {
+    final ordem = ref.watch(ordemListaProvider);
+    if (ordem == OrdemLista.setor) {
+      return _itensPorSetor(itens, produtosPorId, mercadosPorId, mercados,
+          ordemCategorias, atual);
+    }
+    final ordenados = List.of(itens)
+      ..sort(_comparadorOrdem(ordem, produtosPorId));
+    return [
+      for (final it in ordenados)
+        _itemRow(
+            it, produtosPorId[it.produtoId], mercadosPorId, mercados, atual),
+    ];
+  }
+
+  /// Modo "Setor": agrupado pelas categorias na ordem do usuário, alfabético
+  /// dentro de cada grupo (comportamento original).
+  List<Widget> _itensPorSetor(
     List<ItemLista> itens,
     Map<String, Produto> produtosPorId,
     Map<String, Mercado> mercadosPorId,
@@ -1266,6 +1294,45 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       }
     }
     return widgets;
+  }
+
+  /// Comparador dos modos "corridos". Empate (e item sem data/preço) cai na
+  /// ordem alfabética; o que não tem data/preço vai pro fim.
+  int Function(ItemLista, ItemLista) _comparadorOrdem(
+    OrdemLista ordem,
+    Map<String, Produto> produtosPorId,
+  ) {
+    String nomeDe(ItemLista e) =>
+        (produtosPorId[e.produtoId]?.nome ?? e.nome).toLowerCase();
+    int porNome(ItemLista a, ItemLista b) =>
+        nomeDe(a).compareTo(nomeDe(b));
+
+    switch (ordem) {
+      case OrdemLista.alfabetica:
+        return porNome;
+      case OrdemLista.recentes:
+        return (a, b) {
+          final da = a.createdAt;
+          final db = b.createdAt;
+          if (da == null && db == null) return porNome(a, b);
+          if (da == null) return 1; // sem data vai pro fim
+          if (db == null) return -1;
+          final c = db.compareTo(da); // mais recente primeiro
+          return c != 0 ? c : porNome(a, b);
+        };
+      case OrdemLista.preco:
+        return (a, b) {
+          final pa = produtosPorId[a.produtoId]?.menorPreco;
+          final pb = produtosPorId[b.produtoId]?.menorPreco;
+          if (pa == null && pb == null) return porNome(a, b);
+          if (pa == null) return 1; // sem preço vai pro fim
+          if (pb == null) return -1;
+          final c = pa.compareTo(pb); // mais barato primeiro
+          return c != 0 ? c : porNome(a, b);
+        };
+      case OrdemLista.setor:
+        return porNome; // não usado (setor tem o agrupamento próprio)
+    }
   }
 
   Widget _itemRow(
@@ -1495,11 +1562,21 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     ];
     // Qualquer preço oculto → o toque mostra todos; nenhum → oculta todos.
     final algumPrecoOculto = ids.any(_precoOculto.contains);
+    final ordem = ref.watch(ordemListaProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
       child: Row(
         children: [
           const Spacer(),
+          // Botão dinâmico de ordenação: cada toque avança pro próximo modo
+          // (setor → alfabética → recentes → preço). O ícone mostra o atual.
+          _botaoControle(
+            marcado: false,
+            tooltip: '${_t.ordenarPor}: ${_t.ordemLista_(ordem)}',
+            onTap: () => ref.read(ordemListaProvider.notifier).proxima(),
+            child: Icon(_iconeOrdem(ordem), size: 18, color: AppColors.dim),
+          ),
+          const SizedBox(width: 8),
           _botaoControle(
             marcado: _etiquetasVisiveis,
             tooltip:
@@ -1569,6 +1646,13 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       ),
     );
   }
+
+  IconData _iconeOrdem(OrdemLista ordem) => switch (ordem) {
+        OrdemLista.setor => Icons.swap_vert,
+        OrdemLista.alfabetica => Icons.sort_by_alpha,
+        OrdemLista.recentes => Icons.schedule,
+        OrdemLista.preco => Icons.price_change_outlined,
+      };
 
   Widget _botaoControle({
     required bool marcado,

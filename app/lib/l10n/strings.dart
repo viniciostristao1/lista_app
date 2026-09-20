@@ -1,4 +1,5 @@
 import '../models/categoria.dart';
+import '../models/ordem_lista.dart';
 import '../theme/palette.dart';
 
 /// Idiomas suportados pelo app.
@@ -154,6 +155,13 @@ class AppStrings {
       _s('Mostrar etiquetas', 'Show labels', 'Mostrar etiquetas');
   String get ocultarEtiquetas =>
       _s('Ocultar etiquetas', 'Hide labels', 'Ocultar etiquetas');
+  String get ordenarPor => _s('Ordenar por', 'Sort by', 'Ordenar por');
+  String ordemLista_(OrdemLista o) => switch (o) {
+        OrdemLista.setor => _s('Setor', 'Section', 'Sección'),
+        OrdemLista.alfabetica => _s('Alfabética', 'A–Z', 'Alfabética'),
+        OrdemLista.recentes => _s('Recentes', 'Recent', 'Recientes'),
+        OrdemLista.preco => _s('Preço', 'Price', 'Precio'),
+      };
   String get itemSemPreco => _s(
       'Esse item ainda não tem preço.', 'This item has no price yet.',
       'Este artículo aún no tiene precio.');

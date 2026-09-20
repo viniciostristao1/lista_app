@@ -14,6 +14,7 @@ class ItemLista {
     this.preco,
     this.mercadoId,
     this.comprado = false,
+    this.createdAt,
   });
 
   final String id;
@@ -24,6 +25,9 @@ class ItemLista {
   final double? preco;
   final String? mercadoId;
   final bool comprado;
+
+  /// Quando o item entrou na lista (ordenação "Recentes").
+  final DateTime? createdAt;
 
   /// Quanto esse item soma no total (preço × quantidade), 0 se sem preço.
   double get subtotal => (preco ?? 0) * quantidade;
@@ -39,6 +43,7 @@ class ItemLista {
       preco: (d['preco'] as num?)?.toDouble(),
       mercadoId: d['mercadoId'] as String?,
       comprado: (d['comprado'] as bool?) ?? false,
+      createdAt: (d['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 }
