@@ -32,29 +32,67 @@ Future<void> mostrarCalculadoraSobreCadastro(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.transparent,
-    // Sobe a folha inteira junto com o teclado — sem isso os campos (preço,
-    // quantidade e por unidade) ficariam atrás dele. Com o teclado aberto ela
-    // também abre mais, pra caber os dois produtos.
-    builder: (ctx) {
-      final insets = MediaQuery.viewInsetsOf(ctx).bottom;
-      return Padding(
-        padding: EdgeInsets.only(bottom: insets),
-        child: DraggableScrollableSheet(
-          initialChildSize: insets > 0 ? 0.92 : 0.58,
-          minChildSize: 0.24,
-          maxChildSize: 0.92,
-          expand: false,
-          builder: (context, scrollCtrl) => _FolhaCalculadora(
-            controleScroll: scrollCtrl,
-            precoA: precoA,
-            qtdA: qtdA,
-            precoB: precoB,
-            qtdB: qtdB,
-          ),
-        ),
-      );
-    },
+    builder: (_) => _FolhaArrastavel(
+      precoA: precoA,
+      qtdA: qtdA,
+      precoB: precoB,
+      qtdB: qtdB,
+    ),
   );
+}
+
+/// Folha arrastável da calculadora sobre o cadastro. Sobe junto com o teclado
+/// e, depois que o usuário digita (o teclado apareceu uma vez), fica aberta —
+/// assim o resultado da comparação continua visível quando ele fecha o teclado.
+/// Dá pra arrastar até o topo e, quando quiser, arrastar de volta pra baixo.
+class _FolhaArrastavel extends StatefulWidget {
+  const _FolhaArrastavel({
+    this.precoA,
+    this.qtdA,
+    this.precoB,
+    this.qtdB,
+  });
+
+  final double? precoA;
+  final double? qtdA;
+  final double? precoB;
+  final double? qtdB;
+
+  @override
+  State<_FolhaArrastavel> createState() => _FolhaArrastavelState();
+}
+
+class _FolhaArrastavelState extends State<_FolhaArrastavel> {
+  bool _jaAbriuComTeclado = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+      _jaAbriuComTeclado = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insets = MediaQuery.viewInsetsOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: insets),
+      child: DraggableScrollableSheet(
+        initialChildSize: (_jaAbriuComTeclado || insets > 0) ? 1.0 : 0.58,
+        minChildSize: 0.24,
+        maxChildSize: 1.0,
+        expand: false,
+        builder: (context, scrollCtrl) => _FolhaCalculadora(
+          controleScroll: scrollCtrl,
+          precoA: widget.precoA,
+          qtdA: widget.qtdA,
+          precoB: widget.precoB,
+          qtdB: widget.qtdB,
+        ),
+      ),
+    );
+  }
 }
 
 class CalculadoraScreen extends ConsumerWidget {
@@ -135,13 +173,15 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
       final unitA = pA / qA;
       final unitB = pB / qB;
       final aNoPesoB = unitA * qB; // A com a quantidade de B
+      final bNoPesoA = unitB * qA; // B com a quantidade de A
       final aMaisBarato = unitA < unitB;
       final maior = unitA > unitB ? unitA : unitB;
       final menor = unitA < unitB ? unitA : unitB;
       final econPercent = maior > 0 ? (maior - menor) / maior * 100 : 0.0;
       resultado = _resultado(
         aNoPesoB: aNoPesoB,
-        precoB: pB,
+        bNoPesoA: bNoPesoA,
+        qtdA: qA,
         qtdB: qB,
         aMaisBarato: aMaisBarato,
         percent: econPercent,
@@ -330,9 +370,14 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
     );
   }
 
+  /// Quantidade sem zeros à toa: 600 -> "600"; 1,5 -> "1,50".
+  String _fmtQtd(double v) =>
+      v.toStringAsFixed(v.truncateToDouble() == v ? 0 : 2);
+
   Widget _resultado({
     required double aNoPesoB,
-    required double precoB,
+    required double bNoPesoA,
+    required double qtdA,
     required double qtdB,
     required bool aMaisBarato,
     required double percent,
@@ -366,15 +411,16 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
             ],
           ),
           const SizedBox(height: 12),
+          // A comparação nos dois sentidos, cada um com a quantidade do outro.
           Text(
-            t.comQtdBCustaria(
-                qtdB.toStringAsFixed(qtdB.truncateToDouble() == qtdB ? 0 : 2),
-                reais(aNoPesoB)),
+            t.comQtdBCustaria(_fmtQtd(qtdB), reais(aNoPesoB)),
             style: TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4),
           ),
           const SizedBox(height: 4),
-          Text(t.oBCusta(reais(precoB)),
-              style: TextStyle(color: AppColors.dim, fontSize: 13.5)),
+          Text(
+            t.comQtdACustaria(_fmtQtd(qtdA), reais(bNoPesoA)),
+            style: TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4),
+          ),
         ],
       ),
     );

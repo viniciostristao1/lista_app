@@ -308,19 +308,19 @@ class AppStrings {
       'Fill in price and quantity for both.',
       'Completa precio y cantidad de los dos.');
   String vencedorMaisBarato(String vencedor, String percent) => switch (idioma) {
-        Idioma.pt => '$vencedor é mais barato ($percent% mais barato)',
-        Idioma.en => '$vencedor is cheaper ($percent% cheaper)',
-        Idioma.es => '$vencedor es más barato ($percent% más barato)',
+        Idioma.pt => '$vencedor é mais barato $percent%',
+        Idioma.en => '$vencedor is cheaper by $percent%',
+        Idioma.es => '$vencedor es más barato $percent%',
       };
   String comQtdBCustaria(String qtdB, String valor) => switch (idioma) {
-        Idioma.pt => 'Com a quantidade do B ($qtdB), o A custaria $valor.',
+        Idioma.pt => 'Com a quantidade de B ($qtdB), A custaria $valor.',
         Idioma.en => 'With B\'s quantity ($qtdB), A would cost $valor.',
-        Idioma.es => 'Con la cantidad del B ($qtdB), el A costaría $valor.',
+        Idioma.es => 'Con la cantidad de B ($qtdB), A costaría $valor.',
       };
-  String oBCusta(String valor) => switch (idioma) {
-        Idioma.pt => 'O B custa $valor.',
-        Idioma.en => 'B costs $valor.',
-        Idioma.es => 'El B cuesta $valor.',
+  String comQtdACustaria(String qtdA, String valor) => switch (idioma) {
+        Idioma.pt => 'Com a quantidade de A ($qtdA), B custaria $valor.',
+        Idioma.en => 'With A\'s quantity ($qtdA), B would cost $valor.',
+        Idioma.es => 'Con la cantidad de A ($qtdA), B costaría $valor.',
       };
 
   // ---------- pedidos ----------
