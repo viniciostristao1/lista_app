@@ -362,7 +362,9 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      for (var i = 0; i < ordenados.length; i++)
+                      // No máximo 2 mercados por item (o mais barato e o 2º),
+                      // mesmo que haja preço em mais mercados.
+                      for (var i = 0; i < ordenados.length && i < 2; i++)
                         _pilulaPreco(
                           mercado: mercadosPorId[ordenados[i].key],
                           preco: ordenados[i].value,
