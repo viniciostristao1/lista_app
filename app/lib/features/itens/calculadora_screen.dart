@@ -32,19 +32,28 @@ Future<void> mostrarCalculadoraSobreCadastro(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.transparent,
-    builder: (_) => DraggableScrollableSheet(
-      initialChildSize: 0.58,
-      minChildSize: 0.24,
-      maxChildSize: 0.92,
-      expand: false,
-      builder: (context, scrollCtrl) => _FolhaCalculadora(
-        controleScroll: scrollCtrl,
-        precoA: precoA,
-        qtdA: qtdA,
-        precoB: precoB,
-        qtdB: qtdB,
-      ),
-    ),
+    // Sobe a folha inteira junto com o teclado — sem isso os campos (preço,
+    // quantidade e por unidade) ficariam atrás dele. Com o teclado aberto ela
+    // também abre mais, pra caber os dois produtos.
+    builder: (ctx) {
+      final insets = MediaQuery.viewInsetsOf(ctx).bottom;
+      return Padding(
+        padding: EdgeInsets.only(bottom: insets),
+        child: DraggableScrollableSheet(
+          initialChildSize: insets > 0 ? 0.92 : 0.58,
+          minChildSize: 0.24,
+          maxChildSize: 0.92,
+          expand: false,
+          builder: (context, scrollCtrl) => _FolhaCalculadora(
+            controleScroll: scrollCtrl,
+            precoA: precoA,
+            qtdA: qtdA,
+            precoB: precoB,
+            qtdB: qtdB,
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -139,21 +148,9 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
       );
     }
 
-    // Teclado aberto dentro da folha: sobe o conteúdo o suficiente pra não
-    // cobrir os campos (a folha arrastável continua no lugar). Na tela cheia
-    // quem cuida disso é o Scaffold (resizeToAvoidBottomInset), então só
-    // aplica o inset no modo folha (quando há um scroll controller externo).
-    final insets = widget.controleScroll == null
-        ? 0.0
-        : MediaQuery.of(context).viewInsets.bottom;
     return ListView(
       controller: widget.controleScroll,
-      padding: EdgeInsets.fromLTRB(
-        widget.padding.left,
-        widget.padding.top,
-        widget.padding.right,
-        widget.padding.bottom + insets,
-      ),
+      padding: widget.padding,
       children: [
         if (widget.cabecalho != null) widget.cabecalho!,
         if (widget.mostrarIntro) ...[
