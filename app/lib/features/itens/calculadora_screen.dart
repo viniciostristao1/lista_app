@@ -168,13 +168,18 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
     final pA = _num(_precoA), qA = _num(_qtdA);
     final pB = _num(_precoB), qB = _num(_qtdB);
 
+    // Preço por unidade dos dois (null se algum campo ainda não é válido).
+    final unitA = (pA != null && qA != null && qA > 0) ? pA / qA : null;
+    final unitB = (pB != null && qB != null && qB > 0) ? pB / qB : null;
+    final aEhMaisBarato =
+        unitA != null && unitB != null && unitA < unitB;
+    final bEhMaisBarato =
+        unitA != null && unitB != null && unitB < unitA;
+
     Widget? resultado;
-    if (pA != null && qA != null && qA > 0 && pB != null && qB != null && qB > 0) {
-      final unitA = pA / qA;
-      final unitB = pB / qB;
+    if (unitA != null && unitB != null && qA != null && qB != null) {
       final aNoPesoB = unitA * qB; // A com a quantidade de B
       final bNoPesoA = unitB * qA; // B com a quantidade de A
-      final aMaisBarato = unitA < unitB;
       final maior = unitA > unitB ? unitA : unitB;
       final menor = unitA < unitB ? unitA : unitB;
       final econPercent = maior > 0 ? (maior - menor) / maior * 100 : 0.0;
@@ -183,7 +188,7 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
         bNoPesoA: bNoPesoA,
         qtdA: qA,
         qtdB: qB,
-        aMaisBarato: aMaisBarato,
+        aMaisBarato: aEhMaisBarato,
         percent: econPercent,
       );
     }
@@ -200,9 +205,9 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
           ),
           const SizedBox(height: 18),
         ],
-        _blocoProduto(t.produtoA, _precoA, _qtdA),
+        _blocoProduto(t.produtoA, _precoA, _qtdA, maisBarato: aEhMaisBarato),
         const SizedBox(height: 14),
-        _blocoProduto(t.produtoB, _precoB, _qtdB),
+        _blocoProduto(t.produtoB, _precoB, _qtdB, maisBarato: bEhMaisBarato),
         const SizedBox(height: 20),
         if (resultado != null)
           resultado
@@ -217,7 +222,11 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
   }
 
   Widget _blocoProduto(
-      String titulo, TextEditingController preco, TextEditingController qtd) {
+    String titulo,
+    TextEditingController preco,
+    TextEditingController qtd, {
+    required bool maisBarato,
+  }) {
     final t = ref.watch(stringsProvider);
     final p = _num(preco), q = _num(qtd);
     final porUnidade = (p != null && q != null && q > 0) ? p / q : null;
@@ -234,11 +243,23 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
           Row(
             children: [
               Expanded(
-                child: Text(titulo,
-                    style: TextStyle(
-                        color: AppColors.text,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(titulo,
+                          style: TextStyle(
+                              color: AppColors.text,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                    // "V" verde no produto com o menor preço por unidade.
+                    if (maisBarato) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.check_rounded,
+                          size: 18, color: AppColors.green),
+                    ],
+                  ],
+                ),
               ),
               // Vassoura: limpa preço e quantidade deste produto (o "por
               // unidade" some junto, pois é calculado).
@@ -275,8 +296,33 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(t.quantidadeEmUnidades,
-              style: TextStyle(color: AppColors.dim2, fontSize: 10.5)),
+          // Dica da quantidade + o mesmo preço multiplicado por 1000 (na
+          // mesma fonte/tamanho, alinhado à direita).
+          Row(
+            children: [
+              Expanded(
+                child: Text(t.quantidadeEmUnidades,
+                    style: TextStyle(color: AppColors.dim2, fontSize: 10.5)),
+              ),
+              if (porUnidade != null) ...[
+                const SizedBox(width: 8),
+                Text.rich(
+                  TextSpan(
+                    text: 'x1000 = ',
+                    style: TextStyle(color: AppColors.dim2, fontSize: 10.5),
+                    children: [
+                      TextSpan(
+                        text: _fmtUnidade(porUnidade * 1000),
+                        style: TextStyle(
+                            color: AppColors.green,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
