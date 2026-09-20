@@ -71,7 +71,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
   Widget build(BuildContext context) {
     final t = ref.watch(stringsProvider);
     final produtosAsync = ref.watch(produtosProvider);
-    final mercados = ref.watch(mercadosProvider).asData?.value ?? [];
+    final mercados = ref.watch(mercadosOrdenadosProvider);
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
     return Scaffold(

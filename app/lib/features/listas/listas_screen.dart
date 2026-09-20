@@ -153,7 +153,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Future<void> _adicionarECadastrar(String nome) async {
-    final mercados = ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
+    final mercados = ref.read(mercadosOrdenadosProvider);
     final id = await mostrarEditorProduto(context, null, mercados, nomeInicial: nome);
     if (id == null) return;
     final listaRepo = ref.read(listasRepoProvider);
@@ -164,18 +164,22 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
   }
 
   Future<void> _cadastrarLembrete(ItemLista it, Lista atual) async {
-    final mercados = ref.read(mercadosProvider).asData?.value ?? const <Mercado>[];
+    final mercados = ref.read(mercadosOrdenadosProvider);
     final id = await mostrarEditorProduto(context, null, mercados,
         nomeInicial: it.nome, mercadoFixoInicial: it.mercadoId);
     if (id == null) return;
     await ref.read(listasRepoProvider).vincularProduto(atual.id, it.id, id);
   }
 
-  // Mercados com o ⭐ preferido primeiro.
-  List<Mercado> _mercadosOrdenados(List<Mercado> mercados) => [
-        ...mercados.where((m) => m.preferencia),
-        ...mercados.where((m) => !m.preferencia),
-      ];
+  // Mercados pra escolher/cadastrar num item: no automático o ⭐ preferido vem
+  // primeiro; no manual vale a ordem que o usuário arrumou (já vem ordenada).
+  List<Mercado> _mercadosOrdenados(List<Mercado> mercados) {
+    if (!ref.read(mercadosAutoProvider)) return mercados;
+    return [
+      ...mercados.where((m) => m.preferencia),
+      ...mercados.where((m) => !m.preferencia),
+    ];
+  }
 
   // Enter no teclado: adiciona o item digitado. Se já existe no catálogo, puxa
   // esse; senão, cadastra e adiciona. (Item sem preço vai pro preferido/Todos.)
@@ -681,7 +685,7 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
     final atual = ativas.isEmpty ? null : ativas.first;
     final produtos = ref.watch(produtosProvider).asData?.value ?? const [];
     final produtosPorId = {for (final p in produtos) p.id: p};
-    final mercados = ref.watch(mercadosProvider).asData?.value ?? const [];
+    final mercados = ref.watch(mercadosOrdenadosProvider);
     final ordemCategorias = ref.watch(categoriaOrdemProvider);
     final mercadosPorId = {for (final m in mercados) m.id: m};
 
@@ -832,6 +836,17 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
       final m = _mercadoEfetivo(it, produtosPorId[it.produtoId]);
       contagem[m] = (contagem[m] ?? 0) + 1;
     }
+    // Modo manual: chips na ordem arrumada pelo usuário (incluindo as posições
+    // de "Todos" e "Sem mercado", que também podem ser arrastados).
+    if (!ref.watch(mercadosAutoProvider)) {
+      return SizedBox(
+        height: 38,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: _chipsManuais(mercados, filtro, contagem, itens),
+        ),
+      );
+    }
     final naoFavoritos = mercados.where((m) => !m.preferencia).toList()
       ..sort((a, b) {
         final ca = contagem[a.id] ?? 0;
@@ -893,6 +908,84 @@ class _ListasScreenState extends ConsumerState<ListasScreen> {
         ],
       ),
     );
+  }
+
+  // ---------- prateleira no modo manual ----------
+
+  /// Ordem salva normalizada: ids de mercado que ainda existem, tokens de
+  /// Todos/Sem mercado presentes, e mercados novos no fim do bloco de mercados
+  /// (antes do "Sem mercado").
+  List<String> _ordemMercadosCompleta(List<Mercado> mercados) {
+    final resultado = <String>[];
+    for (final token in ref.read(mercadosOrdemProvider)) {
+      if (token == tokenTodos || token == tokenSemMercado) {
+        if (!resultado.contains(token)) resultado.add(token);
+      } else if (mercados.any((m) => m.id == token) &&
+          !resultado.contains(token)) {
+        resultado.add(token);
+      }
+    }
+    if (!resultado.contains(tokenTodos)) resultado.insert(0, tokenTodos);
+    final novos = [
+      for (final m in mercados)
+        if (!resultado.contains(m.id)) m.id,
+    ];
+    if (novos.isNotEmpty) {
+      final i = resultado.indexOf(tokenSemMercado);
+      resultado.insertAll(i == -1 ? resultado.length : i, novos);
+    }
+    if (!resultado.contains(tokenSemMercado)) resultado.add(tokenSemMercado);
+    return resultado;
+  }
+
+  List<Widget> _chipsManuais(
+    List<Mercado> mercados,
+    String? filtro,
+    Map<String?, int> contagem,
+    List<ItemLista> itens,
+  ) {
+    final porId = {for (final m in mercados) m.id: m};
+    final chips = <Widget>[];
+    for (final token in _ordemMercadosCompleta(mercados)) {
+      if (token == tokenTodos) {
+        chips.add(_chipFiltro(
+          label: _t.todos,
+          count: itens.length,
+          selecionado: filtro == null && !_filtroSemMercado,
+          onTap: () => setState(() {
+            _filtroMercado = null;
+            _filtroSemMercado = false;
+          }),
+        ));
+        continue;
+      }
+      if (token == tokenSemMercado) {
+        chips.add(_chipFiltro(
+          label: _t.semMercado,
+          count: contagem[null] ?? 0,
+          selecionado: _filtroSemMercado,
+          onTap: () => setState(() {
+            _filtroSemMercado = true;
+            _filtroMercado = null;
+          }),
+        ));
+        continue;
+      }
+      final m = porId[token];
+      if (m == null) continue;
+      chips.add(_chipFiltro(
+        label: m.nome,
+        cor: m.cor,
+        estrela: m.preferencia,
+        count: contagem[m.id] ?? 0,
+        selecionado: !_filtroSemMercado && filtro == m.id,
+        onTap: () => setState(() {
+          _filtroMercado = m.id;
+          _filtroSemMercado = false;
+        }),
+      ));
+    }
+    return chips;
   }
 
   Widget _chipFiltro({

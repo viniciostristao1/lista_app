@@ -77,6 +77,62 @@ final categoriaOrdemProvider =
     NotifierProvider<CategoriaOrdemNotifier, List<Categoria>>(
         CategoriaOrdemNotifier.new);
 
+/// Se a prateleira de mercados usa a ordem automática (⭐ favorito → Todos →
+/// demais por uso → Sem mercado). Desligado = ordem arrumada pelo usuário.
+/// Guardado no aparelho.
+class MercadosAutoNotifier extends Notifier<bool> {
+  static const _key = 'mercadosAuto';
+
+  @override
+  bool build() {
+    _restaurar();
+    return true; // padrão: automático ligado
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    final v = p.getBool(_key);
+    if (v != null) state = v;
+  }
+
+  Future<void> definir(bool v) async {
+    state = v;
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_key, v);
+  }
+}
+
+final mercadosAutoProvider =
+    NotifierProvider<MercadosAutoNotifier, bool>(MercadosAutoNotifier.new);
+
+/// Ordem manual da prateleira de mercados: IDs de mercado + os tokens fixos
+/// "Todos" e "Sem mercado" (ver mercados_repository.dart). Guardada no aparelho.
+class MercadosOrdemNotifier extends Notifier<List<String>> {
+  static const _key = 'mercadosOrdem';
+
+  @override
+  List<String> build() {
+    _restaurar();
+    return const [];
+  }
+
+  Future<void> _restaurar() async {
+    final p = await SharedPreferences.getInstance();
+    final v = p.getStringList(_key);
+    if (v != null) state = v;
+  }
+
+  Future<void> definir(List<String> ordem) async {
+    state = List.of(ordem);
+    final p = await SharedPreferences.getInstance();
+    await p.setStringList(_key, ordem);
+  }
+}
+
+final mercadosOrdemProvider =
+    NotifierProvider<MercadosOrdemNotifier, List<String>>(
+        MercadosOrdemNotifier.new);
+
 /// Modo de ordenação da lista (botão dinâmico no fim da lista: setor,
 /// alfabética, recentes ou preço). Guardado no aparelho.
 class OrdemListaNotifier extends Notifier<OrdemLista> {

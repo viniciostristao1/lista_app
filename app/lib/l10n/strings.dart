@@ -462,13 +462,11 @@ class AppStrings {
 
   // ---------- editor de mercados ----------
   String get meusMercados => _s('Meus mercados', 'My stores', 'Mis tiendas');
-  String get mercadosDescricao => _s(
-      'Mercados, farmácia, shopping, Amazon… até 8. Toque numa cor pra trocar. '
-          'Marque ⭐ o principal — fica ao lado de "Todos" e vem primeiro ao adicionar.',
-      'Stores, pharmacy, mall, Amazon… up to 8. Tap a color to change it. '
-          'Star ⭐ the main one — it sits next to "All" and comes first when adding.',
-      'Tiendas, farmacia, shopping, Amazon… hasta 8. Toca un color para cambiarlo. '
-          'Marca ⭐ la principal — queda al lado de "Todos" y aparece primero al agregar.');
+  String get automatico => _s('Automático', 'Automatic', 'Automático');
+  String get dicaArrastarMercados => _s(
+      'Arraste pelos 6 pontinhos pra mudar a ordem.',
+      'Drag by the 6 dots to change the order.',
+      'Arrastra por los 6 puntos para cambiar el orden.');
   String get adicionarMercado =>
       _s('Adicionar mercado', 'Add store', 'Agregar tienda');
   String get salvarMercados =>
