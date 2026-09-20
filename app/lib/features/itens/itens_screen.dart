@@ -21,11 +21,26 @@ class ItensScreen extends ConsumerStatefulWidget {
 }
 
 class _ItensScreenState extends ConsumerState<ItensScreen> {
+  final _buscaCtrl = TextEditingController();
   String _busca = ''; // minúsculo, p/ comparação
   String _buscaRaw = ''; // como digitado, p/ pré-preencher o cadastro
 
   /// Assinatura do conjunto de mercados já higienizado (evita repetir a limpeza).
   String? _limpezaFeitaPara;
+
+  @override
+  void dispose() {
+    _buscaCtrl.dispose();
+    super.dispose();
+  }
+
+  void _limparBusca() {
+    _buscaCtrl.clear();
+    setState(() {
+      _buscaRaw = '';
+      _busca = '';
+    });
+  }
 
   /// Backstop: apaga do banco preços de mercados que não existem mais. Roda uma
   /// vez por conjunto de mercados, e só quando há órfão de fato. Nunca com lista
@@ -86,6 +101,7 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: TextField(
+              controller: _buscaCtrl,
               onChanged: (v) => setState(() {
                 _buscaRaw = v.trim();
                 _busca = _buscaRaw.toLowerCase();
@@ -96,6 +112,14 @@ class _ItensScreenState extends ConsumerState<ItensScreen> {
                 hintStyle: TextStyle(color: AppColors.dim2),
                 prefixIcon:
                     Icon(Icons.search, color: AppColors.dim, size: 20),
+                suffixIcon: _buscaRaw.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: t.limparBusca,
+                        icon: Icon(Icons.cleaning_services_rounded,
+                            color: AppColors.dim, size: 18),
+                        onPressed: _limparBusca,
+                      ),
                 isDense: true,
                 filled: true,
                 fillColor: AppColors.surface,

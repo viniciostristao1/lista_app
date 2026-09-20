@@ -194,12 +194,32 @@ class _CalculadoraConteudoState extends ConsumerState<CalculadoraConteudo> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(titulo,
-              style: TextStyle(
-                  color: AppColors.text,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(titulo,
+                    style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+              ),
+              // Vassoura: limpa preço e quantidade deste produto (o "por
+              // unidade" some junto, pois é calculado).
+              IconButton(
+                tooltip: t.limpar,
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                icon: Icon(Icons.cleaning_services_rounded,
+                    size: 18, color: AppColors.dim),
+                onPressed: () => setState(() {
+                  preco.clear();
+                  qtd.clear();
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
