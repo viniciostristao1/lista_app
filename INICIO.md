@@ -55,9 +55,18 @@ Toda mudança visível ganha um `MINOR` novo. `B` (fallback testado) **nunca** �
 **Cota de artefato (Actions) NÃO se usa** — foi abandonada (estourou 500 MB); tudo vai por
 release (assets não contam cota). Ver `APRENDIZADOS.md`.
 
-## ⭐ ESTADO ATUAL (2026-08-10) — ler primeiro pós-/clear
+## ⭐ ESTADO ATUAL (2026-09-29) — ler primeiro pós-/clear
 
-**O app está COMPLETO e funcional** (em Português). Fase atual = **LANÇAMENTO na Play Store**.
+**O app está COMPLETO e funcional** (em Português). Fase atual = **LANÇAMENTO na Play Store — envio em andamento (teste fechado)**.
+
+> **2026-09-29 · `v1.0.1` (versionCode 2):** primeiro envio ao Play Console barrou na declaração
+> de *alarme exato*. Como o app é lista de compras (não despertador/agenda), a `USE_EXACT_ALARM`
+> não se qualifica → removidas as DUAS permissões (`SCHEDULE/USE_EXACT_ALARM`) do manifesto e o
+> agendamento de lembretes trocado p/ `inexactAllowWhileIdle` (some a declaração e o risco de
+> reprovação; lembretes podem atrasar minutos). **AAB p/ upload:** link fixo
+> `releases/latest/download/lista-app.aab`. ⚠️ **Próximo risco provável:** a permissão
+> `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` também é sensível — pode pedir declaração/reprovar; avaliar
+> remover (feature "pedir ignorar bateria") se o Google reclamar.
 
 **O que existe e funciona:**
 - 3 abas completas: **Listas** (compra atual, busca no catálogo, economia, quantidade,
