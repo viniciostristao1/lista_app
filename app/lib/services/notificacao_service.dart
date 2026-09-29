@@ -53,7 +53,6 @@ class NotificacaoService {
     await androidImpl?.deleteNotificationChannel(_chanAntigoV1);
     await androidImpl?.deleteNotificationChannel('lembretes');
     await androidImpl?.requestNotificationsPermission();
-    await androidImpl?.requestExactAlarmsPermission();
     await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
     _inited = true;
   }
@@ -91,35 +90,16 @@ class NotificacaoService {
 
   tz.TZDateTime _toZonedLocal(DateTime dt) => tz.TZDateTime(tz.local, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
 
-  Future<bool> _canExact() async {
-    try {
-      final impl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      final ok = await impl?.canScheduleExactNotifications();
-      if (ok != null) return ok;
-    } catch (_) {}
-    return true;
-  }
-
   Future<DateTime?> _zoned(int id, String titulo, String? corpo, tz.TZDateTime at, NotificationDetails details, String payload, {DateTimeComponents? match}) async {
     final minAt = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
     final when = at.isBefore(minAt) ? minAt : at;
-    final canExact = await _canExact();
-    final modos = <AndroidScheduleMode>[];
-    if (canExact) {
-      modos.add(AndroidScheduleMode.exactAllowWhileIdle);
-      modos.add(AndroidScheduleMode.alarmClock);
-    } else {
-      modos.add(AndroidScheduleMode.alarmClock);
-      modos.add(AndroidScheduleMode.exactAllowWhileIdle);
-    }
-    modos.add(AndroidScheduleMode.inexactAllowWhileIdle);
-    for (final modo in modos) {
-      try {
-        await _plugin.zonedSchedule(id, titulo, corpo, when, details, androidScheduleMode: modo, payload: payload, matchDateTimeComponents: match);
-        return DateTime(when.year, when.month, when.day, when.hour, when.minute, when.second);
-      } catch (e) {
-        debugPrint('SaveList/notif: modo $modo falhou: $e');
-      }
+    // Sem permissão de alarme exato (removida por política da Play Store): usamos o modo
+    // inexato, que não exige permissão. O Android pode atrasar alguns minutos, mas dispara.
+    try {
+      await _plugin.zonedSchedule(id, titulo, corpo, when, details, androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, payload: payload, matchDateTimeComponents: match);
+      return DateTime(when.year, when.month, when.day, when.hour, when.minute, when.second);
+    } catch (e) {
+      debugPrint('SaveList/notif: agendamento inexato falhou: $e');
     }
     return null;
   }
@@ -287,12 +267,10 @@ class NotificacaoService {
       iOS: const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
     );
     final zonedId = _idFor(id, d.inMinutes + DateTime.now().millisecondsSinceEpoch % 10000);
-    final canExact = await _canExact();
-    final modo = canExact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.alarmClock;
     try {
-      await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: modo, payload: lembreteIdOrPayload);
-    } catch (_) {
       await _plugin.zonedSchedule(zonedId, t, desc, at, details, androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, payload: lembreteIdOrPayload);
+    } catch (e) {
+      debugPrint('SaveList/notif: adiar (inexato) falhou: $e');
     }
   }
 
